@@ -65,7 +65,7 @@ Les fichiers `README.md` de ces dossiers ne sont pas des fiches. Un champ non pe
   - `check_record(path: Path, root: Path) -> list[str]` (contrôle de fiche selon le dossier, d'après le tableau « Formats des fiches »)
   - `main(argv: list[str] | None = None) -> int`
 
-- [ ] **Étape 1 : écrire les tests qui échouent** dans `scripts/test_check_docs.py` (`unittest`, chaque test crée son arborescence dans un `tempfile.TemporaryDirectory`) :
+- [x] **Étape 1 : écrire les tests qui échouent** dans `scripts/test_check_docs.py` (`unittest`, chaque test crée son arborescence dans un `tempfile.TemporaryDirectory`) :
 
 ```python
 class LinkTests(unittest.TestCase):
@@ -95,26 +95,26 @@ class MainTests(unittest.TestCase):
     def test_main_returns_0_on_clean_tree(self):
 ```
 
-- [ ] **Étape 2 : lancer les tests et constater l'échec**
+- [x] **Étape 2 : lancer les tests et constater l'échec**
 
 Commande : `python3 -m unittest discover -s scripts -p 'test_*.py' -v`
 Attendu : ÉCHEC (`ModuleNotFoundError: No module named 'check_docs'`).
 
-- [ ] **Étape 3 : implémenter `scripts/check_docs.py`.** Les règles des fiches sont une table `RECORD_RULES: dict[str, RecordRule]` (dossier relatif → type attendu, champs, valeurs contraintes, sections) recopiée du tableau « Formats des fiches ». Les liens sont repérés par l'expression `!?\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)` hors blocs ```` ``` ````. Les cibles sont décodées (`urllib.parse.unquote`) et résolues depuis le dossier du fichier.
+- [x] **Étape 3 : implémenter `scripts/check_docs.py`.** Les règles des fiches sont une table `RECORD_RULES: dict[str, RecordRule]` (dossier relatif → type attendu, champs, valeurs contraintes, sections) recopiée du tableau « Formats des fiches ». Les liens sont repérés par l'expression `!?\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)` hors blocs ```` ``` ````. Les cibles sont décodées (`urllib.parse.unquote`) et résolues depuis le dossier du fichier.
 
-- [ ] **Étape 4 : relancer les tests jusqu'au succès**
+- [x] **Étape 4 : relancer les tests jusqu'au succès**
 
 Commande : `python3 -m unittest discover -s scripts -p 'test_*.py' -v`
 Attendu : tous les tests `OK`.
 
-- [ ] **Étape 5 : exécuter le vérificateur sur le dépôt**
+- [x] **Étape 5 : exécuter le vérificateur sur le dépôt**
 
 Commande : `python3 scripts/check_docs.py`
 Attendu : `OK: ...`, code retour 0.
 
-- [ ] **Étape 6 : créer `.github/workflows/docs.yml`** : déclenché sur `push` vers `main` et sur `pull_request` ; un job nommé `docs` sur `ubuntu-latest` avec `actions/checkout@v4`, `actions/setup-python@v5` (`python-version: "3.12"`), puis les deux commandes des étapes 4 et 5.
+- [x] **Étape 6 : créer `.github/workflows/docs.yml`** : déclenché sur `push` vers `main` et sur `pull_request` ; un job nommé `docs` sur `ubuntu-latest` avec `actions/checkout@v4`, `actions/setup-python@v5` (`python-version: "3.12"`), puis les deux commandes des étapes 4 et 5.
 
-- [ ] **Étape 7 : commit, PR, CI verte, fusion**
+- [x] **Étape 7 : commit, PR, CI verte, fusion**
 
 ```bash
 git add scripts .github/workflows/docs.yml
@@ -136,16 +136,16 @@ Ouvrir la PR, attendre le job `docs` vert (`gh api repos/louistouquet/PowAtlas/c
 - Consomme : la commande de vérification de la tâche 1.
 - Produit : `docs/methode.md` et `docs/modeles-claude.md`, cités par les skills et agents des tâches 4 et 5.
 
-- [ ] **Étape 1 : écrire `docs/methode.md`** (français) à partir de la section 5 du cadrage : cycle (brainstorming, cadrage, plan, PR, bilan), fiches et leurs formats (renvoi au tableau de ce plan, recopié), règles de rigueur scientifique, continuité (`STATUS.md`, `NEXT.md`, `docs/decisions/`, issues et jalons), langues, garde-fous, procédure Git (branche `claude/<sujet>`, PR par API REST, CI, squash, lignes de fin de commit).
-- [ ] **Étape 2 : écrire `docs/modeles-claude.md`** : le tableau rôles / modèle / effort et les 6 règles d'économie de tokens de la section 6 du cadrage, la règle « modèles par famille », et la consigne de relecture du tableau à chaque nouvelle génération de modèles. Ajouter le budget Exa et la règle de bascule vers la recherche web intégrée.
-- [ ] **Étape 3 : réécrire `CLAUDE.md`** (anglais ou français, 80 lignes au plus) : rituel de début de session (lire `NEXT.md`, `STATUS.md`, le cadrage et le plan en cours ; `git status` ; PR ouvertes), résumé des garde-fous de ce plan, outils (alphaXiv pour les articles, Hugging Face, Exa dans le budget, skill `scientific-coding` pour tout code scientifique), liens vers `docs/methode.md` et `docs/modeles-claude.md`, commandes de vérification, rituel de fin de session (mettre à jour `STATUS.md` et `NEXT.md`).
-- [ ] **Étape 4 : écrire `AGENTS.md`** : 5 lignes au plus, qui renvoient vers `CLAUDE.md` pour tout outil IA autre que Claude Code.
-- [ ] **Étape 5 : vérifier**
+- [x] **Étape 1 : écrire `docs/methode.md`** (français) à partir de la section 5 du cadrage : cycle (brainstorming, cadrage, plan, PR, bilan), fiches et leurs formats (renvoi au tableau de ce plan, recopié), règles de rigueur scientifique, continuité (`STATUS.md`, `NEXT.md`, `docs/decisions/`, issues et jalons), langues, garde-fous, procédure Git (branche `claude/<sujet>`, PR par API REST, CI, squash, lignes de fin de commit).
+- [x] **Étape 2 : écrire `docs/modeles-claude.md`** : le tableau rôles / modèle / effort et les 6 règles d'économie de tokens de la section 6 du cadrage, la règle « modèles par famille », et la consigne de relecture du tableau à chaque nouvelle génération de modèles. Ajouter le budget Exa et la règle de bascule vers la recherche web intégrée.
+- [x] **Étape 3 : réécrire `CLAUDE.md`** (anglais ou français, 80 lignes au plus) : rituel de début de session (lire `NEXT.md`, `STATUS.md`, le cadrage et le plan en cours ; `git status` ; PR ouvertes), résumé des garde-fous de ce plan, outils (alphaXiv pour les articles, Hugging Face, Exa dans le budget, skill `scientific-coding` pour tout code scientifique), liens vers `docs/methode.md` et `docs/modeles-claude.md`, commandes de vérification, rituel de fin de session (mettre à jour `STATUS.md` et `NEXT.md`).
+- [x] **Étape 4 : écrire `AGENTS.md`** : 5 lignes au plus, qui renvoient vers `CLAUDE.md` pour tout outil IA autre que Claude Code.
+- [x] **Étape 5 : vérifier**
 
 Commande : `python3 scripts/check_docs.py` — Attendu : `OK`.
 Contrôle de relecture : `wc -l CLAUDE.md` ≤ 80 ; chaque garde-fou des « Contraintes globales » apparaît dans `CLAUDE.md` ou dans un document qu'il cite.
 
-- [ ] **Étape 6 : commit, PR, CI, fusion.**
+- [x] **Étape 6 : commit, PR, CI, fusion.**
 
 ---
 
