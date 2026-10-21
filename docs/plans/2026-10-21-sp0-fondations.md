@@ -207,13 +207,13 @@ Contrôle manuel : relancer la commande de la section `## Test d'accès` de la f
 **Interfaces :**
 - Produit : l'agent `relecteur-scientifique` (appelé par les tâches 7 à 12) et le skill `experience-modele` (utilisé à partir de SP2).
 
-- [ ] **Étape 1 : `template.md`** : une fiche `experience` complète, valeurs `<à compléter>`.
-- [ ] **Étape 2 : `SKILL.md`** : en-tête `name: experience-modele`, description qui le déclenche pour « préparer, mener ou conclure un essai de modèle ». Protocole : hypothèse ; référence à battre ; découpage par saisons entières mises de côté ; uniquement des données disponibles à l'heure d'émission ; mesures et seuil de réussite fixés avant l'essai ; résultat avec intervalle d'incertitude par blocs temporels ; décision et condition de réexamen ; conservation des échecs.
-- [ ] **Étape 3 : `.claude/agents/relecteur-scientifique.md`** : en-tête `name: relecteur-scientifique`, `model: opus`, `effort: high`, `tools: Read, Glob, Grep, Bash, WebFetch, WebSearch` (pas d'écriture). Mission : chercher fuites temporelles, découpages qui se chevauchent, affirmations sans source ou sans date, confusion observé / modélisé / prévu, erreurs statistiques, problèmes de licence, verdicts de sécurité implicites. Sortie : liste de constats, chacun avec fichier, ligne, gravité (`bloquant`, `important`, `mineur`) et correction proposée.
-- [ ] **Étape 4 : écrire la fiche d'exemple** avec `fictive: oui`, `statut: prevue`, et un avertissement en tête de corps « Exemple fictif, aucun résultat réel ». Y placer volontairement **une** faille : le découpage `## Données et découpage` tire les jours de test au hasard dans les mêmes saisons que l'entraînement.
-- [ ] **Étape 5 : tester l'agent.** Lancer `relecteur-scientifique` sur la fiche d'exemple. Attendu : un constat `bloquant` sur le découpage aléatoire par jours (fuite temporelle). S'il ne le trouve pas, renforcer sa consigne et relancer.
-- [ ] **Étape 6 : corriger la fiche** (découpage par saisons entières), garder dans `## Décision` une note expliquant la faille trouvée par le relecteur, puis `python3 scripts/check_docs.py` → `OK`.
-- [ ] **Étape 7 : `docs/experiments/README.md`** ; commit, PR, CI, fusion.
+- [x] **Étape 1 : `template.md`** : une fiche `experience` complète, valeurs `<à compléter>`.
+- [x] **Étape 2 : `SKILL.md`** : en-tête `name: experience-modele`, description qui le déclenche pour « préparer, mener ou conclure un essai de modèle ». Protocole : hypothèse ; référence à battre ; découpage par saisons entières mises de côté ; uniquement des données disponibles à l'heure d'émission ; mesures et seuil de réussite fixés avant l'essai ; résultat avec intervalle d'incertitude par blocs temporels ; décision et condition de réexamen ; conservation des échecs.
+- [x] **Étape 3 : `.claude/agents/relecteur-scientifique.md`** : en-tête `name: relecteur-scientifique`, `model: opus`, `effort: high`, `tools: Read, Glob, Grep, Bash, WebFetch, WebSearch` (pas d'écriture). Mission : chercher fuites temporelles, découpages qui se chevauchent, affirmations sans source ou sans date, confusion observé / modélisé / prévu, erreurs statistiques, problèmes de licence, verdicts de sécurité implicites. Sortie : liste de constats, chacun avec fichier, ligne, gravité (`bloquant`, `important`, `mineur`) et correction proposée.
+- [x] **Étape 4 : écrire la fiche d'exemple** avec `fictive: oui`, `statut: prevue`, et un avertissement en tête de corps « Exemple fictif, aucun résultat réel ». Y placer volontairement **une** faille : le découpage `## Données et découpage` tire les jours de test au hasard dans les mêmes saisons que l'entraînement.
+- [x] **Étape 5 : tester l'agent.** Lancer `relecteur-scientifique` sur la fiche d'exemple. Attendu : un constat `bloquant` sur le découpage aléatoire par jours (fuite temporelle). S'il ne le trouve pas, renforcer sa consigne et relancer.
+- [x] **Étape 6 : corriger la fiche** (découpage par saisons entières), garder dans `## Décision` une note expliquant la faille trouvée par le relecteur, puis `python3 scripts/check_docs.py` → `OK`.
+- [x] **Étape 7 : `docs/experiments/README.md`** ; commit, PR, CI, fusion.
 
 ---
 
