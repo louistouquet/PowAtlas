@@ -1,13 +1,34 @@
 # PowAtlas
 
-Open-source snowfall forecasting and snowpack analysis for mountain users — free data, free compute, public verification scores.
+*[Version française](README.fr.md)*
 
-**Status:** project foundations in progress (SP0). Nothing is operational yet.
+PowAtlas is an open-source system to understand and forecast snow in the mountains, starting with the French Alps. It aims to tell how much snow will fall, where and at what elevation, and how the snowpack evolves — with every claim backed by public verification scores.
 
----
+**Status:** project foundations in progress (SP0). **Nothing is operational yet.**
 
-Prévision ouverte des chutes de neige et analyse du manteau neigeux pour tous les usagers de la montagne — données gratuites, calcul gratuit, scores de vérification publics.
+## Principles
 
-**État :** fondations du projet en cours (SP0). Rien n'est encore opérationnel.
+- **Open data only**: every data source is documented with its licence and attributed.
+- **Zero euro**: free tiers only, for compute and hosting alike.
+- **Public scores**: no quality claim without a published comparison against a reference.
+- **No avalanche safety verdicts, ever.** PowAtlas informs and analyses; the official avalanche bulletin (BRA, Météo-France) remains the reference.
 
-Code licensed under [Apache-2.0](LICENSE).
+## Roadmap
+
+| # | Sub-project | Content |
+|---|---|---|
+| SP0 | Foundations | Vision, method, tooling, public repository, initial research (R0), target and roadmap |
+| SP1 | Archive and observations | Daily archive of open forecasts, observations, reanalyses, satellite; open publication |
+| SP2 | Scoreboard | Automatic, public verification of forecasts against observations |
+| SP3 | Forecast v1 | Terrain downscaling, machine-learning correction, model blending, probabilities, powder alerts |
+| SP4 | Snowpack | Snow layers and snow quality by massif, elevation and aspect |
+| SP5 | Advanced AI research | AI weather models, enters production only if it wins on the scoreboard |
+| SP6 | Products | Open API, website, map, alerts, live resort conditions |
+
+More in the vision document (French): [`docs/vision.md`](docs/vision.md). Documentation index: [`docs/README.md`](docs/README.md).
+
+## Contributing and licences
+
+- How to contribute: [`CONTRIBUTING.md`](CONTRIBUTING.md).
+- Code: [Apache-2.0](LICENSE) (see also [`NOTICE`](NOTICE)).
+- Data, models and documentation produced by the project: CC-BY-4.0; third-party data keeps its own licence — see [`DATA_LICENSES.md`](DATA_LICENSES.md).
