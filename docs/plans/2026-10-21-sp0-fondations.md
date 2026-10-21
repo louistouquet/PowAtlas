@@ -69,11 +69,11 @@ Les fichiers `README.md` de ces dossiers ne sont pas des fiches. Un champ non pe
 
 ```python
 class LinkTests(unittest.TestCase):
-    def test_broken_relative_link_is_reported(self):        # [x](missing.md) -> 1 error containing "missing.md"
-    def test_existing_link_with_anchor_and_title_passes(self):  # [x](b.md#sec "t") with b.md present -> []
-    def test_links_inside_fenced_code_are_ignored(self):    # ```\n[x](nope.md)\n``` -> []
+    def test_broken_relative_link_is_reported(self):        # link target "missing.md" absent -> 1 error containing "missing.md"
+    def test_existing_link_with_anchor_and_title_passes(self):  # target "b.md#sec" with a "t" title, b.md present -> []
+    def test_links_inside_fenced_code_are_ignored(self):    # link to "nope.md" inside a fenced code block -> []
     def test_external_and_anchor_only_links_are_ignored(self):  # https://..., mailto:, #sec -> []
-    def test_image_link_is_checked(self):                   # ![i](img.png) missing -> 1 error
+    def test_image_link_is_checked(self):                   # image target "img.png" absent -> 1 error
 
 class FrontMatterTests(unittest.TestCase):
     def test_parses_key_values_and_colons_in_values(self):  # "licence: CC-BY-4.0 : voir https://x" -> value keeps text after first colon
