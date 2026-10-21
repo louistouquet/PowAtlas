@@ -41,7 +41,7 @@ Les fichiers `README.md` de ces dossiers ne sont pas des fiches. Un champ non pe
 - Uniquement les données réellement disponibles au moment de l'émission de la prévision : pas de fuite du futur.
 - Mesures et seuils de réussite fixés **avant** l'essai ; incertitude estimée par blocs temporels.
 - Toujours distinguer **observé**, **modélisé** et **prévu** ; l'incertitude est affichée.
-- Les faits instables (licences, accès, versions, quotas) sont vérifiés sur la source primaire et datés. Dans les rapports, chaque affirmation porte sa source et sa date de consultation, et est marquée comme **vérifiée**, **affirmée par un tiers** ou **hypothèse**.
+- Les faits instables (licences, accès, versions, quotas) sont vérifiés sur la source primaire et datés. Dans les rapports, chaque affirmation porte sa source et sa date de consultation, et est marquée **[vérifié]** (constaté par nous), **[producteur]** (documentation officielle du producteur), **[tiers]** (autre source) ou **[hypothèse]**.
 - Code scientifique : skill `scientific-coding` ; relecture par l'agent `relecteur-scientifique`.
 
 ## 4. Continuité

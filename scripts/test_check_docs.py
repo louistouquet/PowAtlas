@@ -244,6 +244,14 @@ reference: modèle brut
         text = VALID_SOURCE.replace("AROME", "<à compléter>").replace("id: arome", "id: <à compléter>")
         self.assertEqual(self.record(text, ".claude/skills/x/template.md"), [])
 
+    def test_record_in_nested_folder_is_checked(self):
+        errors = self.record("# AROME\n", "docs/sources/meteo-france/arome.md")
+        self.assertEqual(len(errors), 1)
+        self.assertIn("front matter", errors[0])
+
+    def test_readme_in_nested_record_folder_is_not_a_record(self):
+        self.assertEqual(self.record("# Index\n", "docs/sources/meteo-france/README.md"), [])
+
     def test_file_outside_record_folders_is_not_a_record(self):
         self.assertEqual(self.record("# Vision\n", "docs/vision.md"), [])
 
