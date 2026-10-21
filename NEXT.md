@@ -1,8 +1,8 @@
 # Prochaine action
 
-**Recherche R0 en cours (tâches 7 à 11 du plan SP0)**, puis la tâche 12 (« Cible et feuille de route », à valider par le pilote) : [`docs/plans/2026-10-21-sp0-fondations.md`](docs/plans/2026-10-21-sp0-fondations.md). Suivi : issues du jalon `SP0 — Fondations`.
+**Le pilote valide la feuille de route** `docs/roadmap.md` (PR « SP0 tâche 12 », non fusionnée sans son accord) et répond à ses « Questions pour le pilote ». Ensuite : tâche 13 du plan (clôture de SP0), puis brainstorming de SP1 — urgent, l'archivage doit démarrer avant le 1er novembre 2026.
 
-- Cadrage validé par le pilote le 21 octobre 2026 : [`docs/specs/2026-10-21-sp0-fondations-design.md`](docs/specs/2026-10-21-sp0-fondations-design.md).
+- Plan : [`docs/plans/2026-10-21-sp0-fondations.md`](docs/plans/2026-10-21-sp0-fondations.md) ; cadrage : [`docs/specs/2026-10-21-sp0-fondations-design.md`](docs/specs/2026-10-21-sp0-fondations-design.md).
 - Méthode d'exécution : session pilote (voir [`CLAUDE.md`](CLAUDE.md)).
 
 ## À faire par le pilote (tâche 6, étape 4)

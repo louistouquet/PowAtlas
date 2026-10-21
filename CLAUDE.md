@@ -6,7 +6,7 @@ PowAtlas : système open source pour comprendre et prévoir la neige en montagne
 1. Lire `NEXT.md`, puis `STATUS.md`, puis le cadrage (`docs/specs/`) et le plan (`docs/plans/`) en cours.
 2. `git status`, branche courante, PR ouvertes. Finir une PR en cours avant d'en ouvrir une autre.
 3. Respecter les « Contraintes globales » du plan en cours (ex. en SP0 : pas de code produit, emprise de travail des Alpes françaises).
-3. Méthode complète : [`docs/methode.md`](docs/methode.md). Modèles et économie : [`docs/modeles-claude.md`](docs/modeles-claude.md).
+4. Méthode complète : [`docs/methode.md`](docs/methode.md). Modèles et économie : [`docs/modeles-claude.md`](docs/modeles-claude.md).
 
 ## Garde-fous (non négociables)
 - **Zéro euro** : uniquement des offres gratuites ; pas de Hugging Face Jobs, Sandboxes, Inference Endpoints ni Spaces ZeroGPU ; pas de service météo payant.

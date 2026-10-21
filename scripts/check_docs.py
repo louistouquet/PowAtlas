@@ -142,7 +142,11 @@ def check_links(path: Path, root: Path) -> list[str]:
 def record_rule_for(path: Path, root: Path) -> RecordRule | None:
     if path.name == "README.md":
         return None
-    return RECORD_RULES.get(path.parent.relative_to(root).as_posix())
+    folder = path.parent.relative_to(root).as_posix()
+    for prefix, rule in RECORD_RULES.items():
+        if folder == prefix or folder.startswith(prefix + "/"):
+            return rule
+    return None
 
 
 def is_valid_date(value: str) -> bool:

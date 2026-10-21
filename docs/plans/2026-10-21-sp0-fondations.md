@@ -117,7 +117,7 @@ Attendu : `OK: ...`, code retour 0.
 - [x] **Étape 7 : commit, PR, CI verte, fusion**
 
 ```bash
-git add scripts .github/workflows/docs.yml
+git add scripts/*.py .github/workflows/docs.yml
 git commit -m "Add documentation checker and CI"
 ```
 Ouvrir la PR, attendre le job `docs` vert (`gh api repos/louistouquet/PowAtlas/commits/<sha>/check-runs --jq '.check_runs[] | .name + " " + .conclusion'`), puis fusionner (squash).

@@ -15,6 +15,9 @@ Index de tous les documents du projet.
 - [`modeles-claude.md`](modeles-claude.md) : modèles Claude, niveaux d'effort et économie.
 - [`../CLAUDE.md`](../CLAUDE.md) et [`../AGENTS.md`](../AGENTS.md) : règles pour les sessions IA.
 
+## Recherche
+- [`research/R0.1-concurrence.md`](research/R0.1-concurrence.md), [`research/R0.2-previsions-ouvertes.md`](research/R0.2-previsions-ouvertes.md), [`research/R0.3-observations.md`](research/R0.3-observations.md), [`research/R0.4-historique.md`](research/R0.4-historique.md), [`research/R0.5-briques-open-source.md`](research/R0.5-briques-open-source.md) : rapports R0.
+
 ## Cadrages et plans
 - [`specs/2026-10-21-sp0-fondations-design.md`](specs/2026-10-21-sp0-fondations-design.md) : cadrage de SP0 (fondations).
 - [`plans/2026-10-21-sp0-fondations.md`](plans/2026-10-21-sp0-fondations.md) : plan de SP0.
@@ -22,5 +25,5 @@ Index de tous les documents du projet.
 ## Dossiers
 - [`decisions/`](decisions/README.md) : choix structurants (`NNNN-titre.md`).
 - `research/` : rapports de recherche (R0 puis R3, R4, R5).
-- `sources/` : une fiche par source de données.
-- `experiments/` : une fiche par essai de modèle.
+- [`sources/`](sources/README.md) : une fiche par source de données.
+- [`experiments/`](experiments/README.md) : une fiche par essai de modèle.
