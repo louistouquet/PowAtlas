@@ -182,16 +182,16 @@ Contrôle de relecture : `wc -l CLAUDE.md` ≤ 80 ; chaque garde-fou des « Cont
 - Consomme : format `source` (tableau « Formats des fiches ») et le vérificateur de la tâche 1.
 - Produit : l'agent `chercheur-sources` (appelé par les tâches 7 à 10) et le skill `qualifier-source` qu'il suit.
 
-- [ ] **Étape 1 : `template.md`** : une fiche `source` complète dont chaque valeur est `<à compléter>`, avec, sous `## Test d'accès`, le gabarit : date, commande exacte, taille téléchargée, résultat observé.
-- [ ] **Étape 2 : `SKILL.md`** : en-tête `name: qualifier-source` et une `description` qui déclenche le skill pour « qualifier, évaluer ou documenter une source de données ». Procédure : trouver la documentation officielle ; relever la licence exacte avec lien et date ; tester l'accès sans compte (50 Mo au plus, sinon `compte gratuit requis`) ; relever quotas, délai de mise à disposition, conservation, résolution, variables utiles à la neige, couverture de l'emprise des Alpes françaises ; distinguer vérifié, affirmé par le producteur et hypothèse ; remplir le modèle ; lancer `python3 scripts/check_docs.py`.
-- [ ] **Étape 3 : `.claude/agents/chercheur-sources.md`** : en-tête `name: chercheur-sources`, `description` (qualifie une ou plusieurs sources et écrit leurs fiches), `model: sonnet`, `effort: medium`. Consignes : suivre le skill `qualifier-source` ; n'écrire que les fichiers nommés dans son mandat ; au plus 15 recherches Exa par mandat ; rendre un résumé de 10 lignes au plus avec la liste des fichiers écrits.
-- [ ] **Étape 4 : tester l'agent sur un cas réel.** Lancer l'agent `chercheur-sources` avec le mandat : « Qualifie l'ECMWF Open Data (IFS et AIFS, résolution 0,25°) pour l'archivage de prévisions de neige sur les Alpes françaises. Écris uniquement `docs/sources/ecmwf-open-data.md`. »
-- [ ] **Étape 5 : vérifier la fiche**
+- [x] **Étape 1 : `template.md`** : une fiche `source` complète dont chaque valeur est `<à compléter>`, avec, sous `## Test d'accès`, le gabarit : date, commande exacte, taille téléchargée, résultat observé.
+- [x] **Étape 2 : `SKILL.md`** : en-tête `name: qualifier-source` et une `description` qui déclenche le skill pour « qualifier, évaluer ou documenter une source de données ». Procédure : trouver la documentation officielle ; relever la licence exacte avec lien et date ; tester l'accès sans compte (50 Mo au plus, sinon `compte gratuit requis`) ; relever quotas, délai de mise à disposition, conservation, résolution, variables utiles à la neige, couverture de l'emprise des Alpes françaises ; distinguer vérifié, affirmé par le producteur et hypothèse ; remplir le modèle ; lancer `python3 scripts/check_docs.py`.
+- [x] **Étape 3 : `.claude/agents/chercheur-sources.md`** : en-tête `name: chercheur-sources`, `description` (qualifie une ou plusieurs sources et écrit leurs fiches), `model: sonnet`, `effort: medium`. Consignes : suivre le skill `qualifier-source` ; n'écrire que les fichiers nommés dans son mandat ; au plus 15 recherches Exa par mandat ; rendre un résumé de 10 lignes au plus avec la liste des fichiers écrits.
+- [x] **Étape 4 : tester l'agent sur un cas réel.** Lancer l'agent `chercheur-sources` avec le mandat : « Qualifie l'ECMWF Open Data (IFS et AIFS, résolution 0,25°) pour l'archivage de prévisions de neige sur les Alpes françaises. Écris uniquement `docs/sources/ecmwf-open-data.md`. »
+- [x] **Étape 5 : vérifier la fiche**
 
 Commande : `python3 scripts/check_docs.py` — Attendu : `OK`, et le nombre de fiches contrôlées augmente de 1.
 Contrôle manuel : relancer la commande de la section `## Test d'accès` de la fiche et obtenir le même type de résultat. Si l'agent a ignoré son mandat (autres fichiers modifiés, champs inventés), corriger `SKILL.md` ou l'agent, puis recommencer l'étape 4.
 
-- [ ] **Étape 6 : `docs/sources/README.md`** (rôle des fiches, renvoi au skill) ; commit, PR, CI, fusion.
+- [x] **Étape 6 : `docs/sources/README.md`** (rôle des fiches, renvoi au skill) ; commit, PR, CI, fusion.
 
 ---
 
