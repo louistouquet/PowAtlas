@@ -1,8 +1,13 @@
 # Prochaine action
 
-**Exécuter la tâche 4 du plan SP0** (skill `qualifier-source`, agent `chercheur-sources` et première fiche réelle `docs/sources/ecmwf-open-data.md`), puis les tâches suivantes : [`docs/plans/2026-10-21-sp0-fondations.md`](docs/plans/2026-10-21-sp0-fondations.md).
+**Recherche R0 en cours (tâches 7 à 11 du plan SP0)**, puis la tâche 12 (« Cible et feuille de route », à valider par le pilote) : [`docs/plans/2026-10-21-sp0-fondations.md`](docs/plans/2026-10-21-sp0-fondations.md). Suivi : issues du jalon `SP0 — Fondations`.
 
 - Cadrage validé par le pilote le 21 octobre 2026 : [`docs/specs/2026-10-21-sp0-fondations-design.md`](docs/specs/2026-10-21-sp0-fondations-design.md).
 - Méthode d'exécution : session pilote (voir [`CLAUDE.md`](CLAUDE.md)).
-- Feu vert déjà donné pour lancer la recherche R0 avec environ 7 agents.
-- Tâche 6 : la branche `claude/sp0-cadrage` (déjà fusionnée) n'a pas pu être supprimée depuis la session ; à supprimer avec les réglages GitHub.
+
+## À faire par le pilote (tâche 6, étape 4)
+
+La session n'a pas été autorisée à modifier ces réglages ; à faire dans *Settings* du dépôt :
+1. *Branches → Add rule* `main` : *Require a pull request before merging* ; *Require status checks to pass* : `docs` ; *Do not allow force pushes* (laisser décochée l'autorisation des *force pushes*).
+2. *General → Pull Requests* : cocher *Automatically delete head branches* (et, au choix, ne garder que *Allow squash merging*).
+3. Supprimer la branche fusionnée `claude/sp0-cadrage`.

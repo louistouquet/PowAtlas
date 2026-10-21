@@ -224,13 +224,14 @@ Contrôle manuel : relancer la commande de la section `## Test d'accès` de la f
 **Fichiers :**
 - Créer : `.github/ISSUE_TEMPLATE/source.yml`, `.github/ISSUE_TEMPLATE/experience.yml`, `.github/ISSUE_TEMPLATE/bug.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/pull_request_template.md`
 
-- [ ] **Étape 1 : modèles d'issues** (formulaires YAML, en anglais avec titres français entre parenthèses) : `source.yml` (nom, lien, licence connue, utilité pour la neige) ; `experience.yml` (hypothèse, référence, données) ; `bug.yml` ; `config.yml` avec `blank_issues_enabled: true`. Modèle de PR : résumé, vérifications lancées, sources ou licences touchées, case « aucun secret ».
-- [ ] **Étape 2 : jalons** : créer `SP0 — Fondations`, `SP1 — Archive et observations`, `SP2 — Tableau des scores`, `SP3 — Prévision v1`, `SP4 — Manteau neigeux`, `SP5 — Recherche IA avancée`, `SP6 — Produits` avec `gh api repos/louistouquet/PowAtlas/milestones -f title=...`.
+- [x] **Étape 1 : modèles d'issues** (formulaires YAML, en anglais avec titres français entre parenthèses) : `source.yml` (nom, lien, licence connue, utilité pour la neige) ; `experience.yml` (hypothèse, référence, données) ; `bug.yml` ; `config.yml` avec `blank_issues_enabled: true`. Modèle de PR : résumé, vérifications lancées, sources ou licences touchées, case « aucun secret ».
+- [x] **Étape 2 : jalons** : créer `SP0 — Fondations`, `SP1 — Archive et observations`, `SP2 — Tableau des scores`, `SP3 — Prévision v1`, `SP4 — Manteau neigeux`, `SP5 — Recherche IA avancée`, `SP6 — Produits` avec `gh api repos/louistouquet/PowAtlas/milestones -f title=...`.
 Vérification : `gh api repos/louistouquet/PowAtlas/milestones --jq length` → `7`.
-- [ ] **Étape 3 : étiquettes** `recherche`, `source`, `experience`, `code`, `docs` (`gh api repos/louistouquet/PowAtlas/labels -f name=... -f color=...`).
+- [x] **Étape 3 : étiquettes** `recherche`, `source`, `experience`, `code`, `docs` (`gh api repos/louistouquet/PowAtlas/labels -f name=... -f color=...`).
 - [ ] **Étape 4 : protection de `main` et suppression automatique des branches fusionnées.** Essayer `gh api -X PUT repos/louistouquet/PowAtlas/branches/main/protection` (PR obligatoire, vérification `docs` obligatoire, pas de *force push*) et `gh api -X PATCH repos/louistouquet/PowAtlas -F delete_branch_on_merge=true`. Si le proxy refuse (HTTP 403), demander au pilote de le faire dans *Settings* et lui donner la liste exacte : *Branches → Add rule `main` → Require a pull request, Require status checks: `docs`, Do not allow force pushes* ; *General → Automatically delete head branches* ; supprimer la branche restante `claude/sp0-cadrage`.
-- [ ] **Étape 5 : issues de suivi** : une issue par tâche restante de ce plan (7 à 13), rattachée au jalon SP0, avec l'étiquette adaptée.
-- [ ] **Étape 6 : vérifier, commit, PR, CI, fusion.**
+  *Le 2026-10-21 : refusé par le contrôle des permissions de la session ; demandé au pilote.*
+- [x] **Étape 5 : issues de suivi** : une issue par tâche restante de ce plan (7 à 13), rattachée au jalon SP0, avec l'étiquette adaptée.
+- [x] **Étape 6 : vérifier, commit, PR, CI, fusion.**
 
 ---
 
