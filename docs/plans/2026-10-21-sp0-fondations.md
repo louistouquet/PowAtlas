@@ -157,15 +157,15 @@ Contrôle de relecture : `wc -l CLAUDE.md` ≤ 80 ; chaque garde-fou des « Cont
 - Modifier : `README.md` (anglais), `NEXT.md` (remplace la version d'amorçage)
 - Créer : `README.fr.md`, `docs/vision.md`, `docs/README.md`, `docs/decisions/README.md`, `CONTRIBUTING.md`, `NOTICE`, `DATA_LICENSES.md`, `STATUS.md`
 
-- [ ] **Étape 1 : `docs/vision.md`** (français) : sections 2, 3 et 4 du cadrage (vision, sous-projets, stratégie en couches, contraintes de calcul), en langage accessible au grand public.
-- [ ] **Étape 2 : `README.md` (anglais) et `README.fr.md` (miroir français)** : présentation en deux phrases, état (« SP0 en cours, rien d'opérationnel »), principes (données ouvertes, zéro euro, scores publics, pas de verdict avalanche), tableau SP0 à SP6, liens vers `docs/vision.md`, `CONTRIBUTING.md` et les licences. Chaque README pointe vers l'autre.
-- [ ] **Étape 3 : `CONTRIBUTING.md`** (anglais puis résumé français) : contributions sous la licence du fichier concerné (Apache-2.0 pour le code, CC-BY-4.0 pour la documentation et les données), sans CLA ; proposer une source par l'issue « Proposer une source » ; règles de PR (CI verte, une question par PR, pas de secret) ; langues.
-- [ ] **Étape 4 : `NOTICE`** : `PowAtlas` / `Copyright 2026 PowAtlas contributors` / mention que les données tierces gardent leurs licences, avec renvoi à `DATA_LICENSES.md`.
-- [ ] **Étape 5 : `DATA_LICENSES.md`** : politique (productions du projet en CC-BY-4.0 ; données tierces sous leur licence ; une page publique n'est pas une licence) ; attributions types : Météo-France (Licence Ouverte Etalab 2.0), ECMWF (CC-BY-4.0), OpenStreetMap (ODbL) ; tableau vide « Données tierces intégrées » à remplir en SP1 depuis les fiches `retenue`.
-- [ ] **Étape 6 : `docs/README.md`** (index de tous les documents) et **`docs/decisions/README.md`** (format d'une décision : contexte, décision, conséquences, date ; numérotation `NNNN-titre.md`).
-- [ ] **Étape 7 : `STATUS.md`** (ce qui existe et fonctionne réellement, avec la date) et **`NEXT.md`** (prochaine tâche de ce plan non cochée).
-- [ ] **Étape 8 : vérifier** — `python3 scripts/check_docs.py` → `OK` ; les liens croisés des deux README fonctionnent.
-- [ ] **Étape 9 : commit, PR, CI, fusion.**
+- [x] **Étape 1 : `docs/vision.md`** (français) : sections 2, 3 et 4 du cadrage (vision, sous-projets, stratégie en couches, contraintes de calcul), en langage accessible au grand public.
+- [x] **Étape 2 : `README.md` (anglais) et `README.fr.md` (miroir français)** : présentation en deux phrases, état (« SP0 en cours, rien d'opérationnel »), principes (données ouvertes, zéro euro, scores publics, pas de verdict avalanche), tableau SP0 à SP6, liens vers `docs/vision.md`, `CONTRIBUTING.md` et les licences. Chaque README pointe vers l'autre.
+- [x] **Étape 3 : `CONTRIBUTING.md`** (anglais puis résumé français) : contributions sous la licence du fichier concerné (Apache-2.0 pour le code, CC-BY-4.0 pour la documentation et les données), sans CLA ; proposer une source par l'issue « Proposer une source » ; règles de PR (CI verte, une question par PR, pas de secret) ; langues.
+- [x] **Étape 4 : `NOTICE`** : `PowAtlas` / `Copyright 2026 PowAtlas contributors` / mention que les données tierces gardent leurs licences, avec renvoi à `DATA_LICENSES.md`.
+- [x] **Étape 5 : `DATA_LICENSES.md`** : politique (productions du projet en CC-BY-4.0 ; données tierces sous leur licence ; une page publique n'est pas une licence) ; attributions types : Météo-France (Licence Ouverte Etalab 2.0), ECMWF (CC-BY-4.0), OpenStreetMap (ODbL) ; tableau vide « Données tierces intégrées » à remplir en SP1 depuis les fiches `retenue`.
+- [x] **Étape 6 : `docs/README.md`** (index de tous les documents) et **`docs/decisions/README.md`** (format d'une décision : contexte, décision, conséquences, date ; numérotation `NNNN-titre.md`).
+- [x] **Étape 7 : `STATUS.md`** (ce qui existe et fonctionne réellement, avec la date) et **`NEXT.md`** (prochaine tâche de ce plan non cochée).
+- [x] **Étape 8 : vérifier** — `python3 scripts/check_docs.py` → `OK` ; les liens croisés des deux README fonctionnent.
+- [x] **Étape 9 : commit, PR, CI, fusion.**
 
 ---
 
