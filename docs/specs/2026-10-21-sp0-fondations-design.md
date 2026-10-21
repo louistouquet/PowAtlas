@@ -8,7 +8,7 @@ Ce document fixe ce que le projet vise, comment on travaille, avec quels outils,
 
 | Sujet | Décision |
 |---|---|
-| Nom | **PowAtlas** (vérifié libre le 21/10/2026 sur PyPI, Hugging Face, `.com`, `.org`, `.io` ; organisation GitHub et compte Instagram non vérifiés) |
+| Nom | **PowAtlas** (vérifié libre le 21/10/2026 sur PyPI, Hugging Face, `.com`, `.org`, `.io`). Instagram : `powatlas` est pris par un compte inactif, on utilisera une variante (ex. `powatlas.ai`) ; un nom de domaine n'est pas acheté (zéro euro) |
 | Licence du code | **Apache-2.0** |
 | Licence de ce que le projet produit (données, modèles, documentation) | **CC-BY-4.0**, sauf données dérivées soumises à une licence de partage (ex. ODbL pour OpenStreetMap) |
 | Territoire de départ | **Alpes françaises**, puis extension (arc alpin, Pyrénées, monde) |
@@ -17,7 +17,7 @@ Ce document fixe ce que le projet vise, comment on travaille, avec quels outils,
 | Rôles | **Le pilote** fixe le cap, valide les cadrages et juge les résultats. **Claude** fait la recherche, le code et les PR, et fusionne après tests et relecture par un agent |
 | Preuve du « meilleur modèle » | Arbitre principal : **scores publics vérifiables**. Objectifs complémentaires : utilité terrain, reconnaissance scientifique, adoption et communauté |
 | Stratégie de modèle | **Approche A** : système hybride en couches, arbitré par la vérification (section 4) |
-| Dépôt | `louistouquet/Clip-Studio`, vide, renommé par le pilote ; passage en public à la fin de SP0 |
+| Dépôt | [`louistouquet/PowAtlas`](https://github.com/louistouquet/PowAtlas) (ex-`Clip-Studio`, vide au départ), **public depuis le 21 octobre 2026** |
 
 ## 2. Vision
 
@@ -99,7 +99,7 @@ Code, API et commentaires en anglais. README en anglais et en français. Cadrage
 |---|---|
 | alphaXiv (MCP) | Source principale pour les articles : recherche, texte intégral, questions sur PDF, code associé |
 | Hugging Face (MCP et skills) | Recherche de modèles et jeux de données ; publication de nos données et modèles (`hf-cli`) ; suivi d'expériences (`trackio`) |
-| Exa | Recherche web sémantique, en complément de la recherche web intégrée, **si l'offre gratuite le permet** |
+| Exa | Recherche web sémantique, en complément de la recherche web intégrée, dans la limite des **10 $ de crédits gratuits mensuels** : aucun moyen de paiement enregistré, recherches ciblées plutôt que l'agent Exa (plus coûteux) |
 | Skill `scientific-coding` | Activé pour tout code scientifique |
 | Skills *superpowers* et `deep-research` | Méthode (cadrage, plans, tests, vérification, relecture) et grosses recherches |
 | `gh` | Issues, PR, CI, jalons |
@@ -179,7 +179,7 @@ docs/   vision.md · methode.md · roadmap.md · modeles-claude.md
 Le code Python (`src/`, `tests/`, `pyproject.toml`) arrive avec SP1.
 
 ### Réglages GitHub
-- Passage en **public à la fin de SP0**, après vérification qu'aucun secret ni contenu non redistribuable n'est présent.
+- Dépôt **public depuis le 21 octobre 2026** : chaque PR est vérifiée pour l'absence de secret et de contenu non redistribuable avant fusion.
 - Branche `main` protégée : CI obligatoire, pas de *force push*, fusion en un seul commit par PR.
 - Jalons SP0 à SP6 ; étiquettes par type (recherche, source, expérience, code, docs).
 - Plus tard : organisation GitHub au nom du projet, créée par le pilote, puis transfert du dépôt.
@@ -192,7 +192,7 @@ SP0 est terminé quand :
 3. La CI passe sur `main`.
 4. Les rapports R0.1 à R0.5 et les fiches des sources retenues pour SP1 sont fusionnés.
 5. `docs/roadmap.md` est validé par le pilote.
-6. Le dépôt est public, `main` est protégée, les jalons existent.
+6. `main` est protégée et les jalons SP0 à SP6 existent.
 7. `NEXT.md` indique de démarrer le brainstorming de SP1.
 
 ## 10. Hors périmètre de SP0
@@ -202,6 +202,5 @@ Aucun code de traitement de données, aucun téléchargement automatique, aucun 
 - **Disponibilité des observations :** l'accès ouvert aux données du réseau nivo-météo n'est pas confirmé. Sans vérité terrain suffisante, le tableau des scores est affaibli. R0.3 doit trancher.
 - **Volume d'archive :** les limites de stockage gratuit (Hugging Face, GitHub) face au volume quotidien des prévisions sur les Alpes restent à mesurer en R0.2 et R0.5.
 - **Licences :** la licence exacte des prévisions archivées par Open-Meteo et de certaines sources communautaires n'est pas confirmée.
-- **Exa :** la gratuité dépend de l'offre du compte ; à vérifier avant usage intensif.
-- **Plugin Hugging Face :** son serveur MCP demande une autorisation dans les réglages claude.ai ; le connecteur Hugging Face, lui, fonctionne.
-- **Organisation GitHub et Instagram :** disponibilité du nom PowAtlas non vérifiée.
+- **Crédits Exa :** 10 $ par mois ; si le quota est atteint, on bascule sur la recherche web intégrée jusqu'au mois suivant.
+- **Organisation GitHub :** disponibilité du nom PowAtlas non vérifiée.
