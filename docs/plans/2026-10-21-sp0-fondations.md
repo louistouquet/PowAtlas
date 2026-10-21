@@ -241,11 +241,11 @@ Ces cinq tâches partagent la même procédure. Elles sont lancées **en même t
 
 **Procédure commune**
 
-- [ ] **Étape 1 : lancer l'agent de recherche** (`chercheur-sources` pour les axes avec fiches, sinon agent généraliste Sonnet, effort medium) avec un mandat qui contient : la question, la liste des fichiers qu'il possède (et lui seul), au plus 25 sources consultées, au plus 15 recherches Exa, l'obligation d'utiliser alphaXiv pour les articles et la recherche Hugging Face pour les modèles et jeux de données, le format `recherche` du rapport, et la règle de citation : chaque affirmation porte sa source primaire et sa date de consultation, et est marquée comme vérifiée, affirmée par un tiers ou hypothèse. Le responsable (Opus, effort high) consolide ensuite les résultats.
-- [ ] **Étape 2 : contrôler les liens et les licences** avec un agent Haiku (effort low) : chaque URL du rapport et des fiches répond (HTTP 200 ou redirection), et chaque licence citée correspond à la page citée. Corriger les écarts.
-- [ ] **Étape 3 : relecture** par `relecteur-scientifique`. Corriger tous les constats `bloquant` et `important`. Passer le rapport en `statut: relue`.
-- [ ] **Étape 4 : vérifier** — `python3 scripts/check_docs.py` → `OK`.
-- [ ] **Étape 5 : commit, PR, CI, fusion**, puis fermer l'issue de l'axe.
+- [x] **Étape 1 : lancer l'agent de recherche** (`chercheur-sources` pour les axes avec fiches, sinon agent généraliste Sonnet, effort medium) avec un mandat qui contient : la question, la liste des fichiers qu'il possède (et lui seul), au plus 25 sources consultées, au plus 15 recherches Exa, l'obligation d'utiliser alphaXiv pour les articles et la recherche Hugging Face pour les modèles et jeux de données, le format `recherche` du rapport, et la règle de citation : chaque affirmation porte sa source primaire et sa date de consultation, et est marquée comme vérifiée, affirmée par un tiers ou hypothèse. Le responsable (Opus, effort high) consolide ensuite les résultats.
+- [x] **Étape 2 : contrôler les liens et les licences** avec un agent Haiku (effort low) : chaque URL du rapport et des fiches répond (HTTP 200 ou redirection), et chaque licence citée correspond à la page citée. Corriger les écarts.
+- [x] **Étape 3 : relecture** par `relecteur-scientifique`. Corriger tous les constats `bloquant` et `important`. Passer le rapport en `statut: relue`.
+- [x] **Étape 4 : vérifier** — `python3 scripts/check_docs.py` → `OK`.
+- [x] **Étape 5 : commit, PR, CI, fusion**, puis fermer l'issue de l'axe.
 
 | Tâche | Axe | Rapport | Fiches possédées par l'axe | Contenu attendu en plus du format |
 |---|---|---|---|---|
