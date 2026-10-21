@@ -1,0 +1,24 @@
+name: Bug report (Signaler un bug)
+description: Something is wrong in the code, the data or the documentation (Quelque chose ne va pas)
+title: "[bug] "
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened (Ce qui s'est passé)
+      description: Include the file, page or command concerned (fichier, page ou commande concernés)
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected (Ce qui était attendu)
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce (Comment reproduire)
+      description: Commands, links, dates. Never paste secrets or tokens (jamais de secret ni de jeton).
+    validations:
+      required: false

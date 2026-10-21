@@ -1,0 +1,40 @@
+name: Propose a source (Proposer une source)
+description: Suggest a data source useful for snow forecasting or verification (Proposer une source de données utile à la neige)
+title: "[source] "
+labels: ["source"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you! Every source used by PowAtlas gets a source record in `docs/sources/`. A public web page is not a licence: please point to the official terms if you know them.
+        *Merci ! Chaque source utilisée reçoit une fiche dans `docs/sources/`. Une page publique n'est pas une licence.*
+  - type: input
+    id: name
+    attributes:
+      label: Name (Nom)
+      description: Name of the source and its producer (nom de la source et producteur)
+      placeholder: e.g. AROME, Météo-France
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Link (Lien)
+      description: Official page or data portal (page officielle ou portail de données)
+      placeholder: https://
+    validations:
+      required: true
+  - type: input
+    id: licence
+    attributes:
+      label: Known licence (Licence connue)
+      description: Licence name and link to its official text, or "unknown" (nom et lien, ou « inconnue »)
+    validations:
+      required: false
+  - type: textarea
+    id: usefulness
+    attributes:
+      label: Usefulness for snow (Utilité pour la neige)
+      description: What it measures or forecasts, area, resolution, history depth (ce qu'elle mesure ou prévoit, zone, résolution, profondeur d'archive)
+    validations:
+      required: true

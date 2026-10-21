@@ -1,0 +1,31 @@
+name: Propose an experiment (Proposer une expérience)
+description: Suggest a model experiment, to be recorded in docs/experiments/ (Proposer un essai de modèle)
+title: "[experience] "
+labels: ["experience"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Experiments follow the `experience-modele` protocol: whole held-out seasons, only data available at issue time, metrics fixed before the trial.
+        *Les essais suivent le protocole `experience-modele` : saisons entières mises de côté, données disponibles à l'heure d'émission, mesures fixées avant l'essai.*
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: Hypothesis (Hypothèse)
+      description: What should improve, for which variable, area and lead times, and why (ce qui doit s'améliorer et pourquoi)
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference to beat (Référence à battre)
+      description: Baseline forecast, at least the raw model (au minimum le modèle brut)
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data (Données)
+      description: Inputs, ground truth, seasons (entrées, vérité terrain, saisons)
+    validations:
+      required: true
