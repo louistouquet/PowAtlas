@@ -21,7 +21,7 @@
 
 ## Pas encore fait
 
-- **Déclenchements planifiés** : aucun n'avait encore tourné le 2026-10-22 à 13:40 UTC (09:50, 10:35 et 12:50 ne sont pas partis), alors que le workflow est actif et qu'aucun incident GitHub n'est signalé ; cause non établie (démarrage tardif des planifications d'un workflow neuf, hypothèse). À vérifier avant le 1er novembre ; les lancements manuels fonctionnent.
+- **Déclenchements planifiés** : aucun n'est parti de 09:50 à 14:40 UTC le 2026-10-22 ; le premier est parti à 14:41 UTC (plan vide, tout était déjà complet). GitHub ne garantit pas ces déclenchements : la tâche `auto` ([PR 30](https://github.com/louistouquet/PowAtlas/pull/30)), appelée chaque heure par cron-job.org une fois le [guide](docs/collecte/declenchement-externe.md) suivi par le pilote, sert de filet. Essai réel de `auto` le 2026-10-22 à 15:04 UTC : les cinq tâches parcourues, toutes les unités complètes, rien à collecter.
 - Archive de référence sur le PC du pilote, rattrapage historique (IFS, AIFS, GFS) : attendent l'installation du pilote.
 - Priorité 2 (ICON-CH1, AROME 0,01° et niveaux de pression, IFS ENS) : après une semaine de cœur sans trou (plan, tâche 20).
 - Horaires remesurés sur une semaine et figés (plan, tâche 21).
