@@ -10,8 +10,10 @@ PowAtlas : système open source pour comprendre et prévoir la neige en montagne
 
 ## Garde-fous (non négociables)
 - **Zéro euro** : uniquement des offres gratuites ; pas de Hugging Face Jobs, Sandboxes, Inference Endpoints ni Spaces ZeroGPU ; pas de service météo payant.
-- **Aucun compte** créé sur un service tiers ni contact extérieur sans accord du pilote. Accès qui exige un compte → la fiche note `compte gratuit requis` et le test s'arrête.
+- **Comptes** : tous les comptes gratuits sont autorisés, mais seul le pilote les crée ; jetons dans les secrets GitHub ou un fichier local ignoré par Git, jamais dans le dépôt. **Aucun contact extérieur** : recherche documentaire à la place.
 - **Tests d'accès** : 50 Mo au plus par test ; seules des métadonnées de moins de 100 Ko sont commitées.
+- **Aucune donnée dans Git** : archive de référence sur la machine du pilote (`D:\Codage\PowAtlas\data`).
+- **Décisions du pilote** : [`docs/decisions/`](docs/decisions/README.md) ; elles priment sur les cadrages antérieurs.
 - **Aucun secret**, jeton ou lien signé dans Git (dépôt public).
 - **Jamais de verdict de sécurité avalanche** ; le BRA de Météo-France est cité comme référence.
 - **Licences** : code Apache-2.0 ; productions du projet CC-BY-4.0 ; dérivés d'OpenStreetMap ODbL ; toute donnée tierce suit sa licence (une page publique n'est pas une licence).

@@ -19,7 +19,7 @@ Open an issue with the **"Propose a source"** template (*Proposer une source*): 
 - Green CI (`docs` job). Locally: `python3 -m unittest discover -s scripts -p 'test_*.py'` and `python3 scripts/check_docs.py`.
 - **One question per pull request**: small, focused changes.
 - **No secrets**, tokens or signed links — the repository is public.
-- No avalanche safety verdicts: PowAtlas informs, the official avalanche bulletin decides.
+- No avalanche safety verdicts: PowAtlas informs; the official avalanche bulletin (BRA, Météo-France) remains the reference.
 - Pull requests are squash-merged.
 
 ## Languages
