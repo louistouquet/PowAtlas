@@ -4,7 +4,7 @@ Document de synthèse de la recherche R0 · 21 octobre 2026 · statut : **propos
 
 Ce document tire les conclusions des cinq rapports R0 : [R0.1 Concurrence](research/R0.1-concurrence.md), [R0.2 Prévisions ouvertes](research/R0.2-previsions-ouvertes.md), [R0.3 Observations](research/R0.3-observations.md), [R0.4 Historique](research/R0.4-historique.md), [R0.5 Briques open source](research/R0.5-briques-open-source.md). Chaque rapport a été contrôlé (liens et licences) et relu par l'agent `relecteur-scientifique` ; tous les constats bloquants et importants ont été corrigés. Les chiffres viennent de ces rapports, qui donnent leurs sources datées ; ce document n'ajoute aucun fait nouveau, seulement des décisions proposées.
 
-**En une phrase :** PowAtlas peut se distinguer par la **preuve** (scores publics de la neige fraîche, probabilités calibrées, données et code ouverts), pas par l'affichage, déjà bien servi ; la vérité terrain ouverte existe pour l'échéance 24 h ; l'archive des prévisions doit démarrer avant le 1er novembre 2026 ; le pilote a décidé qu'elle tournerait et serait stockée sur sa machine (`D:\Codage\PowAtlas`), ce qui lève les limites de stockage et le risque lié aux conditions d'utilisation de GitHub Actions.
+**En une phrase :** PowAtlas peut se distinguer par la **preuve** (scores publics de la neige fraîche, probabilités calibrées, données et code ouverts), pas par l'affichage, déjà bien servi ; la vérité terrain ouverte existe pour l'échéance 24 h ; l'archive des prévisions doit démarrer avant le 1er novembre 2026 ; le pilote a décidé qu'elle serait stockée sur sa machine (`D:\Codage\PowAtlas`) ; la collecte quotidienne sera un programme planifié dont le lieu d'exécution (PC, GitHub Actions ou les deux) est la première décision de SP1.
 
 ## Fonctionnalités de la v1
 
@@ -46,7 +46,7 @@ Reprise de [R0.2](research/R0.2-previsions-ouvertes.md) (section « Liste d'arch
 
 L'ordre suit l'urgence (conservation la plus courte d'abord) puis l'utilité pour les scores. Volumes : priorité 1 au run 00 UTC 4,7 Go par saison ; priorités 1 et 2 au run 00 UTC 16,6 Go ; priorités 1 et 2 avec tous leurs runs (4 runs, sauf AROME 0,01° et IFS ENS à 2 runs) 55 Go. L'IFS ENS est la seule source d'ensemble de la liste : le repousser retarde la référence probabiliste du rang 5, sauf rattrapage depuis la copie AWS. Non archivés : PE-ARPEGE (105 Go par run), AROME-PI et PE-AROME métropole (compte gratuit requis, décision du pilote), ECMWF 0,1° (surcoût sans gain prouvé), Open-Meteo (comparaison seulement, pas une archive).
 
-**Exigences de fonctionnement**, toutes issues des relectures de R0.2 et R0.5, à transposer à la tâche planifiée de la machine du pilote (décision du 2026-10-21) : deux déclenchements idempotents par run pour les sources à 24 h de conservation ; déclenchement manuel (`workflow_dispatch`) et détection automatique des runs manquants ; rattrapage quotidien de J-2 à J-7 pour AROME et ARPEGE (S3 Météo-France) et pour ECMWF et GFS (AWS) ; activité garantie du dépôt, car GitHub désactive les workflows planifiés d'un dépôt public après 60 jours sans activité ; horaire UTC de R0.2 à remesurer sur une semaine avant d'être figé.
+**Exigences de fonctionnement**, toutes issues des relectures de R0.2 et R0.5, valables où que tourne le programme de collecte (décision 8) : deux déclenchements idempotents par run pour les sources à 24 h de conservation ; déclenchement manuel (`workflow_dispatch`) et détection automatique des runs manquants ; rattrapage quotidien de J-2 à J-7 pour AROME et ARPEGE (S3 Météo-France) et pour ECMWF et GFS (AWS) ; activité garantie du dépôt, car GitHub désactive les workflows planifiés d'un dépôt public après 60 jours sans activité ; horaire UTC de R0.2 à remesurer sur une semaine avant d'être figé.
 
 **Rattrapage de l'historique (proposition, à confirmer en tête de SP1).** Pour que SP3 ait des saisons d'entraînement sans attendre plusieurs hivers, récupérer en SP1, sur l'emprise, ce que la copie AWS d'ECMWF conserve de l'IFS 0,25° et de l'AIFS, et l'historique de GFS (AWS, depuis 2021). La liste des dates de la copie AWS commence le 2023-01-18, mais seuls l'IFS 0,25° au 2025-01-01 et l'AIFS au 2026-06-01 ont été vérifiés ; les arborescences de 2024 n'ont pas été explorées ([`ecmwf-open-data`](sources/ecmwf-open-data.md)). D'après Open-Meteo ([`open-meteo`](sources/open-meteo.md)), l'IFS 0,25° n'existe que depuis le 2024-02-03 et l'AIFS Single depuis le 2025-02-20 : on peut donc espérer **l'IFS depuis février 2024 et l'AIFS depuis février 2025 au plus**, avec des changements de version et de résolution à documenter. Pour AROME, ARPEGE et ICON, aucune archive ouverte n'a été trouvée au-delà de 14 jours : leurs saisons d'entraînement commencent en 2026-27. Open-Meteo n'y change presque rien : son Historical Forecast n'est fait que des premières heures de chaque run (inutilisable à 24-72 h) ; seul Previous Runs (depuis janvier 2024 pour la plupart des modèles) donne des échéances décalées, licence par modèle à confirmer.
 
@@ -103,7 +103,7 @@ De [R0.5](research/R0.5-briques-open-source.md) (tableau « réutiliser / constr
 | **Évaluer en SP4** | Crocus via `snowtools` (CeCILL-C, référence Météo-France) contre SNOWPACK (LGPL-3.0) ; openAMUNDSEN ou FSM2 (MIT) comme modèles légers | Choix par une fiche d'expérience : score sur les hauteurs de neige mesurées et temps de calcul dans les limites gratuites |
 | **Écarter** | `properscoring` (abandonnée depuis 2015) ; MET/METplus en CI (trop lourds) ; intégration de code AGPL (Open-Meteo) dans le code Apache-2.0 | Maintenance, poids, compatibilité de licence |
 
-Méthodes de séparation pluie-neige candidates pour SP3 : température de bulbe humide de Wang 2019 (calibrée sur l'ouest des États-Unis : validité alpine à tester), Jennings 2018 ; densité de la neige fraîche de Hedstrom-Pomeroy 1998 (fonction de la température seule). Calcul : la machine du pilote pour l'archivage (décision du 2026-10-21) ; GitHub Actions (jobs de 6 h, 4 vCPU, 16 Go, 14 Go de disque, gratuit en dépôt public) pour la CI et, si besoin, les calculs légers de scores ; Kaggle (30 h de GPU par semaine) pour les essais d'apprentissage, compte requis.
+Méthodes de séparation pluie-neige candidates pour SP3 : température de bulbe humide de Wang 2019 (calibrée sur l'ouest des États-Unis : validité alpine à tester), Jennings 2018 ; densité de la neige fraîche de Hedstrom-Pomeroy 1998 (fonction de la température seule). Calcul : le programme de collecte sur la machine du pilote et/ou GitHub Actions (décision 8) ; GitHub Actions (jobs de 6 h, 4 vCPU, 16 Go, 14 Go de disque, gratuit en dépôt public) pour la CI et, si besoin, les calculs légers de scores ; Kaggle (30 h de GPU par semaine) pour les essais d'apprentissage, compte requis.
 
 ## Ordre des sous-projets
 
@@ -117,7 +117,7 @@ Méthodes de séparation pluie-neige candidates pour SP3 : température de bulbe
 
 | Risque | Effet | Parade proposée |
 |---|---|---|
-| **Conditions d'utilisation de GitHub Actions** : charge « disproportionate to the benefits provided to users » et activité « unrelated to the production, testing, deployment, or publication of the software project » interdites | Un archivage quotidien de 2 à 19 Go pourrait être jugé non conforme ; l'archive s'arrêterait | **Levé par la décision du pilote** (voir plus bas) : l'archivage tourne sur la machine du pilote, pas sur Actions |
+| **Conditions d'utilisation de GitHub Actions** : charge « disproportionate to the benefits provided to users » et activité « unrelated to the production, testing, deployment, or publication of the software project » interdites | Un archivage quotidien de 2 à 19 Go pourrait être jugé non conforme ; l'archive s'arrêterait | Levé avec l'option A (machine du pilote) ; demeure avec l'option hybride C recommandée, avec bascule immédiate sur A si GitHub le conteste (décision 8) |
 | **Machine du pilote éteinte ou hors ligne** (nouveau risque, conséquence de la décision) | Runs ICON perdus après 24 h ; AROME et ARPEGE après 14 jours | Tâche planifiée Windows qui rattrape tout ce qui reste disponible au réveil (ICON : dernières 24 h ; AROME, ARPEGE : 14 jours ; ECMWF, GFS : copie AWS) ; journal des runs manquants ; option à trancher en SP1 : un petit job Actions de secours pour ICON seul (environ 0,6 Go téléchargés par jour au run 00 UTC) |
 | **Disque unique** : l'archive n'existe qu'à un seul endroit tant qu'elle n'est pas publiée | Perte de l'archive en cas de panne | Sauvegarde régulière (second disque ou support externe du pilote) ; publication publique dès qu'un hébergeur gratuit et fiable est qualifié |
 | **Hébergement public de l'archive** (fonctionnalité de rang 2) : Hugging Face « best-effort », sans plafond garanti | Publication des données retardée | Le stockage de référence est la machine du pilote ; la publication est qualifiée plus tard parmi les offres gratuites (Hugging Face, Zenodo, Kaggle Datasets, GitHub Releases), sans demande de subvention |
@@ -133,20 +133,36 @@ Méthodes de séparation pluie-neige candidates pour SP3 : température de bulbe
 
 Retours du pilote sur la première version de ce document :
 
-1. **Stockage de l'archive et du dépôt sur la machine du pilote**, dans `D:\Codage\PowAtlas` : clone complet du dépôt, et données d'archive dans un sous-dossier ignoré par Git (`data/`). On pousse sur GitHub le code et les métadonnées de moins de 100 Ko quand c'est possible ; les données ne vont jamais dans Git. Conséquence : en SP1, l'archivage est une **tâche planifiée sur la machine du pilote** (zéro euro), ce qui lève à la fois la limite de stockage de GitHub et le risque lié aux conditions d'utilisation d'Actions ; la session cloud ne peut pas écrire sur cette machine, le pilote y lance le code de SP1.
+1. **Stockage de l'archive et du dépôt sur la machine du pilote**, dans `D:\Codage\PowAtlas` : clone complet du dépôt, et données d'archive dans un sous-dossier ignoré par Git (`data/`). On pousse sur GitHub le code et les métadonnées de moins de 100 Ko quand c'est possible ; les données ne vont jamais dans Git. Conséquence : la machine du pilote garde l'archive de référence (zéro euro), ce qui lève la limite de stockage de GitHub ; le lieu d'exécution de la collecte est précisé par la décision 8 ; la session cloud ne peut pas écrire sur cette machine, le pilote y lance le code de SP1.
 2. **Hugging Face** n'était envisagé que pour **héberger publiquement l'archive**. Pour l'entraînement (SP3, SP5) : les offres de calcul gratuites (Kaggle, Colab), et d'autres offres gratuites seulement si elles ne suffisent pas. Pour le site (SP6) : uniquement des hébergements gratuits et durables, à qualifier en SP6 ; premier candidat relevé le 2026-10-21 : GitHub Pages (site publié de 1 Go au plus, bande passante « soft » de 100 Go par mois, usage commercial interdit, ce qui convient à un projet non commercial) [producteur : https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits].
 3. **Connecteurs** : le pilote a autorisé tous les connecteurs ; Exa répond de nouveau dans la session (test du 2026-10-21).
 
-Les questions 2 et 3 ci-dessous sont donc tranchées ; les autres restent ouvertes.
+Second retour (2026-10-22) :
+
+4. **Comptes gratuits : tous autorisés** (Copernicus CDS, Copernicus Data Space, portail API Météo-France, Hugging Face, Kaggle). Le pilote les crée lui-même au moment où SP1 en a besoin ; les jetons vont dans les secrets (GitHub ou fichier local ignoré par Git), jamais dans le dépôt.
+5. **Entraînement** : la meilleure offre gratuite du moment, et d'autres offres gratuites en plus si nécessaire.
+6. **Rattrapage de l'historique ECMWF en SP1 : oui.**
+7. **Aucun contact extérieur** : le sens des codes `campo_neve` (Arpa Piemonte) et `perssfrai` (Météo-France) s'établit par recherche documentaire et par l'analyse des données publiques.
+8. **Qui collecte les données chaque jour, tout l'hiver ?** Ni une session Claude (elle ne tourne pas en continu), ni le site (SP6, bien plus tard) : un **programme planifié**, écrit et testé en SP1, qui tourne seul chaque jour. Le lieu d'exécution est la **première décision du cadrage SP1** :
+
+| Option | Avantage | Limite |
+|---|---|---|
+| A. Machine du pilote seule (tâche planifiée Windows) | Aucun doute sur les conditions d'utilisation ; stockage direct dans `D:\Codage\PowAtlas\data` | Le PC doit être allumé chaque jour : un arrêt de plus de 24 h perd les runs ICON |
+| B. GitHub Actions seul | Tourne sans le PC, gratuit en dépôt public | Doute sur les conditions d'utilisation d'Actions ; pas de stockage durable (artefacts 90 jours au plus) |
+| **C. Hybride (recommandé)** | Actions collecte chaque jour le cœur de score (environ 2 Go téléchargés, environ 26 Mo conservés) et le dépose en artefact à durée courte ; le PC rapatrie dans `D:\Codage\PowAtlas\data` dès qu'il est allumé et garde l'archive de référence | Le doute sur Actions demeure : si GitHub le conteste, bascule immédiate sur l'option A, le code étant le même |
+
+La recommandation C donne la meilleure chance d'avoir **un hiver complet sans trou**, ce qui compte le plus pour SP2 et SP3.
+
+Les questions 2, 3, 4, 6 et 9 ci-dessous sont donc tranchées ; les autres restent ouvertes.
 
 ## Questions pour le pilote
 
 1. **Validez-vous cette feuille de route**, en particulier le démarrage par le « cœur de score » (run 00 UTC, 4,7 Go par saison) et l'ordre des sous-projets ajusté ?
-2. ~~GitHub Actions~~ — **tranché** : archivage sur la machine du pilote. Reste à décider en SP1 : un petit job Actions de secours pour ICON seul, quand la machine est éteinte plus de 24 h ?
+2. ~~GitHub Actions~~ — **à trancher en tête de SP1** : lieu d'exécution de la collecte quotidienne (décision 8 ; option hybride C recommandée).
 3. ~~Hébergement de l'archive~~ — **tranché** : `D:\Codage\PowAtlas\data` sur la machine du pilote ; publication publique plus tard. Reste à prévoir : une sauvegarde de ce disque.
-4. **Comptes gratuits** : lesquels autorisez-vous pour SP1 — Copernicus CDS, portail API Météo-France, Copernicus Data Space, Kaggle ?
+4. ~~Comptes gratuits~~ — **tranché** : tous autorisés, créés par le pilote au besoin (décision 4).
 5. **Priorité 2** (AROME 0,01°, niveaux de pression AROME, ICON-CH1, IFS ENS ; 16,6 Go par saison au run 00 UTC avec la priorité 1) : dès novembre, ou après un mois de fonctionnement du cœur de score ? Repousser l'IFS ENS retarde la référence probabiliste, sauf rattrapage depuis AWS.
-6. **Rattrapage de l'historique** (IFS depuis février 2024 et AIFS depuis février 2025 au plus, GFS depuis 2021, à confirmer sur la copie AWS) pour l'entraînement de SP3 : d'accord pour l'inclure dans SP1 ? Et validez-vous les **rôles des saisons** proposés (test des modèles fins en 2027-28) ?
-7. **Réglages GitHub restants** (tâche 6, refusés à la session) : protection de `main` avec la vérification `docs` obligatoire, suppression automatique des branches fusionnées, suppression de `claude/sp0-cadrage` — détail dans [`NEXT.md`](../NEXT.md).
-8. **Méthode** : validez-vous le dépassement du plafond de 25 sources par axe constaté en R0 ? Souhaitez-vous vérifier l'autorisation du connecteur Exa pour les prochaines recherches ?
-9. **Contacts extérieurs** : autorisez-vous de demander à Arpa Piemonte le sens du code `campo_neve` et au support Météo-France celui des codes `perssfrai` (`-99`, `-50`) ? Ces deux réponses décident de ce qui compte comme observation directe.
+6. ~~Rattrapage de l'historique~~ — **tranché** : oui, en SP1 (décision 6). Les rôles des saisons proposés plus haut restent à confirmer au cadrage de SP2.
+7. ~~Réglages GitHub restants~~ — **faits par le pilote** le 2026-10-22 (suppression automatique des branches fusionnées et des deux anciennes branches vérifiée ; la protection de `main` n'est pas lisible depuis la session).
+8. **Méthode** : validez-vous le dépassement du plafond de 25 sources par axe constaté en R0 ? (Exa fonctionne de nouveau depuis le 2026-10-21.)
+9. ~~Contacts extérieurs~~ — **tranché** : non ; recherche documentaire à la place (décision 7).
