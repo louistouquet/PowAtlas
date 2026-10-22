@@ -52,7 +52,7 @@ def pc_token(env_file: Path) -> str:
         for line in env_file.read_text(encoding="utf-8").splitlines():
             key, sep, value = line.strip().partition("=")
             if sep and key.strip() == "POWATLAS_GITHUB_TOKEN" and value.strip():
-                return value.strip().strip('"')
+                return value.strip().strip("\"'")
     raise SystemExit(f"POWATLAS_GITHUB_TOKEN not set and not found in {env_file}")
 
 

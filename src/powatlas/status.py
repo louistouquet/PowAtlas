@@ -6,7 +6,7 @@ from pathlib import Path
 
 from powatlas.catalogue import load_catalogue
 
-_LETTER = {"complete": "C", "partial": "P", "missing": "M"}
+_LETTER = {"complete": "C", "partial": "P", "missing": "M"}  # X: a file of the manifest is absent
 
 
 def status(data_dir: Path, start: date, end: date) -> str:
@@ -17,7 +17,8 @@ def status(data_dir: Path, start: date, end: date) -> str:
             m = json.loads(path.read_text(encoding="utf-8"))
             ref = m["unit"].split("__")[1]
             day = date(int(ref[:4]), int(ref[4:6]), int(ref[6:8]))
-            seen[(m["source"], day)] = _LETTER[m["state"]]
+            intact = all((path.parent / f["name"]).is_file() for f in m["files"])
+            seen[(m["source"], day)] = _LETTER[m["state"]] if intact else "X"
     days = [start + timedelta(days=i) for i in range((end - start).days + 1)]
     lines = ["| Source | " + " | ".join(f"{d:%m-%d}" for d in days) + " |",
              "|---|" + "---|" * len(days)]

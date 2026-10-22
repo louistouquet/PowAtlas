@@ -15,6 +15,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+import requests
+
 from powatlas.units import parse_artifact_name
 from powatlas.writer import sha256_file
 
@@ -39,7 +41,20 @@ def _synced_ids(data_dir: Path) -> set[int]:
     path = _inventory(data_dir)
     if not path.exists():
         return set()
-    return {json.loads(line)["artifact_id"] for line in path.read_text(encoding="utf-8").splitlines() if line}
+    ids = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            ids.add(json.loads(line)["artifact_id"])
+        except (ValueError, KeyError):
+            # A line cut by a crash while appending: its artifact is synced again.
+            print(f"ignored unreadable inventory line: {line[:80]!r}")
+    return ids
+
+
+def _from_collect_on_main(artifact: dict) -> bool:
+    """Only artifacts of runs on main of this repository (never from a fork or a branch)."""
+    run = artifact.get("workflow_run") or {}
+    return run.get("head_branch") == "main" and run.get("head_repository_id") == run.get("repository_id") is not None
 
 
 def _target_dir(data_dir: Path, source: str, ref: datetime, kind: str) -> Path:
@@ -75,7 +90,7 @@ def sync(data_dir: Path, gh, now: datetime) -> SyncResult:
     artifacts = []
     for a in gh.list_artifacts():
         parsed = parse_artifact_name(a["name"])
-        if parsed is None:
+        if parsed is None or not _from_collect_on_main(a):
             continue
         created = datetime.strptime(a["created_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
         artifacts.append((created, a["id"], a["name"], parsed))
@@ -92,26 +107,41 @@ def sync(data_dir: Path, gh, now: datetime) -> SyncResult:
         try:
             try:
                 manifest = _extract_and_verify(gh.download_artifact(aid), workdir)
-            except (zipfile.BadZipFile, ValueError, KeyError, OSError) as exc:
+                if manifest["unit"] != name.rsplit("__", 1)[0] or manifest["state"] != state:
+                    raise ValueError(f"manifest {manifest['unit']} {manifest['state']} does not match the artifact name")
+            except (zipfile.BadZipFile, ValueError, KeyError, OSError, RuntimeError, requests.RequestException) as exc:
                 result.rejected.append(name)
                 print(f"rejected {name}: {exc}")
                 continue
             target = _target_dir(data_dir, unit.source, unit.ref, kind)
             existing_path = target / manifest["_manifest_name"]
             outcome = "new"
+            existing = None
             if existing_path.exists():
                 existing = json.loads(existing_path.read_text(encoding="utf-8"))
-                if _RANK[state] < _RANK[existing["state"]]:
-                    outcome = "kept"
-                else:
-                    outcome = "replaced"
-                    for f in existing["files"]:
-                        (target / f["name"]).unlink(missing_ok=True)
+                worse = (_RANK[state], -len(manifest.get("missing", []))) < (
+                    _RANK[existing["state"]], -len(existing.get("missing", [])))
+                outcome = "kept" if worse else "replaced"
             if outcome != "kept":
-                target.mkdir(parents=True, exist_ok=True)
-                for f in manifest["files"]:
-                    os.replace(workdir / f["name"], target / f["name"])
-                os.replace(workdir / manifest["_manifest_name"], existing_path)
+                try:
+                    # New files first, then the manifest, then the leftovers of the old unit:
+                    # an interruption leaves at worst extra files, never a manifest without files.
+                    target.mkdir(parents=True, exist_ok=True)
+                    for f in manifest["files"]:
+                        os.replace(workdir / f["name"], target / f["name"])
+                    os.replace(workdir / manifest["_manifest_name"], existing_path)
+                except OSError as exc:
+                    result.rejected.append(name)
+                    print(f"rejected {name} (retried next time): {exc}")
+                    continue
+                if existing is not None:
+                    keep = {f["name"] for f in manifest["files"]}
+                    for f in existing["files"]:
+                        if f["name"] not in keep:
+                            try:
+                                (target / f["name"]).unlink(missing_ok=True)
+                            except OSError as exc:
+                                print(f"could not remove old file {f['name']}: {exc}")
             setattr(result, outcome, getattr(result, outcome) + 1)
             _inventory(data_dir).parent.mkdir(parents=True, exist_ok=True)
             with open(_inventory(data_dir), "a", encoding="utf-8") as inv:

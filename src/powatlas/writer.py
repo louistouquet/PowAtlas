@@ -130,7 +130,8 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
         last_modified_max=_iso(max(times)) if times and complete_times else None,
         fiche=source.fiche,
         licence=source.licence,
-        attribution=source.attribution,
+        # "{year}" (ECMWF: "© [year]") is the year of the data, i.e. of the run.
+        attribution=source.attribution.replace("{year}", f"{unit.ref.year}"),
         git_commit=git_commit(),
     )
     if not complete_times:
@@ -242,7 +243,7 @@ def write_forecast_unit(
         ds.source_id = source.id
         ds.fiche = source.fiche
         ds.licence = source.licence
-        ds.attribution = source.attribution
+        ds.attribution = m.attribution
         ds.reference_time = _iso(unit.ref)
         ds.mode = mode
         ds.stream = stream or ""

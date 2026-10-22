@@ -142,13 +142,13 @@ kind = "forecast"
 task = "ecmwf"
 fiche = "docs/sources/ecmwf-open-data.md"
 licence = "CC BY 4.0"
-attribution = "Copyright European Centre for Medium-Range Weather Forecasts (ECMWF), CC BY 4.0; cropped to the French Alps by PowAtlas"
+attribution = "© {year} European Centre for Medium-Range Weather Forecasts (ECMWF). Source: www.ecmwf.int. Licence: CC BY 4.0. Modified by PowAtlas (cropped to the French Alps). Provided as is, without any warranty."
 run_hours = [0]
 steps = [[0, 144, 3], [150, 360, 6]]
 window_days = 2                 # portal keeps 12 runs; older runs come from AWS (PC)
 available_after_hours = 7.6     # 00 UTC run deposited at 07:34 (R0.2)
 grid = { ni = 1440, nj = 721, lat_first = 90.0, lon_first = 180.0, di = 0.25, dj = 0.25 }
-urls = { model = "ifs", portal = "https://data.ecmwf.int/forecasts/", aws = "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/" }
+urls = { model = "ifs", first_run = "2024-02-01", portal = "https://data.ecmwf.int/forecasts/", aws = "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/" }
 
 [sources.ifs-0p25.variables]
 sf = { param = "sf", levtype = "sfc" }
@@ -174,13 +174,13 @@ kind = "forecast"
 task = "ecmwf"
 fiche = "docs/sources/ecmwf-open-data.md"
 licence = "CC BY 4.0"
-attribution = "Copyright European Centre for Medium-Range Weather Forecasts (ECMWF), CC BY 4.0; cropped to the French Alps by PowAtlas"
+attribution = "© {year} European Centre for Medium-Range Weather Forecasts (ECMWF). Source: www.ecmwf.int. Licence: CC BY 4.0. Modified by PowAtlas (cropped to the French Alps). Provided as is, without any warranty."
 run_hours = [0]
 steps = [[0, 360, 6]]
 window_days = 2
 available_after_hours = 7.6     # 00 UTC run deposited from 05:45 to 07:34 (R0.2)
 grid = { ni = 1440, nj = 721, lat_first = 90.0, lon_first = 180.0, di = 0.25, dj = 0.25 }
-urls = { model = "aifs-single", portal = "https://data.ecmwf.int/forecasts/", aws = "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/" }
+urls = { model = "aifs-single", first_run = "2025-02-26", portal = "https://data.ecmwf.int/forecasts/", aws = "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/" }
 
 [sources.aifs-single.variables]
 sf = { param = "sf", levtype = "sfc" }

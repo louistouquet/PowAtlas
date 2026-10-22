@@ -75,7 +75,7 @@ class CliCommandsTest(unittest.TestCase):
 
     def test_token_read_from_env_file(self):
         env = self.tmp / ".env"
-        env.write_text("# local secrets\nPOWATLAS_GITHUB_TOKEN=abc123\nOTHER=x\n")
+        env.write_text("# local secrets\nPOWATLAS_GITHUB_TOKEN='abc123'\nOTHER=x\n")
         with mock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop("POWATLAS_GITHUB_TOKEN", None)
             self.assertEqual(cli.pc_token(env), "abc123")

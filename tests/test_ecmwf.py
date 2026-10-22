@@ -103,6 +103,18 @@ class EcmwfTest(unittest.TestCase):
                                    dict(SETTINGS, collect_budget_minutes=0))
         self.assertTrue(any("time budget" in n for n in m.notes))
 
+    def test_run_before_stream_exists_is_one_note(self):
+        http = FakeHttp({})
+        m = EcmwfAdapter().collect(Unit("aifs-single", datetime(2025, 1, 10, tzinfo=timezone.utc)),
+                                   load_catalogue()[0]["aifs-single"], http, Path(tempfile.mkdtemp()), "backfill", SETTINGS)
+        self.assertEqual((m.state, http.requests), ("missing", []))
+        self.assertEqual(len(m.notes), 1)
+
+    def test_attribution_carries_year(self):
+        m, _ = collect(files())
+        self.assertIn("2026 European Centre", m.attribution)
+        self.assertIn("www.ecmwf.int", m.attribution)
+
     def test_stale_run_rejected(self):
         m, _ = collect(files(date=20261031))
         self.assertEqual(m.state, "missing")

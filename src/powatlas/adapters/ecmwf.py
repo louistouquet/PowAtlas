@@ -55,6 +55,10 @@ class EcmwfAdapter:
         fields: dict[tuple[str, int], Field] = {}
         fetched: list[Fetched] = []
         notes: list[str] = []
+        first_run = datetime.fromisoformat(source.urls["first_run"]).replace(tzinfo=timezone.utc)
+        if unit.ref < first_run:
+            notes.append(f"{source.urls['model']} 0.25 degree open data starts on {first_run:%Y-%m-%d}: nothing to fetch")
+            return write_forecast_unit(out_dir, unit, source, {}, expected, [], mode, None, start, notes)
         try:
             for step in source.steps:
                 if out_of_time(start, settings):
@@ -62,7 +66,8 @@ class EcmwfAdapter:
                     break
                 wanted = [v for v, s in expected if s == step]
                 if wanted:
-                    self._collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes)
+                    self._collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes,
+                                       start)
         except (GridMismatch, FormatChange) as exc:
             notes.append(f"{type(exc).__name__}: {exc}")
             fields = {}
@@ -70,7 +75,7 @@ class EcmwfAdapter:
         return write_forecast_unit(out_dir, unit, source, fields, expected, fetched, mode, stream, start, notes)
 
     @staticmethod
-    def _collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes):
+    def _collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes, start):
         url = base + ecmwf_path(source.urls["model"], unit.ref, step)
         try:
             index = parse_ecmwf_index(http.get(url + ".index").content)
@@ -90,6 +95,8 @@ class EcmwfAdapter:
             if hits:
                 selected.append((hits[0], var))
         for first, last in coalesce([(e.offset, e.offset + e.length - 1) for e, _ in selected]):
+            if out_of_time(start, settings):
+                return  # the caller notes the exhausted budget
             try:
                 r = http.get(url + ".grib2", byte_range=(first, last))
             except HttpError as exc:
