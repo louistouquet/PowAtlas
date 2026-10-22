@@ -283,7 +283,7 @@ Ces cinq tâches partagent la même procédure. Elles sont lancées **en même t
 **Fichiers :**
 - Modifier : `STATUS.md`, `NEXT.md`
 
-- [ ] **Étape 1 : vérifier un par un les 7 critères** de la section 9 du cadrage, avec la preuve de chacun (commande lancée et résultat, ou lien GitHub).
-- [ ] **Étape 2 : relecture d'ensemble** de SP0 par `relecteur-scientifique` (cohérence entre cadrage, méthode, `CLAUDE.md`, roadmap). Corriger.
-- [ ] **Étape 3 : mettre à jour `STATUS.md`** (ce qui existe) et **`NEXT.md`** : « Démarrer le brainstorming de SP1 (archive et observations) à partir de `docs/roadmap.md` ».
-- [ ] **Étape 4 : commit, PR, CI, fusion** ; fermer le jalon SP0.
+- [x] **Étape 1 : vérifier un par un les 7 critères** de la section 9 du cadrage, avec la preuve de chacun (commande lancée et résultat, ou lien GitHub).
+- [x] **Étape 2 : relecture d'ensemble** de SP0 par `relecteur-scientifique` (cohérence entre cadrage, méthode, `CLAUDE.md`, roadmap). Corriger.
+- [x] **Étape 3 : mettre à jour `STATUS.md`** (ce qui existe) et **`NEXT.md`** : « Démarrer le brainstorming de SP1 (archive et observations) à partir de `docs/roadmap.md` ».
+- [x] **Étape 4 : commit, PR, CI, fusion** ; fermer le jalon SP0.

@@ -40,5 +40,5 @@ Les définitions d'agents (`.claude/agents/*.md`) et les documents du projet dé
 ## Autres outils de recherche
 
 - **alphaXiv** (MCP) : source principale pour les articles scientifiques (recherche, texte intégral, questions sur PDF, code associé).
-- **Hugging Face** (MCP et skills) : recherche de modèles et de jeux de données ; plus tard publication des données et modèles du projet.
+- **Hugging Face** (MCP et skills) : recherche de modèles et de jeux de données ; plus tard, éventuellement, publication de l'archive et des modèles du projet ([décision 0004](decisions/0004-calcul-et-hebergements-gratuits.md)).
 - Recherche web intégrée : complément, et repli quand Exa est épuisé.

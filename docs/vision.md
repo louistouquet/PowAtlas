@@ -44,7 +44,7 @@ Chaque étape (« sous-projet ») suit son propre cycle : discussion, cadrage va
 | SP5 | Recherche IA avancée | Tester les nouveaux modèles météo par IA ; ils n'entrent en service que s'ils gagnent au tableau des scores | SP1, SP2 |
 | SP6 | Produits | API ouverte, site, carte, alertes, état des stations, Instagram | SP2, SP3 |
 
-**Pourquoi l'archive est urgente.** Les portails ouverts ne gardent les prévisions que quelques jours (environ 2 à 3 jours pour l'ECMWF Open Data). Chaque jour non sauvegardé est perdu. Commencer l'archivage en novembre 2026 permet d'avoir une saison 2026-27 complète pour entraîner et vérifier les modèles.
+**Pourquoi l'archive est urgente.** Les portails ouverts ne gardent les prévisions que quelques jours (24 heures pour certains modèles, environ 2 à 3 jours pour l'ECMWF Open Data). Chaque jour non sauvegardé est perdu. La collecte doit tourner avant le 1er novembre 2026 : la saison 2026-27 servira d'abord à vérifier publiquement les modèles bruts, puis à entraîner ; la première saison de test indépendante des modèles corrigés sera 2027-28.
 
 ## Comment la prévision sera construite
 
@@ -56,4 +56,4 @@ Une hypothèse de départ, à confirmer par la recherche R0 : un système **en c
 4. **Manteau neigeux** : un modèle ouvert de simulation du manteau, alimenté par la météo corrigée.
 5. **Piste IA avancée** : elle n'entre en service que si elle bat les couches 1 à 3 au tableau des scores.
 
-**Contraintes de calcul.** Le fonctionnement courant doit tenir dans les limites gratuites de GitHub Actions (dépôt public). L'entraînement lourd utilisera des GPU gratuits (Kaggle, Colab), dont les quotas sont vérifiés pendant la recherche R0.
+**Contraintes de calcul.** Tout reste gratuit. La collecte quotidienne tourne sur la machine du pilote, sur GitHub Actions ou sur les deux, et l'archive de référence est conservée sur la machine du pilote. L'entraînement utilisera la meilleure offre de calcul gratuite du moment (par exemple les GPU gratuits de Kaggle ou Colab).

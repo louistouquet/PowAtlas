@@ -1,6 +1,6 @@
 # SP0 — Fondations de PowAtlas
 
-Document de cadrage · 21 octobre 2026 · statut : **à valider par le pilote**
+Document de cadrage · 21 octobre 2026 · statut : **validé par le pilote le 2026-10-21** ; décisions ultérieures du pilote dans [`docs/decisions/`](../decisions/README.md) et [`docs/roadmap.md`](../roadmap.md)
 
 Ce document fixe ce que le projet vise, comment on travaille, avec quels outils, et ce que le sous-projet SP0 doit livrer. Il résume les décisions prises lors du brainstorming du 21 octobre 2026. Les choix techniques détaillés de chaque sous-projet suivant (SP1 à SP6) feront l'objet de leur propre cadrage.
 
@@ -47,17 +47,22 @@ Chaque sous-projet suit son propre cycle : brainstorming, cadrage validé, plan,
 
 **Urgence de SP1.** Les portails ouverts ne conservent que quelques jours de prévisions (environ 12 runs, soit 2 à 3 jours, pour l'[ECMWF Open Data](https://www.ecmwf.int/en/forecasts/datasets/open-data)). Chaque jour non archivé est perdu. Démarrer l'archivage en novembre 2026 donne une saison 2026-27 complète pour entraîner et vérifier. R0.2 est donc traité en premier.
 
+> *Note du 2026-10-22 :* la saison 2026-27 sert d'abord à vérifier publiquement les modèles bruts, puis d'entraînement ; la première saison de test indépendante des modèles fins est 2027-28 ([`docs/roadmap.md`](../roadmap.md)). Objectif : collecte en service avant le 1er novembre 2026.
+
 ## 4. Stratégie de modèle (hypothèse à confirmer par R0)
 
 Système en couches, chacune testable et remplaçable séparément ; le tableau des scores décide de ce qui passe en production.
 
 1. **Archive des prévisions ouvertes** : AROME, ARPEGE, ECMWF IFS et AIFS, ICON et autres sources retenues par R0.2, archivées quotidiennement par GitHub Actions.
+   *Note du 2026-10-22 :* lieu d'exécution de la collecte (machine du pilote, GitHub Actions ou les deux) à trancher en tête de SP1 ; archive de référence sur la machine du pilote ([décision 0001](../decisions/0001-archive-sur-la-machine-du-pilote.md)).
 2. **Réduction d'échelle physique** : relief fin (IGN), limite pluie-neige, effet de l'altitude et des versants, densité de la neige fraîche.
 3. **Correction par apprentissage et combinaison de modèles** : entraînées sur les écarts entre prévisions et mesures ; sortie probabiliste (« 70 % de chances de plus de 30 cm »).
 4. **Manteau neigeux** : modèle ouvert (Crocus, SNOWPACK, FSM2 ou autre, choisi en R4), alimenté par la météo corrigée.
 5. **Piste IA avancée** (SP5) : recherche exhaustive puis essais. Elle n'entre en production que si elle bat les couches 1 à 3 sur le tableau des scores.
 
 Contraintes de calcul : tout le fonctionnement courant doit tenir dans les limites gratuites de GitHub Actions (dépôt public). L'entraînement lourd utilise des GPU gratuits (Kaggle, Colab), dont les quotas seront vérifiés en R0.5.
+
+> *Note du 2026-10-22 :* la collecte quotidienne peut tourner sur la machine du pilote ([décision 0001](../decisions/0001-archive-sur-la-machine-du-pilote.md)) ; l'entraînement utilise la meilleure offre gratuite du moment ([décision 0004](../decisions/0004-calcul-et-hebergements-gratuits.md)).
 
 ## 5. Méthode de travail
 
@@ -98,7 +103,7 @@ Code, API et commentaires en anglais. README en anglais et en français. Cadrage
 | Outil | Usage |
 |---|---|
 | alphaXiv (MCP) | Source principale pour les articles : recherche, texte intégral, questions sur PDF, code associé |
-| Hugging Face (MCP et skills) | Recherche de modèles et jeux de données ; publication de nos données et modèles (`hf-cli`) ; suivi d'expériences (`trackio`) |
+| Hugging Face (MCP et skills) | Recherche de modèles et jeux de données ; publication de nos données et modèles (`hf-cli`) ; suivi d'expériences (`trackio`). *Note du 2026-10-22 : rôle précisé par la [décision 0004](../decisions/0004-calcul-et-hebergements-gratuits.md).* |
 | Exa | Recherche web sémantique, en complément de la recherche web intégrée, dans la limite des **10 $ de crédits gratuits mensuels** : aucun moyen de paiement enregistré, recherches ciblées plutôt que l'agent Exa (plus coûteux) |
 | Skill `scientific-coding` | Activé pour tout code scientifique |
 | Skills *superpowers* et `deep-research` | Méthode (cadrage, plans, tests, vérification, relecture) et grosses recherches |
@@ -200,7 +205,7 @@ Aucun code de traitement de données, aucun téléchargement automatique, aucun 
 
 ## 11. Risques et points ouverts
 - **Disponibilité des observations :** l'accès ouvert aux données du réseau nivo-météo n'est pas confirmé. Sans vérité terrain suffisante, le tableau des scores est affaibli. R0.3 doit trancher.
-- **Volume d'archive :** les limites de stockage gratuit (Hugging Face, GitHub) face au volume quotidien des prévisions sur les Alpes restent à mesurer en R0.2 et R0.5.
+- **Volume d'archive :** les limites de stockage gratuit (Hugging Face, GitHub) face au volume quotidien des prévisions sur les Alpes restent à mesurer en R0.2 et R0.5. *Mesuré (R0.2) et tranché le 2026-10-21 : archive de référence sur la machine du pilote ([décision 0001](../decisions/0001-archive-sur-la-machine-du-pilote.md)).*
 - **Licences :** la licence exacte des prévisions archivées par Open-Meteo et de certaines sources communautaires n'est pas confirmée.
 - **Crédits Exa :** 10 $ par mois ; si le quota est atteint, on bascule sur la recherche web intégrée jusqu'au mois suivant.
 - **Organisation GitHub :** disponibilité du nom PowAtlas non vérifiée.

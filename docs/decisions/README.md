@@ -25,4 +25,11 @@ Une décision n'est jamais effacée : si elle change, une nouvelle décision la 
 
 ## Liste
 
-Aucune décision enregistrée pour l'instant.
+| N° | Décision | Date | Statut |
+|---|---|---|---|
+| [0001](0001-archive-sur-la-machine-du-pilote.md) | Archive de référence sur la machine du pilote ; aucune donnée dans Git | 2026-10-21 | acceptée |
+| [0002](0002-comptes-gratuits-et-secrets.md) | Comptes gratuits autorisés, créés par le pilote ; secrets hors du dépôt | 2026-10-22 | acceptée |
+| [0003](0003-aucun-contact-exterieur.md) | Aucun contact extérieur ; recherche documentaire à la place | 2026-10-22 | acceptée |
+| [0004](0004-calcul-et-hebergements-gratuits.md) | Calcul d'entraînement et hébergements : le meilleur du gratuit | 2026-10-22 | acceptée |
+
+Le lieu d'exécution de la collecte quotidienne sera la décision 0005, prise au cadrage de SP1.
