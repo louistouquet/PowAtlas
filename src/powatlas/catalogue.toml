@@ -1,0 +1,71 @@
+# PowAtlas SP1 catalogue: what is collected, where, when.
+# Spec: docs/specs/2026-10-22-sp1-archive-design.md. All times are UTC.
+# Steps are inclusive [start, stop, step] ranges in hours.
+
+[settings]
+bbox = [5.0, 43.5, 7.9, 46.5]   # west, south, east, north (degrees, WGS84)
+margin_cells = 2                # grid cells kept around the bbox
+artifact_retention_days = 30
+
+[settings.http]
+retries = 5
+backoff = 2.0          # seconds, doubled at each retry
+max_backoff = 300.0
+min_interval = 0.2     # seconds between requests (politeness)
+timeout = 60.0
+
+# First and second trigger of each task (minute off the hour, spec section 3).
+[tasks.icon-d2]
+crons = ["35 2 * * *", "35 8 * * *"]
+
+[tasks.icon-eu]
+crons = ["5 5 * * *", "35 10 * * *"]
+
+[sources.icon-d2]
+family = "dwd-icon"
+kind = "forecast"
+task = "icon-d2"
+fiche = "docs/sources/icon-dwd.md"
+licence = "CC BY 4.0"
+attribution = "Contains data from Deutscher Wetterdienst (DWD), licensed CC BY 4.0; cropped to the French Alps by PowAtlas"
+run_hours = [0]
+steps = [[0, 48, 1]]
+window_days = 0                 # 24 h retention: only today's run can be fetched
+available_after_hours = 1.5     # last step of the 12 UTC run seen at +1 h 21 (R0.2)
+grid = { ni = 1215, nj = 746, lat_first = 43.18, lon_first = 356.06, di = 0.02, dj = 0.02 }
+# {HH}: run hour, {run}: AAAAMMJJHH, {step}: 3-digit step, {var}/{VAR}: variable in lower/upper case
+urls = { file = "https://opendata.dwd.de/weather/nwp/icon-d2/grib/{HH}/{var}/icon-d2_germany_regular-lat-lon_single-level_{run}_{step}_2d_{var}.grib2.bz2" }
+
+[sources.icon-d2.variables]
+t_2m = { shortName = "2t" }
+tot_prec = { shortName = "tp" }
+snow_gsp = { shortName = "lsfwe" }
+snow_con = { shortName = "csfwe" }
+h_snow = { shortName = "sde" }
+w_snow = { shortName = "sd" }
+hzerocl = { shortName = "HZEROCL" }
+snowlmt = { shortName = "SNOWLMT" }
+
+[sources.icon-eu]
+family = "dwd-icon"
+kind = "forecast"
+task = "icon-eu"
+fiche = "docs/sources/icon-dwd.md"
+licence = "CC BY 4.0"
+attribution = "Contains data from Deutscher Wetterdienst (DWD), licensed CC BY 4.0; cropped to the French Alps by PowAtlas"
+run_hours = [0]
+steps = [[0, 78, 1], [81, 120, 3]]
+window_days = 0
+available_after_hours = 3.7     # last step of the 12 UTC run seen at +3 h 39 (R0.2)
+grid = { ni = 1377, nj = 657, lat_first = 29.5, lon_first = 336.5, di = 0.0625, dj = 0.0625 }
+urls = { file = "https://opendata.dwd.de/weather/nwp/icon-eu/grib/{HH}/{var}/icon-eu_europe_regular-lat-lon_single-level_{run}_{step}_{VAR}.grib2.bz2" }
+
+[sources.icon-eu.variables]
+t_2m = { shortName = "2t" }
+tot_prec = { shortName = "tp" }
+snow_gsp = { shortName = "lsfwe" }
+snow_con = { shortName = "csfwe" }
+h_snow = { shortName = "sde" }
+w_snow = { shortName = "sd" }
+hzerocl = { shortName = "HZEROCL" }
+snowlmt = { shortName = "SNOWLMT" }
