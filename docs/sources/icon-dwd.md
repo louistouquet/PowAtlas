@@ -10,7 +10,7 @@ delai: ICON-D2 : 0 h 44 (échéance 0) à 1 h 21 (échéance 48) après l'heure 
 resolution: ICON-D2 0,02° (environ 2,2 km, 1215 x 746 points, 43,18 N à 58,08 N, 3,94 W à 20,34 E) ; ICON-EU 0,0625° (1377 x 657 points, 29,5 N à 70,5 N, 23,5 W à 62,5 E) ; pas horaire
 conservation: environ 24 h : un seul run par créneau horaire est conservé, remplacé par celui du lendemain
 statut: retenue
-verifie_le: 2026-10-21
+verifie_le: 2026-10-22
 ---
 
 # ICON-D2 et ICON-EU (DWD)
@@ -26,6 +26,13 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21), et u
 - Variables utiles à la neige, présentes dans les dossiers du run 12 UTC [vérifié] : `snow_gsp` (neige grande échelle, équivalent en eau, cumul, `lsfwe`), `snow_con` (neige convective, cumul, `csfwe`), `tot_prec` (précipitation totale, cumul), `rain_gsp`, `rain_con`, `grau_gsp` (graupel), `h_snow` (hauteur de neige, m, `sde`), `w_snow` (équivalent en eau du manteau, kg m-2, `sd`), `rho_snow` (densité), `freshsnw`, `snowc` (couverture), `t_snow`, `snowlmt` (hauteur de la limite des chutes de neige au-dessus du niveau de la mer, m), `hzerocl` (hauteur de l'isotherme 0 °C, m), `ww` (temps significatif), `t_2m`, `td_2m`, `relhum_2m`, `u_10m`, `v_10m`, `vmax_10m`, `pmsl`, `clct`. Lecture réelle (échéance 24 h, `eccodes`) : D2 `lsfwe`, `csfwe`, `tp`, `lsrr` (pluie grande échelle), `sde`, `sd`, `rsn`, `FRESHSNW`, `SNOWLMT`, `HZEROCL`, `2t` ; ICON-EU `lsfwe`, `csfwe`, `tp`, `sde`, `sd`, `SNOWLMT`, `HZEROCL`, `2t` [vérifié]. ICON-D2 donne donc, contrairement à AROME, la limite pluie-neige, l'isotherme 0 °C, la hauteur de neige et l'équivalent en eau.
 - Couverture de l'emprise des Alpes françaises (ouest 5.0, sud 43.5, est 7.9, nord 46.5) : ICON-D2 couvre 43,18 N à 58,08 N : la limite sud est à 0,32° sous celle de l'emprise, les Alpes françaises y sont entières [vérifié, en-tête de grille] ; ICON-EU couvre tout. Découpage mesuré : 150 x 145 = 21 750 points à 0,02° (87 000 octets en float32 par champ), 2 303 points à 0,0625° [vérifié pour D2, calcul pour EU].
 - Fréquence : voir Runs ; formats : GRIB2 compressé bzip2 ; les fichiers de cumul et d'isothermes de la grille régulière contiennent 4 messages, structure non élucidée (à inspecter avant d'écrire le code d'archivage) [vérifié].
+- **Structure des fichiers (inspection du 2026-10-22, run 2026-10-22 00 UTC, échéance 24 h, lecture `eccodes` 2.50)** [vérifié] :
+  - ICON-D2 : `tot_prec`, `snow_gsp`, `snow_con`, `hzerocl` et `snowlmt` contiennent **4 messages** : l'heure pleine (`stepRange` 0-24 h pour les cumuls, 24 h pour les instantanés) puis trois sorties au quart d'heure suivant (+24 h 15, +24 h 30, +24 h 45 ; `stepRange` `0m-1455m`, `0m-1470m`, `0m-1485m`). `t_2m`, `h_snow`, `w_snow` n'ont qu'un message. **Règle retenue par PowAtlas : garder le seul message à l'heure pleine** ; les sorties au quart d'heure ne sont pas archivées (la liste d'archivage de R0.2 est horaire). ICON-EU : un seul message par fichier.
+  - Cumuls (`tp`, `lsfwe`, `csfwe`) : `stepType = accum`, gabarit 4.8, cumul **depuis le début du run** (0-24 h), en kg m-2 ; `HZEROCL` et `SNOWLMT` : instantanés, en m, `typeOfLevel` non renseigné (`unknown`) ; `sde` (`h_snow`) en m, `sd` (`w_snow`) en kg m-2, `2t` en K.
+  - Empaquetage : ICON-D2 `grid_simple` 16 bits avec bitmap ; ICON-EU `grid_ccsds` 16 bits (décodé par les roues `eccodes`).
+  - Grilles constatées : ICON-D2 1215 x 746 depuis 43,18 N 356,06 E au pas 0,02° ; ICON-EU 1377 x 657 depuis 29,5 N 336,5 E au pas 0,0625°.
+  - **Bordure sud d'ICON-D2** : sur l'emprise découpée (marge de 2 mailles), les points au sud d'environ 43,6 N sont absents (bitmap) : 847 points sur 23 250, dont 533 dans l'emprise stricte, entre 43,46 et 43,6 N. La grille régulière couvre 43,18 N, mais le domaine du modèle s'arrête plus au nord ; ces points restent `NaN` dans l'archive.
+  - `Last-Modified` du run 2026-10-22 00 UTC, échéance 24 h : ICON-D2 01:04 UTC, ICON-EU 02:57 UTC.
 - Délai (Last-Modified, run 12 UTC du 2026-10-21) [vérifié] : ICON-D2 `snow_gsp` échéance 0 à 12:44 UTC, échéance 48 (grille régulière) à 13:21 UTC ; ICON-EU `SNOW_GSP` échéance 0 à 14:45 UTC, échéance 120 à 15:38 UTC.
 - Conservation : le dossier `icon-d2/grib/15/` contenait à 15:47 UTC 92 fichiers du run 2026-10-20 15 UTC et 9 du run 2026-10-21 15 UTC (suppression des anciens fichiers à mesure que le nouveau run arrive) ; les dossiers 00, 06, 09, 12, 18, 21 ne contiennent qu'un run ; idem pour ICON-EU [vérifié]. La conservation est donc de 24 h environ par créneau ; le producteur ne la documente pas sur la page lue [hypothèse pour la règle de suppression].
 - Taille par échéance, grille régulière, D2 à l'échéance 24 h (bz2) [vérifié] : `tot_prec` 3,0 Mo, `snowlmt` 3,9 Mo, `hzerocl` 3,9 Mo, `t_2m` 0,9 Mo, `snow_gsp` 0,17 Mo, `snow_con` 0,08 Mo, `h_snow` 0,02 Mo ; ICON-EU : `t_2m` 1,0 Mo, `snowlmt` 1,1 Mo, `hzerocl` 0,96 Mo, `tot_prec` 0,59 Mo, `snow_gsp` 0,04 Mo.
@@ -37,13 +44,15 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21), et u
 - Date : 2026-10-21, 15:45 à 16:10 UTC, sans compte.
 - Commande exacte : `curl -sS https://opendata.dwd.de/weather/nwp/icon-d2/grib/12/` (liste des variables) ; `curl -sS https://opendata.dwd.de/weather/nwp/icon-d2/grib/12/snow_gsp/` (fichiers) ; `curl -sS -I https://opendata.dwd.de/weather/nwp/icon-d2/grib/12/snow_gsp/icon-d2_germany_regular-lat-lon_single-level_2026102112_048_2d_snow_gsp.grib2.bz2` ; téléchargement de `.../icon-d2/grib/12/<variable>/icon-d2_germany_regular-lat-lon_single-level_2026102112_024_2d_<variable>.grib2.bz2` pour 11 variables ; `.../icon-eu/grib/12/<variable>/icon-eu_europe_regular-lat-lon_single-level_2026102112_024_<VARIABLE>.grib2.bz2` pour 8 variables ; décompression `bunzip2`, lecture `eccodes`.
 - Taille téléchargée : 15,0 Mo pour ICON-D2 (11 fichiers compressés) et 3,9 Mo pour ICON-EU (8 fichiers).
+- Complément du 2026-10-22 : téléchargement de l'échéance 24 h du run 2026-10-22 00 UTC des 8 variables d'archivage pour ICON-D2 et ICON-EU (`.../grib/00/<variable>/...2026102200_024...`), environ 16 Mo compressés ; liste des messages avec `eccodes` (`codes_grib_new_from_file`) et décodage par `powatlas.grib.iter_fields`. HTTP 200 sur les 16 fichiers.
 - Résultat observé : HTTP 200 sur tous les listings et fichiers ; `Last-Modified` renseigné ; pas de `Accept-Ranges` testé ; grille D2 1215 x 746, premier point 43,18 N 356,06 E, pas 0,02° ; grille EU 1377 x 657, pas 0,0625° [vérifié].
 
 ## Limites
 
 - Conservation de 24 h : un job manqué n'est pas rattrapable (hors archive Open-Meteo, voir [open-meteo](open-meteo.md)).
 - Un fichier par champ et par échéance : 49 requêtes par champ et par run pour ICON-D2 ; pas de lecture partielle utile, mais pas de découpage serveur non plus (grille entière de 1215 x 746 points).
-- Les 4 messages des fichiers de cumul et les unités (`kg m-2` en cumul depuis le début du run) sont à confirmer avant tout calcul de neige fraîche sur 24 h.
+- Les 4 messages des fichiers ICON-D2 sont l'heure pleine et trois sorties au quart d'heure (constat du 2026-10-22, voir Contenu) ; les cumuls partent du début du run (kg m-2).
+- ICON-D2 ne couvre pas la bande la plus au sud de l'emprise (au sud d'environ 43,6 N, constat du 2026-10-22).
 - ICON-D2 s'arrête à 43,18 N : la bordure sud de l'emprise reste couverte, pas au-delà.
 - Les ensembles `icon-d2-eps` et `icon-eu-eps` ne sont pas qualifiés.
 - La sortie n'est pas un verdict de sécurité avalanche (référence : BRA Météo-France).
