@@ -24,6 +24,9 @@ crons = ["5 5 * * *", "35 10 * * *"]
 [tasks.meteofrance-pnt]
 crons = ["50 6 * * *", "50 12 * * *"]
 
+[tasks.ecmwf]
+crons = ["50 8 * * *", "50 14 * * *"]
+
 [tasks.observations]
 crons = ["50 9 * * *", "50 17 * * *"]
 
@@ -127,6 +130,63 @@ tsnowp = { shortName = "tsnowp", package = "SP1", grib = [0, 1, 66, 1, 0], steps
 tirf = { shortName = "tirf", package = "SP1", grib = [0, 1, 65, 1, 0], steps = [[1, 102, 1]] }
 sd = { shortName = "sd", package = "SP1", grib = [0, 1, 60, 1, 0], steps = [[0, 48, 1], [51, 102, 3]] }
 prmsl = { shortName = "prmsl", package = "SP1", grib = [0, 3, 1, 101, 0] }
+
+# ECMWF open data, 0.25 degree, 00 UTC run (docs/sources/ecmwf-open-data.md):
+# one index and one GRIB2 file per step on the portal; same paths on AWS.
+
+[sources.ifs-0p25]
+family = "ecmwf"
+kind = "forecast"
+task = "ecmwf"
+fiche = "docs/sources/ecmwf-open-data.md"
+licence = "CC BY 4.0"
+attribution = "Copyright European Centre for Medium-Range Weather Forecasts (ECMWF), CC BY 4.0; cropped to the French Alps by PowAtlas"
+run_hours = [0]
+steps = [[0, 144, 3], [150, 360, 6]]
+window_days = 2                 # portal keeps 12 runs; older runs come from AWS (PC)
+available_after_hours = 7.6     # 00 UTC run deposited at 07:34 (R0.2)
+grid = { ni = 1440, nj = 721, lat_first = 90.0, lon_first = 180.0, di = 0.25, dj = 0.25 }
+urls = { model = "ifs", portal = "https://data.ecmwf.int/forecasts/", aws = "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/" }
+
+[sources.ifs-0p25.variables]
+sf = { param = "sf", levtype = "sfc" }
+sd = { param = "sd", levtype = "sfc" }
+rsn = { param = "rsn", levtype = "sfc" }
+tp = { param = "tp", levtype = "sfc" }
+ptype = { param = "ptype", levtype = "sfc" }
+"2t" = { param = "2t", levtype = "sfc" }
+mn2t3 = { param = "mn2t3", levtype = "sfc", steps = [[3, 144, 3]] }
+mx2t3 = { param = "mx2t3", levtype = "sfc", steps = [[3, 144, 3]] }
+mn2t6 = { param = "mn2t6", levtype = "sfc", steps = [[150, 360, 6]] }
+mx2t6 = { param = "mx2t6", levtype = "sfc", steps = [[150, 360, 6]] }
+tcc = { param = "tcc", levtype = "sfc" }
+"10u" = { param = "10u", levtype = "sfc" }
+"10v" = { param = "10v", levtype = "sfc" }
+t_850 = { param = "t", levtype = "pl", levelist = "850" }
+gh_850 = { param = "gh", levtype = "pl", levelist = "850" }
+r_850 = { param = "r", levtype = "pl", levelist = "850" }
+
+[sources.aifs-single]
+family = "ecmwf"
+kind = "forecast"
+task = "ecmwf"
+fiche = "docs/sources/ecmwf-open-data.md"
+licence = "CC BY 4.0"
+attribution = "Copyright European Centre for Medium-Range Weather Forecasts (ECMWF), CC BY 4.0; cropped to the French Alps by PowAtlas"
+run_hours = [0]
+steps = [[0, 360, 6]]
+window_days = 2
+available_after_hours = 7.6     # 00 UTC run deposited from 05:45 to 07:34 (R0.2)
+grid = { ni = 1440, nj = 721, lat_first = 90.0, lon_first = 180.0, di = 0.25, dj = 0.25 }
+urls = { model = "aifs-single", portal = "https://data.ecmwf.int/forecasts/", aws = "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/" }
+
+[sources.aifs-single.variables]
+sf = { param = "sf", levtype = "sfc" }
+tp = { param = "tp", levtype = "sfc" }
+"2t" = { param = "2t", levtype = "sfc" }
+tcc = { param = "tcc", levtype = "sfc" }
+"10u" = { param = "10u", levtype = "sfc" }
+"10v" = { param = "10v", levtype = "sfc" }
 
 # Observations: dated verbatim copies, one unit per collection day (window 0:
 # every copied answer covers at least 7 days, except the daily Météo-France

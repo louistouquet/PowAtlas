@@ -13,6 +13,8 @@ on:
     - cron: "35 10 * * *"  # icon-eu, last
     - cron: "50 6 * * *"   # meteofrance-pnt, first
     - cron: "50 12 * * *"  # meteofrance-pnt, last
+    - cron: "50 8 * * *"   # ecmwf, first
+    - cron: "50 14 * * *"  # ecmwf, last
     - cron: "50 9 * * *"   # observations, first
     - cron: "50 17 * * *"  # observations, last
   workflow_dispatch:
