@@ -99,6 +99,40 @@ class BackfillTest(unittest.TestCase):
         self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data)
         self.assertEqual(len(again.calls), 1)
 
+    def test_partial_given_up_after_three_attempts(self):
+        data = None
+        for _ in range(3):
+            _, data = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), FakeAdapter("partial"), data=data)
+        again = FakeAdapter()
+        r, _ = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data)
+        self.assertEqual((again.calls, r.given_up), ([], 1))
+
+    def test_unreadable_manifest_recollected(self):
+        data = Path(tempfile.mkdtemp())
+        target = data / "forecasts/ifs-0p25/2025/01"
+        target.mkdir(parents=True)
+        (target / "ifs-0p25_20250101T00Z.json").write_text('{"unit": "ifs')
+        fake = FakeAdapter()
+        self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), fake, data=data)
+        self.assertEqual(len(fake.calls), 1)
+
+    def test_complete_manifest_with_missing_file_recollected(self):
+        data = Path(tempfile.mkdtemp())
+        target = data / "forecasts/ifs-0p25/2025/01"
+        target.mkdir(parents=True)
+        (target / "ifs-0p25_20250101T00Z.json").write_text(_json.dumps(
+            {"unit": "ifs-0p25__20250101T00Z", "state": "complete", "files": [{"name": "gone.nc", "sha256": "x"}]}))
+        fake = FakeAdapter()
+        self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), fake, data=data)
+        self.assertEqual(len(fake.calls), 1)
+
+    def test_end_bounded_by_availability(self):
+        from powatlas.backfill import last_available_day
+        now = datetime(2026, 1, 10, 3, 0, tzinfo=timezone.utc)
+        self.assertEqual(last_available_day(SOURCES["gfs-0p25"], now), date(2026, 1, 9))
+        now = datetime(2026, 1, 10, 5, 0, tzinfo=timezone.utc)
+        self.assertEqual(last_available_day(SOURCES["gfs-0p25"], now), date(2026, 1, 10))
+
     def test_backfill_stops_after_max_hours(self):
         ticks = iter([0.0, 0.0, 3600.0 * 2, 3600.0 * 3, 3600.0 * 4])
         fake = FakeAdapter()

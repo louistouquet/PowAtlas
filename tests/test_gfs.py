@@ -73,6 +73,20 @@ class GfsTest(unittest.TestCase):
         self.assertEqual(m.stream, "atmos/pgrb2.0p25")
         self.assertIn("NOAA", m.attribution)
 
+    def test_truncated_idx_is_partial_even_in_backfill(self):
+        files = served()
+        url = gfs_url(RUN, 3) + ".idx"
+        files[url] = files[url].splitlines(keepends=True)[0]  # cut after the first record (TMP)
+        m, _ = collect(files)
+        self.assertEqual((m.state, m.missing), ("partial", ["2t@3", "tp@3"]))
+
+    def test_total_accumulation_preferred_to_bucket(self):
+        from powatlas.adapters.gfs import _time_ok
+        self.assertTrue(_time_ok("acc-from-run-start", "0-9 hour acc fcst"))
+        self.assertTrue(_time_ok("acc-from-run-start", "0-2 day acc fcst"))
+        self.assertFalse(_time_ok("acc-from-run-start", "6-9 hour acc fcst"))
+        self.assertFalse(_time_ok("instant", "18-24 hour ave fcst"))
+
     def test_stale_run_rejected(self):
         m, _ = collect(served(date=20251231))
         self.assertEqual(m.state, "missing")

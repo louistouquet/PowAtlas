@@ -207,13 +207,13 @@ kind = "forecast"
 task = "pc"
 fiche = "docs/sources/gfs.md"
 licence = "NOAA open data (open to the public, can be used as desired)"
-attribution = "Data from NOAA GFS (NOAA Open Data Dissemination); cropped by PowAtlas: this is not the original, unaltered NOAA data and NOAA does not endorse PowAtlas"
+attribution = "Data from NOAA GFS (NOAA Open Data Dissemination); cropped by PowAtlas: this is not the original, unaltered NOAA data, and NOAA does not endorse PowAtlas nor is affiliated with it"
 run_hours = [0]
 steps = [[0, 78, 3]]
 window_days = 7
-available_after_hours = 4.0
+available_after_hours = 4.5     # f078 of the 00 UTC run deposited 03:50-04:10 UTC (16 dates, review of 2026-10-22)
 grid = { ni = 1440, nj = 721, lat_first = 90.0, lon_first = 0.0, di = 0.25, dj = 0.25 }
-urls = { bucket = "https://noaa-gfs-bdp-pds.s3.amazonaws.com/" }
+urls = { bucket = "https://noaa-gfs-bdp-pds.s3.amazonaws.com/", first_run = "2021-03-22" }
 
 [sources.gfs-0p25.variables]
 csnow = { var = "CSNOW", level = "surface", time = "instant", shortName = "csnow" }

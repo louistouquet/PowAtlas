@@ -10,7 +10,7 @@ delai: échéance 0 du run 12 UTC déposée à 15:33 UTC (environ 3 h 33), éch�
 resolution: 0,25° (1440 x 721 points), horaire jusqu'à 120 h puis toutes les 3 h jusqu'à 384 h ; 4 runs par jour (00, 06, 12, 18 UTC)
 conservation: copie AWS : historique depuis 2021 (préfixes `gfs.20210101/` ... `gfs.20261021/`) ; NOMADS : non documentée ici
 statut: retenue
-verifie_le: 2026-10-21
+verifie_le: 2026-10-22
 ---
 
 # GFS 0,25° (NOAA)
@@ -27,6 +27,14 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21), et u
 - Documentation officielle : https://registry.opendata.aws/noaa-gfs-bdp-pds/ ; https://www.emc.ncep.noaa.gov/emc/pages/numerical_forecast_systems/gfs.php (non lue).
 - Licence : « NOAA data disseminated through NODD are open to the public and can be used as desired. » ; attribution demandée pour les données non modifiées ; ne pas prétendre ou suggérer l'aval de NOAA ; « If you modify NOAA data, you may not state or imply that it is original, unaltered NOAA data » (clause à reprendre dans les métadonnées de l'archive découpée) [producteur, registre AWS, consultée le 2026-10-21 ; la clause sur les données modifiées a été portée par la relecture, libellé à revérifier sur la page].
 
+- **Constats du 2026-10-22** (relecture scientifique et essais de `powatlas`, runs 00 UTC du 2021-11-01, du 2021-11-15 et du 2026-01-01 au 2026-01-10) [vérifié] :
+  - chemin `gfs.AAAAMMJJ/00/atmos/gfs.t00z.pgrb2.0p25.fNNN` (avec `.idx`) identique en 2021-22 et en 2026 ; `atmos/` existe depuis GFS v16 (2021-03-22) [tiers, date de mise en service] ;
+  - les valeurs 9999 de `SNOD` et `WEASD` sont des points masqués par le bitmap (mer), lus comme manquants (`NaN`) ;
+  - `HGT:0C isotherm` vaut exactement 0 sur environ 33 % du globe, y compris sur des points des Alpes au-dessus de 1 000 m (f006 du 2026-01-01) : valeur sentinelle probable quand l'isotherme 0 °C passe sous le relief [vérifié pour la valeur, hypothèse pour le sens] ; à traiter avant tout score ;
+  - `APCP` figure deux fois aux échéances multiples de 3 h : cumul de la tranche (par exemple 18-24 h) et cumul depuis le début du run (« 0-N hour acc » ou « 0-1 day acc ») ; à f003 les deux enregistrements portent « 0-3 hour acc » et sont identiques ; PowAtlas garde le cumul depuis le début du run ;
+  - dépôt du f078 du run 00 UTC entre 03:50 et 04:10 UTC sur 16 dates.
+- Clause NOAA confirmée mot pour mot sur https://registry.opendata.aws/noaa-gfs-bdp-pds/ (consultée le 2026-10-22) : données modifiées à ne pas présenter comme originales, ni aval ni affiliation de NOAA à suggérer.
+
 ## Test d'accès
 
 - Date : 2026-10-21, 15:50 à 16:20 UTC, sans compte.
@@ -39,7 +47,8 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21), et u
 - Maille de 28 km : relief alpin très lissé ; utile surtout comme référence mondiale et comme source de secours.
 - Le fichier entier fait 0,5 Go : toute lecture passe par l'index et les plages d'octets.
 - Historique disponible sur la copie AWS : l'archivage quotidien de SP1 n'est pas urgent pour GFS (backfill possible) [hypothèse : politique de conservation AWS non lue].
-- Valeurs 9999 dans `SNOD` et `WEASD` à interpréter avant usage.
+- Valeurs 9999 dans `SNOD` et `WEASD` : points masqués par le bitmap (mer), lus comme manquants (constat du 2026-10-22).
+- `HGT:0C isotherm` à 0 sur le relief : valeur sentinelle probable, à traiter avant tout score.
 - La sortie n'est pas un verdict de sécurité avalanche (référence : BRA Météo-France).
 
 ## Sources

@@ -179,9 +179,14 @@ def cmd_backfill(args) -> int:
     _register_adapters()
     sources, _, settings = load_catalogue()
     b = settings["backfill"]
-    r = backfill(sources[args.source], date.fromisoformat(args.start), date.fromisoformat(args.end), Path(args.data),
+    from powatlas.backfill import last_available_day
+
+    source = sources[args.source]
+    end = min(date.fromisoformat(args.end), last_available_day(source, _now(None)))
+    r = backfill(source, date.fromisoformat(args.start), end, Path(args.data),
                  make_http(settings), settings, tuple(b["months"]), b["max_step"], args.max_hours)
-    print(f"done {r.done} (partial {r.partial}), skipped {r.skipped}" + (", stopped at --max-hours" if r.stopped else ""))
+    print(f"done {r.done} (partial {r.partial}), skipped {r.skipped}, given up {r.given_up}"
+          + (", stopped at --max-hours" if r.stopped else ""))
     return 0
 
 

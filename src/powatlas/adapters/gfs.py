@@ -49,17 +49,21 @@ def _time_ok(kind: str, desc: str) -> bool:
 
 
 def _drop_unpublished(expected, unpublished, notes):
-    """Backfill: a field absent from the index at a date was not published then; it is
-    listed in the notes and not expected, instead of making the unit partial."""
+    """Backfill: a variable absent from the producer's index at every step of the unit was
+    not published at that date (e.g. sf before 2025-11-22): it is noted and not expected.
+    Absent at only some steps, it stays expected: a cut index is a loss, not a gap."""
     if not unpublished:
         return expected
-    by_var: dict[str, list[int]] = {}
-    for var, step in sorted(unpublished):
-        by_var.setdefault(var, []).append(step)
-    for var, steps in by_var.items():
-        notes.append(f"not published at this date (absent from the index): {var} at {len(steps)} steps")
-    return [p for p in expected if p not in unpublished]
-
+    steps_of: dict[str, set[int]] = {}
+    for var, step in expected:
+        steps_of.setdefault(var, set()).add(step)
+    dropped = set()
+    for var, steps in steps_of.items():
+        absent = {s for v, s in unpublished if v == var}
+        if absent and absent == steps:
+            dropped.add(var)
+            notes.append(f"not published at this date (absent from the index at all {len(steps)} steps): {var}")
+    return [p for p in expected if p[0] not in dropped]
 
 class GfsAdapter:
     def collect(
@@ -72,6 +76,10 @@ class GfsAdapter:
         fetched: list[Fetched] = []
         notes: list[str] = []
         unpublished: set[tuple[str, int]] = set()  # backfill only: absent from the producer's index
+        first_run = datetime.fromisoformat(source.urls["first_run"]).replace(tzinfo=timezone.utc)
+        if unit.ref < first_run:
+            notes.append(f"GFS paths with atmos/ start on {first_run:%Y-%m-%d}: nothing to fetch")
+            return write_forecast_unit(out_dir, unit, source, {}, expected, [], mode, None, start, notes)
         try:
             for step in source.steps:
                 if out_of_time(start, settings):
@@ -80,7 +88,7 @@ class GfsAdapter:
                 wanted = [v for v, s in expected if s == step]
                 if wanted:
                     self._collect_step(step, wanted, unit, source, http, bbox, settings, fields, fetched, notes,
-                                       unpublished, mode)
+                                       unpublished, mode, start)
         except (GridMismatch, FormatChange) as exc:
             notes.append(f"{type(exc).__name__}: {exc}")
             fields = {}
@@ -89,7 +97,8 @@ class GfsAdapter:
                                    start, notes)
 
     @staticmethod
-    def _collect_step(step, wanted, unit, source, http, bbox, settings, fields, fetched, notes, unpublished, mode):
+    def _collect_step(step, wanted, unit, source, http, bbox, settings, fields, fetched, notes, unpublished, mode,
+                      start):
         url = gfs_url(unit.ref, step)
         try:
             entries = parse_gfs_idx(http.get(url + ".idx").content)
@@ -106,13 +115,15 @@ class GfsAdapter:
                     and _time_ok(spec["time"], e.desc)]
             if len({e.desc for e in hits}) > 1:
                 raise FormatChange(f"step {step}: {var} matches records {sorted({e.desc for e in hits})}")
-            if not hits and mode == "backfill":
-                unpublished.add((var, step))
             if hits:
                 if hits[0].length is None:
-                    raise FormatChange(f"step {step}: {var} is the last idx record, length unknown")
+                    # Selected records are never last in a whole idx: this one is cut short.
+                    notes.append(f"step {step}: {var} is the last idx record (idx cut?), skipped")
+                    continue
                 selected.append((hits[0], var))
         for first, last in coalesce([(e.offset, e.offset + e.length - 1) for e, _ in selected]):
+            if out_of_time(start, settings):
+                return
             try:
                 r = http.get(url, byte_range=(first, last))
             except HttpError as exc:

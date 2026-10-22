@@ -45,17 +45,21 @@ def ecmwf_path(model: str, run: datetime, step: int) -> str:
 
 
 def _drop_unpublished(expected, unpublished, notes):
-    """Backfill: a field absent from the index at a date was not published then; it is
-    listed in the notes and not expected, instead of making the unit partial."""
+    """Backfill: a variable absent from the producer's index at every step of the unit was
+    not published at that date (e.g. sf before 2025-11-22): it is noted and not expected.
+    Absent at only some steps, it stays expected: a cut index is a loss, not a gap."""
     if not unpublished:
         return expected
-    by_var: dict[str, list[int]] = {}
-    for var, step in sorted(unpublished):
-        by_var.setdefault(var, []).append(step)
-    for var, steps in by_var.items():
-        notes.append(f"not published at this date (absent from the index): {var} at {len(steps)} steps")
-    return [p for p in expected if p not in unpublished]
-
+    steps_of: dict[str, set[int]] = {}
+    for var, step in expected:
+        steps_of.setdefault(var, set()).add(step)
+    dropped = set()
+    for var, steps in steps_of.items():
+        absent = {s for v, s in unpublished if v == var}
+        if absent and absent == steps:
+            dropped.add(var)
+            notes.append(f"not published at this date (absent from the index at all {len(steps)} steps): {var}")
+    return [p for p in expected if p[0] not in dropped]
 
 class EcmwfAdapter:
     def collect(

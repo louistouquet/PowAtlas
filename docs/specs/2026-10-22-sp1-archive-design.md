@@ -45,7 +45,7 @@ Un seul paquet Python, `powatlas` (dans `src/`, Python 3.12 ; dépendances `nump
 | Où | Sources | Volume |
 |---|---|---|
 | Actions, `collect.yml` (planifié, plus `workflow_dispatch`) | ICON-D2, ICON-EU (24 h) ; AROME 0,025°, ARPEGE 0,1° (14 jours) ; IFS, AIFS depuis le portail (4 jours) ; SLF, Arpa Piemonte temps réel (7 jours) ; copie datée du réseau nivo-météo et de la base quotidienne (`HNEIGEF`, départements 04, 05, 06, 38, 73, 74) ; puis ICON-CH1, AROME 0,01° réduit et niveaux de pression AROME (priorité 2) | environ 2 Go téléchargés par jour (3,3 Go avec la priorité 2) ; environ 26 Mo d'artefacts par jour, **gardés 30 jours** (environ 0,8 Go conservés ; R0.5 relève un plafond de stockage d'artefacts « non documenté » pour un dépôt public : rétention courte par prudence, `sync` passant au moins chaque semaine) |
-| PC du pilote, tâche planifiée Windows (chaque jour où le PC est allumé et à l'ouverture de session ; au moins une fois par semaine) | `sync` ; rattrapage historique IFS, AIFS, GFS ; GFS en continu ; IFS ENS (priorité 2) | environ 175 Go une seule fois (calcul en section 5), puis environ 10 Go par semaine (IFS ENS 8,3 Go, GFS environ 0,7 Go) |
+| PC du pilote, tâche planifiée Windows (chaque jour où le PC est allumé et à l'ouverture de session ; au moins une fois par semaine) | `sync` ; rattrapage historique IFS, AIFS, GFS ; GFS en continu ; IFS ENS (priorité 2) | environ 185 Go une seule fois (calcul en section 5), puis environ 10 Go par semaine (IFS ENS 8,3 Go, GFS environ 0,7 Go) |
 
 **Horaires de départ (UTC)**, hors des heures pleines, tirés de R0.2 et à **remesurer sur une semaine avant d'être figés** :
 
@@ -110,8 +110,8 @@ Les valeurs manquantes du GRIB (bitmap) deviennent `NaN` avec `_FillValue`. En r
 |---|---|---|---|---|---|
 | IFS 0,25° | 2024-02-01 au 2026-04-30 | 452 (89 + 182 + 181) | jusqu'à 14 (champs du cœur présents à la date, plus `t`, `gh`, `r` à 850 hPa) | 14 x 27 x 452 = 171 000 au plus | 0,4 Mo x 171 000 = environ 68 Go |
 | AIFS Single | flux opérationnel, du 2025-02-26 au 2026-04-30 | environ 245 (64 + 181) | 6 | 6 x 14 x 242 = 20 300 | environ 10 Go |
-| GFS 0,25° | saisons 2021-22 à 2025-26 (une seule version du modèle, GFS v16 et suivantes, chemin `atmos/`) | 905 (5 x 181) | 8 (`CSNOW`, `CRAIN`, `APCP`, `PRATE`, `SNOD`, `WEASD`, température à 2 m, hauteur de l'isotherme 0 °C) | 8 x 27 x 905 = 195 000 | 0,49 Mo x 195 000 = environ 96 Go |
-| **Total** | | | | **environ 386 000** | **environ 175 Go** |
+| GFS 0,25° | saisons 2021-22 à 2025-26 (une seule version du modèle, GFS v16 et suivantes, chemin `atmos/`) | 906 (5 x 181, plus le 29 février 2024) | 8 (`CSNOW`, `CRAIN`, `APCP`, `PRATE`, `SNOD`, `WEASD`, température à 2 m, hauteur de l'isotherme 0 °C) | 8 x 27 x 906 = 196 000 | 4,3 à 4,4 Mo mesurés par échéance (relecture du 2026-10-22) x 27 x 906 = environ 107 Go |
+| **Total** | | | | **environ 387 000** | **environ 185 Go** |
 
 Calcul [hypothèse] : tailles par champ mesurées en R0.2 et sur la fiche [`ecmwf-open-data`](../sources/ecmwf-open-data.md), extrapolées à toutes les dates ; les plages contiguës d'un même fichier sont fusionnées en une requête, ce qui réduit le nombre de requêtes. **Faisabilité à mesurer d'abord** : la PR 9 commence par un essai de débit depuis le PC du pilote (la cause des `SlowDown`, proxy de la session cloud ou bucket, n'est pas établie). Si le débit soutenu est trop faible, l'ordre de réduction est : GFS au pas de 6 h, puis IFS limité aux champs `tp`, `2t`, `sf`, `t` à 850 hPa, puis saisons les plus anciennes en dernier. GFS en continu ensuite.
 

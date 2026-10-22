@@ -77,7 +77,7 @@ Puis le rattrapage, source par source, par tranches de quelques heures (il repre
 .venv\Scripts\powatlas backfill --source gfs-0p25 --from 2021-11-01 --to 2026-04-30 --data D:\Codage\PowAtlas\data --max-hours 3
 ```
 
-Seuls les mois de novembre à avril et les échéances jusqu'à +78 h sont pris ([cadrage](../specs/2026-10-22-sp1-archive-design.md), § 5) : environ 175 Go téléchargés au total, moins de 1 Go gardé. Relancer la même commande jusqu'à ce qu'elle affiche `done 0`. Ensuite, chaque semaine, la commande GFS avec `--from` à la date d'une semaine plus tôt tient l'archive GFS à jour.
+Seuls les mois de novembre à avril et les échéances jusqu'à +78 h sont pris ([cadrage](../specs/2026-10-22-sp1-archive-design.md), § 5) : environ 185 Go téléchargés au total, moins de 1 Go gardé. Relancer la même commande jusqu'à ce qu'elle affiche `done 0` : une unité encore partielle après 3 tentatives est abandonnée et le motif est noté dans son manifeste (`given up`). Ensuite, chaque semaine, la commande GFS avec `--from` à la date d'une semaine plus tôt et `--to` à la date du jour tient l'archive GFS à jour (les jours pas encore publiés sont ignorés).
 
 ## 6. Si la collecte s'arrête
 

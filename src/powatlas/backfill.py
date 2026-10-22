@@ -18,6 +18,7 @@ from powatlas.catalogue import Source
 from powatlas.http import HttpClient
 from powatlas.indexes import parse_ecmwf_index
 from powatlas.units import Unit, unit_id
+from powatlas.writer import sha256_file
 
 
 @dataclass(frozen=True)
@@ -43,12 +44,38 @@ def probe(http: HttpClient, urls: list[str], ranges_per_url: int, clock: Callabl
     return ProbeResult(requests, clock() - t0, http.retry_count - retries0, size)
 
 
+MAX_ATTEMPTS = 3  # a unit still partial after this many backfills is given up (noted in its manifest)
+
+
 @dataclass
 class BackfillResult:
     done: int = 0
-    skipped: int = 0  # already complete in the archive
+    skipped: int = 0  # already complete in the archive (files present, sha256 checked)
     partial: int = 0
+    given_up: int = 0  # still partial after MAX_ATTEMPTS
     stopped: bool = False  # max_hours reached
+
+
+def last_available_day(source: Source, now: datetime) -> date:
+    """Last day whose 00 UTC run is published at ``now``."""
+    return (now - timedelta(hours=source.available_after_hours)).date()
+
+
+def _existing(manifest: Path) -> dict | None:
+    """Readable manifest whose files are all present and intact, else None (unit collected again)."""
+    try:
+        m = json.loads(manifest.read_text(encoding="utf-8"))
+        state = m["state"]
+        files = m["files"]
+    except (OSError, ValueError, KeyError) as exc:
+        print(f"{manifest.name}: unreadable manifest, collected again ({exc})")
+        return None
+    for f in files:
+        path = manifest.parent / f["name"]
+        if not path.is_file() or sha256_file(path) != f["sha256"]:
+            print(f"{manifest.name}: {f['name']} absent or altered, collected again")
+            return None
+    return {"state": state, "attempts": int(m.get("attempts", 1))}
 
 
 def restrict_to_max_step(source: Source, max_step: int) -> Source:
@@ -95,10 +122,20 @@ def backfill(
             unit = Unit(source.id, ref)
             target = Path(data_dir) / "forecasts" / source.id / f"{ref:%Y}" / f"{ref:%m}"
             manifest = target / f"{source.id}_{ref:%Y%m%dT%HZ}.json"
-            if manifest.exists() and json.loads(manifest.read_text(encoding="utf-8"))["state"] == "complete":
+            previous = _existing(manifest) if manifest.exists() else None
+            if previous is not None and previous["state"] == "complete":
                 result.skipped += 1
+            elif previous is not None and previous["attempts"] >= MAX_ATTEMPTS:
+                result.given_up += 1
             else:
                 m = adapter.collect(unit, restricted, http, target, "backfill", settings)
+                attempts = (previous["attempts"] if previous else 0) + 1
+                if attempts > 1 and manifest.exists():
+                    data = json.loads(manifest.read_text(encoding="utf-8"))
+                    data["attempts"] = attempts
+                    if m.state != "complete" and attempts >= MAX_ATTEMPTS:
+                        data.setdefault("notes", []).append(f"given up after {attempts} backfill attempts")
+                    manifest.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
                 result.done += 1
                 result.partial += m.state != "complete"
                 print(f"{unit_id(unit, 'forecast')}: {m.state}" + (f" ({m.notes[0]})" if m.notes else ""))

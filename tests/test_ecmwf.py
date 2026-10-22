@@ -130,6 +130,15 @@ class EcmwfTest(unittest.TestCase):
                                     SETTINGS)
         self.assertEqual(m2.state, "partial")
 
+    def test_field_missing_at_one_step_only_is_partial_in_backfill(self):
+        served = files()
+        aws = load_catalogue()[0]["ifs-0p25"].urls["aws"]
+        url = PORTAL + ecmwf_path("ifs", RUN, 3) + ".index"
+        served[url] = "\n".join(l for l in served[url].decode().splitlines() if '"levelist": "850"' not in l).encode()
+        http = FakeHttp({u.replace(PORTAL, aws): v for u, v in served.items()})
+        m = EcmwfAdapter().collect(Unit("ifs-0p25", RUN), source(), http, Path(tempfile.mkdtemp()), "backfill", SETTINGS)
+        self.assertEqual((m.state, m.missing), ("partial", ["t_850@3"]))
+
     def test_stale_run_rejected(self):
         m, _ = collect(files(date=20261031))
         self.assertEqual(m.state, "missing")
