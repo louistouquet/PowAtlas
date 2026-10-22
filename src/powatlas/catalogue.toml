@@ -33,17 +33,18 @@ steps = [[0, 48, 1]]
 window_days = 0                 # 24 h retention: only today's run can be fetched
 available_after_hours = 1.5     # last step of the 12 UTC run seen at +1 h 21 (R0.2)
 grid = { ni = 1215, nj = 746, lat_first = 43.18, lon_first = 356.06, di = 0.02, dj = 0.02 }
-urls = { base = "https://opendata.dwd.de/weather/nwp/icon-d2/grib/" }
+# {HH}: run hour, {run}: AAAAMMJJHH, {step}: 3-digit step, {var}/{VAR}: variable in lower/upper case
+urls = { file = "https://opendata.dwd.de/weather/nwp/icon-d2/grib/{HH}/{var}/icon-d2_germany_regular-lat-lon_single-level_{run}_{step}_2d_{var}.grib2.bz2" }
 
 [sources.icon-d2.variables]
-t_2m = {}
-tot_prec = {}
-snow_gsp = {}
-snow_con = {}
-h_snow = {}
-w_snow = {}
-hzerocl = {}
-snowlmt = {}
+t_2m = { shortName = "2t" }
+tot_prec = { shortName = "tp" }
+snow_gsp = { shortName = "lsfwe" }
+snow_con = { shortName = "csfwe" }
+h_snow = { shortName = "sde" }
+w_snow = { shortName = "sd" }
+hzerocl = { shortName = "HZEROCL" }
+snowlmt = { shortName = "SNOWLMT" }
 
 [sources.icon-eu]
 family = "dwd-icon"
@@ -57,14 +58,14 @@ steps = [[0, 78, 1], [81, 120, 3]]
 window_days = 0
 available_after_hours = 3.7     # last step of the 12 UTC run seen at +3 h 39 (R0.2)
 grid = { ni = 1377, nj = 657, lat_first = 29.5, lon_first = 336.5, di = 0.0625, dj = 0.0625 }
-urls = { base = "https://opendata.dwd.de/weather/nwp/icon-eu/grib/" }
+urls = { file = "https://opendata.dwd.de/weather/nwp/icon-eu/grib/{HH}/{var}/icon-eu_europe_regular-lat-lon_single-level_{run}_{step}_{VAR}.grib2.bz2" }
 
 [sources.icon-eu.variables]
-t_2m = {}
-tot_prec = {}
-snow_gsp = {}
-snow_con = {}
-h_snow = {}
-w_snow = {}
-hzerocl = {}
-snowlmt = {}
+t_2m = { shortName = "2t" }
+tot_prec = { shortName = "tp" }
+snow_gsp = { shortName = "lsfwe" }
+snow_con = { shortName = "csfwe" }
+h_snow = { shortName = "sde" }
+w_snow = { shortName = "sd" }
+hzerocl = { shortName = "HZEROCL" }
+snowlmt = { shortName = "SNOWLMT" }
