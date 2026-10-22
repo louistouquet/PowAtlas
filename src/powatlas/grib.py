@@ -52,10 +52,17 @@ class Field:
     short_name: str
     keys: dict
     ref_time: datetime
-    step_end: int  # hours after ref_time (end of the statistical period, if any)
+    step_end_minutes: int  # end of the step (or statistical period) after ref_time, minutes
     lats: np.ndarray  # (Nj,) degrees, storage order
     lons: np.ndarray  # (Ni,) degrees in [-180, 180), storage order
     values: np.ndarray  # (Nj, Ni) float32, NaN where the bitmap marks a missing value
+
+
+    @property
+    def step_end(self) -> int | None:
+        """Step in whole hours, None for a sub-hourly step (e.g. ICON-D2 +24 h 15 min)."""
+        hours, rest = divmod(self.step_end_minutes, 60)
+        return hours if rest == 0 else None
 
 
 @dataclass(frozen=True)
@@ -88,7 +95,8 @@ def _decode(message: bytes) -> Field:
             raise ValueError(f"unsupported gridType {grid_type}")
         if eccodes.codes_get(h, "iScansNegatively") or eccodes.codes_get(h, "jPointsAreConsecutive"):
             raise ValueError("unsupported scanning mode")
-        eccodes.codes_set(h, "stepUnits", "h")
+        # Minutes: ICON-D2 files also hold quarter-hour steps that hours cannot express.
+        eccodes.codes_set(h, "stepUnits", "m")
         keys = {k: eccodes.codes_get(h, k) for k in GRIB_KEYS if eccodes.codes_is_defined(h, k)}
         ni = eccodes.codes_get(h, "Ni")
         nj = eccodes.codes_get(h, "Nj")
@@ -112,7 +120,7 @@ def _decode(message: bytes) -> Field:
             short_name=eccodes.codes_get(h, "shortName"),
             keys=keys,
             ref_time=ref_time,
-            step_end=int(eccodes.codes_get(h, "endStep")),
+            step_end_minutes=eccodes.codes_get_long(h, "endStep"),
             lats=lat0 + sign * dj * np.arange(nj),
             lons=normalize_lon(lon0 + di * np.arange(ni)),
             values=values.reshape(nj, ni).astype(np.float32),

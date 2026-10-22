@@ -41,6 +41,13 @@ class IterFieldsTest(unittest.TestCase):
         np.testing.assert_allclose(g.lats, [42, 43, 44, 45, 46, 47])
         np.testing.assert_allclose(f.lons, 4.0 + 0.5 * np.arange(11))
 
+    def test_sub_hourly_step_decodes_in_minutes(self):
+        # ICON-D2 files hold the hourly message plus three quarter-hour messages.
+        data = make_message("tp", step_range="0-24") + make_message("tp", step_units="m", step_range="0-1455")
+        hourly, quarter = iter_fields(data)
+        self.assertEqual((hourly.step_end, hourly.step_end_minutes), (24, 1440))
+        self.assertEqual((quarter.step_end, quarter.step_end_minutes), (None, 1455))
+
     def test_keys_recorded(self):
         (f,) = iter_fields(make_message())
         self.assertIn("bitsPerValue", f.keys)

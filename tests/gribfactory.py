@@ -20,6 +20,7 @@ def make_message(
     j_scans_positively=0,
     type_of_level="surface",
     level=0,
+    step_units="h",
 ):
     """Return the bytes of one GRIB2 message on a regular lat-lon grid."""
     h = eccodes.codes_grib_new_from_samples("regular_ll_sfc_grib2")
@@ -41,6 +42,7 @@ def make_message(
             ("typeOfLevel", type_of_level),
             ("level", level),
             ("shortName", short_name),
+            ("stepUnits", step_units),
             ("stepRange", step_range),
         ]:
             eccodes.codes_set(h, key, value)
