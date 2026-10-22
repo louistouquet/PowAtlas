@@ -171,6 +171,20 @@ def cmd_backfill_probe(args) -> int:
     return 0
 
 
+def cmd_backfill(args) -> int:
+    from datetime import date
+
+    from powatlas.backfill import backfill
+
+    _register_adapters()
+    sources, _, settings = load_catalogue()
+    b = settings["backfill"]
+    r = backfill(sources[args.source], date.fromisoformat(args.start), date.fromisoformat(args.end), Path(args.data),
+                 make_http(settings), settings, tuple(b["months"]), b["max_step"], args.max_hours)
+    print(f"done {r.done} (partial {r.partial}), skipped {r.skipped}" + (", stopped at --max-hours" if r.stopped else ""))
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="powatlas", description="PowAtlas daily archive.")
     parser.add_argument("--version", action="version", version=f"powatlas {__version__}")
@@ -209,6 +223,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--steps", default="0,24,48,72")
     p.add_argument("--ranges", type=int, default=14, help="ranges read per step file")
     p.set_defaults(func=cmd_backfill_probe)
+
+    p = sub.add_parser("backfill", help="historical 00 UTC runs from AWS into the archive (pilot's PC)")
+    p.add_argument("--source", required=True, choices=["ifs-0p25", "aifs-single", "gfs-0p25"])
+    p.add_argument("--from", dest="start", required=True)
+    p.add_argument("--to", dest="end", required=True)
+    p.add_argument("--data", required=True)
+    p.add_argument("--max-hours", type=float, default=None, help="stop cleanly after this many hours")
+    p.set_defaults(func=cmd_backfill)
 
     p = sub.add_parser("status", help="complete / partial / missing units per source and day")
     p.add_argument("--data", required=True)

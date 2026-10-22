@@ -9,6 +9,10 @@ artifact_retention_days = 30
 repository = "louistouquet/PowAtlas"
 collect_budget_minutes = 75     # per unit; the collect job is killed at 90 minutes
 
+[settings.backfill]
+months = [11, 12, 1, 2, 3, 4]   # winter months only (spec, section 5)
+max_step = 78                   # scored windows end at +78 h
+
 [settings.http]
 retries = 5
 backoff = 2.0          # seconds, doubled at each retry
@@ -28,6 +32,10 @@ crons = ["50 6 * * *", "50 12 * * *"]
 
 [tasks.ecmwf]
 crons = ["50 8 * * *", "50 14 * * *"]
+
+# Sources collected only on the pilot's PC (powatlas backfill), never scheduled on Actions.
+[tasks.pc]
+crons = []                      # not scheduled on Actions
 
 [tasks.observations]
 crons = ["50 9 * * *", "50 17 * * *"]
@@ -189,6 +197,33 @@ tp = { param = "tp", levtype = "sfc" }
 tcc = { param = "tcc", levtype = "sfc" }
 "10u" = { param = "10u", levtype = "sfc" }
 "10v" = { param = "10v", levtype = "sfc" }
+
+# GFS 0.25 degree, NOAA open data on AWS (docs/sources/gfs.md): backfill from the
+# 2021-22 season and weekly catch-up, on the pilot's PC only.
+
+[sources.gfs-0p25]
+family = "gfs"
+kind = "forecast"
+task = "pc"
+fiche = "docs/sources/gfs.md"
+licence = "NOAA open data (open to the public, can be used as desired)"
+attribution = "Data from NOAA GFS (NOAA Open Data Dissemination); cropped by PowAtlas: this is not the original, unaltered NOAA data and NOAA does not endorse PowAtlas"
+run_hours = [0]
+steps = [[0, 78, 3]]
+window_days = 7
+available_after_hours = 4.0
+grid = { ni = 1440, nj = 721, lat_first = 90.0, lon_first = 0.0, di = 0.25, dj = 0.25 }
+urls = { bucket = "https://noaa-gfs-bdp-pds.s3.amazonaws.com/" }
+
+[sources.gfs-0p25.variables]
+csnow = { var = "CSNOW", level = "surface", time = "instant", shortName = "csnow" }
+crain = { var = "CRAIN", level = "surface", time = "instant", shortName = "crain" }
+apcp = { var = "APCP", level = "surface", time = "acc-from-run-start", shortName = "tp", steps = [[3, 78, 3]] }
+prate = { var = "PRATE", level = "surface", time = "instant", shortName = "prate" }
+snod = { var = "SNOD", level = "surface", time = "instant", shortName = "sde" }
+weasd = { var = "WEASD", level = "surface", time = "instant", shortName = "sdwe" }
+"2t" = { var = "TMP", level = "2 m above ground", time = "instant", shortName = "2t" }
+hgt_0c = { var = "HGT", level = "0C isotherm", time = "instant", shortName = "gh" }
 
 # Observations: dated verbatim copies, one unit per collection day (window 0:
 # every copied answer covers at least 7 days, except the daily Météo-France
