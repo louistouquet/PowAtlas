@@ -23,6 +23,18 @@ class WorkflowTest(unittest.TestCase):
                        "if-no-files-found: error", "fail-fast: false"):
             self.assertIn(needle, self.text)
 
+    def test_unit_level_concurrency(self):
+        # Same unit never collected twice in parallel, even if two triggers overlap.
+        self.assertIn("group: collect-unit-${{ matrix.unit }}", self.text)
+        self.assertIn("--skip-if-complete", self.text)
+        self.assertNotIn("github.event.schedule || inputs.task", self.text)
+
+    def test_checkout_without_persisted_credentials(self):
+        self.assertEqual(self.text.count("actions/checkout@v4"), self.text.count("persist-credentials: false"))
+
+    def test_dispatch_inputs_validated(self):
+        self.assertIn("^[a-z0-9-]+$", self.text)
+
     def test_no_expression_inside_run_scripts(self):
         # Inputs and matrix values reach shell scripts through env variables only.
         in_run = False

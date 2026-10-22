@@ -123,6 +123,23 @@ class ForecastWriterGuardsTest(ForecastWriterTest):
         with self.assertRaises(ValueError):
             self.write(fields)
 
+    def test_expected_must_equal_catalogue_outside_backfill(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        self.expected = [p for p in self.expected if p != ("tp", 2)]
+        del fields[("tp", 2)]
+        with self.assertRaises(ValueError):
+            self.write(fields)
+        m = write_forecast_unit(self.tmp, Unit("icon-d2", RUN), src(), fields, self.expected,
+                                [Fetched("https://x/a", None, 1)], mode="backfill", stream=None, collected_start=T0)
+        self.assertEqual(m.state, "complete")
+
+    def test_rejected_fetch_excluded_from_times(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        old = datetime(2026, 10, 31, 1, tzinfo=timezone.utc)
+        new = datetime(2026, 11, 1, 1, tzinfo=timezone.utc)
+        m = self.write(fields, [Fetched("https://x/a", old, 5, rejected=True), Fetched("https://x/b", new, 5)])
+        self.assertEqual((m.last_modified_min, m.last_modified_max), ("2026-11-01T01:00:00Z", "2026-11-01T01:00:00Z"))
+
     def test_expected_must_belong_to_source(self):
         self.expected.append(("tp", 9))
         with self.assertRaises(ValueError):

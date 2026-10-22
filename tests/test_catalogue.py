@@ -55,6 +55,16 @@ class CatalogueTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             load_catalogue(bad)
 
+    def test_expected_pairs_honour_variable_steps(self):
+        import dataclasses
+        from powatlas.catalogue import expected_pairs
+        d2 = self.sources["icon-d2"]
+        self.assertEqual(len(expected_pairs(d2)), 8 * 49)
+        s = dataclasses.replace(d2, variables={"a": {}, "b": {"steps": [[3, 48, 3]]}})
+        pairs = expected_pairs(s)
+        self.assertEqual(len(pairs), 49 + 16)
+        self.assertNotIn(("b", 0), pairs)
+
     def test_settings(self):
         self.assertEqual(self.settings["margin_cells"], 2)
         self.assertEqual(self.settings["bbox"], [5.0, 43.5, 7.9, 46.5])

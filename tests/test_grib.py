@@ -8,6 +8,7 @@ from powatlas.grib import (
     GridMismatch,
     GridSpec,
     RefTimeMismatch,
+    TruncatedMessage,
     check_grid,
     check_ref_time,
     crop_field,
@@ -64,8 +65,10 @@ class IterFieldsTest(unittest.TestCase):
             list(iter_fields(bad))
 
     def test_truncated_data_raises(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TruncatedMessage):
             list(iter_fields(make_message()[:-10]))
+        with self.assertRaises(TruncatedMessage):
+            list(iter_fields(b"<html>not found</html>"))
 
 
 class ChecksTest(unittest.TestCase):

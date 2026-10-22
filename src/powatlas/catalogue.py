@@ -97,6 +97,18 @@ def load_catalogue(path: Path | None = None) -> tuple[dict[str, Source], dict[st
     return sources, tasks, raw["settings"]
 
 
+def expected_pairs(source: Source) -> list[tuple[str, int]]:
+    """(variable, step) pairs of a forecast unit; a variable may restrict its steps with
+    its own ``steps`` ranges (e.g. 3-hourly minima absent at step 0)."""
+    pairs = []
+    for var, spec in source.variables.items():
+        steps = expand_steps(spec["steps"]) if "steps" in spec else source.steps
+        if not set(steps) <= set(source.steps):
+            raise ValueError(f"{source.id}/{var}: steps outside the source steps")
+        pairs += [(var, s) for s in steps]
+    return pairs
+
+
 def task_for_cron(cron: str, tasks: dict[str, Task]) -> tuple[str, Attempt]:
     for t in tasks.values():
         if cron == t.crons[0]:

@@ -11,9 +11,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from powatlas.adapters import ADAPTERS
-from powatlas.catalogue import Source
+from powatlas.catalogue import Source, expected_pairs
 from powatlas.domain import BBox
-from powatlas.grib import Field, GridMismatch, RefTimeMismatch, check_grid, check_ref_time, crop_field, iter_fields
+from powatlas.grib import (
+    Field,
+    GridMismatch,
+    RefTimeMismatch,
+    TruncatedMessage,
+    check_grid,
+    check_ref_time,
+    crop_field,
+    iter_fields,
+)
 from powatlas.http import HttpClient, HttpError, NotFound
 from powatlas.units import Unit
 from powatlas.writer import Fetched, Manifest, write_forecast_unit
@@ -30,9 +39,16 @@ def icon_url(source: Source, run: datetime, variable: str, step: int) -> str:
 
 
 def _select(data: bytes, variable: str, step: int, selector: dict) -> Field:
+    """The single whole-hour message of a decompressed file.
+
+    TruncatedMessage propagates (transient: the pair is only absent); any other
+    decoding error or an unexpected structure is a FormatChange.
+    """
     try:
         decoded = list(iter_fields(data))
-    except ValueError as exc:  # unsupported grid, scanning mode or truncated message
+    except TruncatedMessage:
+        raise
+    except ValueError as exc:  # unsupported grid or scanning mode, inconsistent grid
         raise FormatChange(f"{variable}@{step}: {exc}") from exc
     hourly = [f for f in decoded if f.step_end == step]
     if len(hourly) != 1:
@@ -49,33 +65,52 @@ class DwdIconAdapter:
     ) -> Manifest:
         start = datetime.now(timezone.utc)
         bbox = BBox(*settings["bbox"])
-        expected = [(v, s) for v in source.variables for s in source.steps]
+        expected = expected_pairs(source)
         fields: dict[tuple[str, int], Field] = {}
         fetched: list[Fetched] = []
         notes: list[str] = []
+        not_found = 0
         try:
             for variable, step in expected:
                 url = icon_url(source, unit.ref, variable, step)
                 try:
                     r = http.get(url)
                 except NotFound:
+                    not_found += 1
                     continue
                 except HttpError as exc:
                     notes.append(f"{variable}@{step}: {exc}")
                     continue
-                fetched.append(Fetched(url, r.last_modified, len(r.content)))
-                f = _select(bz2.decompress(r.content), variable, step, source.variables[variable])
+                try:
+                    data = bz2.decompress(r.content)
+                    f = _select(data, variable, step, source.variables[variable])
+                except (OSError, EOFError, TruncatedMessage) as exc:
+                    # bz2 raises OSError on a non-bzip2 body (error page), EOFError or
+                    # ValueError on a cut stream: transient, the pair is absent.
+                    notes.append(f"{variable}@{step}: unreadable file ({type(exc).__name__}: {exc})")
+                    fetched.append(Fetched(url, r.last_modified, len(r.content), rejected=True))
+                    continue
+                except ValueError as exc:
+                    if isinstance(exc, FormatChange):
+                        raise
+                    notes.append(f"{variable}@{step}: unreadable file ({exc})")
+                    fetched.append(Fetched(url, r.last_modified, len(r.content), rejected=True))
+                    continue
                 try:
                     check_ref_time(f, unit.ref)
                 except RefTimeMismatch as exc:
                     notes.append(f"stale file skipped: {exc}")
+                    fetched.append(Fetched(url, r.last_modified, len(r.content), rejected=True))
                     continue
                 check_grid(f, source.grid)
+                fetched.append(Fetched(url, r.last_modified, len(r.content)))
                 fields[(variable, step)] = crop_field(f, bbox, settings["margin_cells"])
         except (GridMismatch, FormatChange) as exc:
             # A structural change at the producer: archive nothing rather than a mixed unit.
             notes.append(f"{type(exc).__name__}: {exc}")
             fields = {}
+        if not_found:
+            notes.append(f"HTTP 404 for {'all ' if not_found == len(expected) else ''}{not_found} of {len(expected)} files")
         return write_forecast_unit(out_dir, unit, source, fields, expected, fetched, mode, None, start, notes)
 
 

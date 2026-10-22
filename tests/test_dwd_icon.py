@@ -103,13 +103,48 @@ class IconAdapterTest(unittest.TestCase):
         self.assertEqual(m.files, [])
         self.assertTrue(any("GridMismatch" in n for n in m.notes))
 
-    def test_undecodable_file_fails_unit(self):
+    def test_truncated_grib_gives_partial(self):
         s = small_source()
         files = files_for(s)
         files[icon_url(s, RUN, "t_2m", 1)] = bz2.compress(make_message("2t", step_range="1")[:-20])
         m, _, _ = self.collect(s, files)
+        self.assertEqual((m.state, m.missing), ("partial", ["t_2m@1"]))
+
+    def test_corrupt_bz2_gives_partial(self):
+        s = small_source()
+        files = files_for(s)
+        files[icon_url(s, RUN, "t_2m", 1)] = b"<html>error</html>"
+        files[icon_url(s, RUN, "t_2m", 2)] = bz2.compress(make_message("2t", step_range="2"))[:-30]
+        m, _, _ = self.collect(s, files)
+        self.assertEqual((m.state, m.missing), ("partial", ["t_2m@1", "t_2m@2"]))
+
+    def test_inconsistent_grid_fails_unit(self):
+        import eccodes
+        s = small_source()
+        files = files_for(s)
+        h = eccodes.codes_new_from_message(make_message("2t", step_range="1"))
+        eccodes.codes_set(h, "longitudeOfLastGridPointInDegrees", 9.5)
+        files[icon_url(s, RUN, "t_2m", 1)] = bz2.compress(eccodes.codes_get_message(h))
+        eccodes.codes_release(h)
+        m, _, _ = self.collect(s, files)
         self.assertEqual(m.state, "missing")
         self.assertTrue(any("FormatChange" in n for n in m.notes))
+
+    def test_stale_file_excluded_from_last_modified(self):
+        s = small_source()
+        files = files_for(s)
+        stale = files_for(s, date=20261031)
+        files[icon_url(s, RUN, "tot_prec", 2)] = stale[icon_url(s, RUN, "tot_prec", 2)]
+        m, _, _ = self.collect(s, files)
+        rejected = [f for f in m.fetched if f["rejected"]]
+        self.assertEqual(len(rejected), 1)
+        self.assertEqual(len(m.fetched), 6)
+
+    def test_404_count_noted(self):
+        s = small_source()
+        m, _, _ = self.collect(s, {})
+        self.assertEqual(m.state, "missing")
+        self.assertTrue(any("HTTP 404 for all 6" in n for n in m.notes))
 
     def test_wrong_parameter_fails_unit(self):
         s = small_source()

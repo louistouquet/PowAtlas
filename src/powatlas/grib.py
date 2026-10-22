@@ -47,6 +47,10 @@ class RefTimeMismatch(ValueError):
     """The message reference time differs from the expected run."""
 
 
+class TruncatedMessage(ValueError):
+    """The bytes are not a whole GRIB message (cut transfer, error page)."""
+
+
 @dataclass(frozen=True)
 class Field:
     short_name: str
@@ -76,14 +80,14 @@ class GridSpec:
 
 
 def _message_length(data: bytes, offset: int) -> int:
-    if data[offset : offset + 4] != b"GRIB":
-        raise ValueError(f"no GRIB message at offset {offset}")
+    if data[offset : offset + 4] != b"GRIB" or len(data) < offset + 16:
+        raise TruncatedMessage(f"no GRIB message at offset {offset}")
     edition = data[offset + 7]
     if edition != 2:
         raise ValueError(f"GRIB edition {edition} at offset {offset}; only GRIB2 is supported")
     length = int.from_bytes(data[offset + 8 : offset + 16], "big")
     if offset + length > len(data) or data[offset + length - 4 : offset + length] != b"7777":
-        raise ValueError(f"truncated GRIB message at offset {offset}")
+        raise TruncatedMessage(f"truncated GRIB message at offset {offset}")
     return length
 
 

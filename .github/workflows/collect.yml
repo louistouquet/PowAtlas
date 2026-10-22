@@ -33,10 +33,6 @@ permissions:
   actions: read
   issues: write
 
-concurrency:
-  group: collect-${{ github.event.schedule || inputs.task }}
-  cancel-in-progress: false
-
 jobs:
   plan:
     runs-on: ubuntu-latest
@@ -47,6 +43,8 @@ jobs:
       units: ${{ steps.plan.outputs.units }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -63,6 +61,7 @@ jobs:
           if [ -n "$CRON" ]; then
             powatlas resolve-schedule --cron "$CRON"
           else
+            if ! [[ "$TASK" =~ ^[a-z0-9-]+$ ]]; then echo "invalid task: $TASK" >&2; exit 1; fi
             echo "task=$TASK" >> "$GITHUB_OUTPUT"
             echo "attempt=$ATTEMPT" >> "$GITHUB_OUTPUT"
           fi
@@ -79,6 +78,11 @@ jobs:
     if: needs.plan.outputs.units != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    # One unit is never collected twice at the same time (overlapping triggers);
+    # the queued job then skips the unit if it became complete.
+    concurrency:
+      group: collect-unit-${{ matrix.unit }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -86,6 +90,8 @@ jobs:
         unit: ${{ fromJSON(needs.plan.outputs.units) }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -95,10 +101,12 @@ jobs:
       - name: Collect
         id: collect
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           UNIT: ${{ matrix.unit }}
           NOW: ${{ inputs.now }}
-        run: powatlas collect --unit "$UNIT" --out out ${NOW:+--now "$NOW"}
+        run: powatlas collect --unit "$UNIT" --out out --skip-if-complete ${NOW:+--now "$NOW"}
       - name: Upload unit
+        if: steps.collect.outputs.state != 'already-complete'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.unit }}__${{ steps.collect.outputs.state }}
@@ -114,6 +122,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

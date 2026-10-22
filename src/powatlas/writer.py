@@ -19,7 +19,7 @@ import netCDF4
 import numpy as np
 
 from powatlas import __version__
-from powatlas.catalogue import Source
+from powatlas.catalogue import Source, expected_pairs
 from powatlas.grib import Field
 from powatlas.units import Unit, unit_id
 
@@ -40,6 +40,7 @@ class Fetched:
     url: str
     last_modified: datetime | None
     size: int
+    rejected: bool = False  # read but not archived (e.g. previous day's run still on the server)
 
 
 @dataclass
@@ -107,8 +108,9 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
     if mode not in MODES:
         raise ValueError(f"unknown mode {mode}")
     _check_urls(fetched)
-    times = [f.last_modified for f in fetched if f.last_modified is not None]
-    complete_times = len(times) == len(fetched)
+    kept = [f for f in fetched if not f.rejected]
+    times = [f.last_modified for f in kept if f.last_modified is not None]
+    complete_times = len(times) == len(kept)
     m = Manifest(
         unit=unit_id(unit, source.kind),
         source=source.id,
@@ -116,7 +118,10 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
         state="missing",
         mode=mode,
         stream=stream,
-        fetched=[{"url": f.url, "last_modified": _iso(f.last_modified), "size": f.size} for f in fetched],
+        fetched=[
+            {"url": f.url, "last_modified": _iso(f.last_modified), "size": f.size, "rejected": f.rejected}
+            for f in fetched
+        ],
         collected_start=_iso(collected_start),
         last_modified_min=_iso(min(times)) if times else None,
         # The availability of the unit is unknown if any file lacks a Last-Modified.
@@ -127,7 +132,7 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
         git_commit=git_commit(),
     )
     if not complete_times:
-        m.notes.append(f"Last-Modified absent for {len(fetched) - len(times)} of {len(fetched)} files")
+        m.notes.append(f"Last-Modified absent for {len(kept) - len(times)} of {len(kept)} files")
     return m
 
 
@@ -166,9 +171,13 @@ def write_forecast_unit(
     stem = f"{source.id}_{unit.ref.strftime('%Y%m%dT%HZ')}"
     m = _base_manifest(unit, source, mode, stream, fetched, collected_start)
     m.notes += list(notes or [])
-    outside = [(v, s) for v, s in expected if v not in source.variables or s not in source.steps]
+    catalogue_pairs = expected_pairs(source)
+    outside = sorted(set(expected) - set(catalogue_pairs))
     if outside:
         raise ValueError(f"expected pairs not in the catalogue of {source.id}: {outside}")
+    # Only a backfill may expect less than the catalogue (fields not yet published then).
+    if mode != "backfill" and set(expected) != set(catalogue_pairs):
+        raise ValueError(f"{source.id}: expected pairs differ from the catalogue outside backfill")
     unexpected = set(fields) - set(expected)
     if unexpected:
         raise ValueError(f"fields not in the expected list: {sorted(unexpected)}")

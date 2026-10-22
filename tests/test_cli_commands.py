@@ -65,6 +65,14 @@ class CliCommandsTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(self.out.read_text(), "state=partial\n")
 
+    def test_collect_skips_already_complete_unit(self):
+        gh = FakeGitHub(["icon-d2__20261101T00Z__complete"], datetime.now(timezone.utc))
+        with mock.patch.object(cli, "make_github", return_value=gh):
+            code = cli.main(["collect", "--unit", "icon-d2__20261101T00Z", "--out", str(self.tmp / "o"),
+                             "--now", "2026-11-01T08:35:00Z", "--skip-if-complete"])
+        self.assertEqual(code, 0)
+        self.assertEqual(self.out.read_text(), "state=already-complete\n")
+
     def test_report_opens_issue_and_fails_on_loss(self):
         now = datetime(2026, 11, 1, 8, 35, tzinfo=timezone.utc)
         gh = FakeGitHub([], now - timedelta(days=1))

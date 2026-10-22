@@ -15,6 +15,7 @@ from powatlas import __version__, collect
 from powatlas.catalogue import load_catalogue, task_for_cron
 from powatlas.github import GitHub
 from powatlas.http import HttpClient
+from powatlas.units import best_states, parse_unit_id
 
 ISSUE_LABEL = "collecte"
 
@@ -73,6 +74,13 @@ def cmd_plan(args) -> int:
 def cmd_collect(args) -> int:
     _register_adapters()
     sources, _, settings = load_catalogue()
+    if args.skip_if_complete:
+        # Another run may have completed the unit since this one was planned.
+        unit = parse_unit_id(args.unit)
+        if best_states(make_github().list_artifact_names()).get(unit) == "complete":
+            print(f"{args.unit}: already complete, skipped")
+            _output(state="already-complete")
+            return 0
     m = collect.collect_unit(args.unit, Path(args.out), make_http(settings), sources, settings, _now(args.now))
     print(f"{args.unit}: {m.state}" + (f" (missing: {', '.join(m.missing[:10])})" if m.missing else ""))
     for note in m.notes:
@@ -119,6 +127,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("collect", help="collect one unit")
     p.add_argument("--unit", required=True)
     p.add_argument("--out", required=True)
+    p.add_argument("--skip-if-complete", action="store_true", help="check the artifacts first (Actions)")
     p.add_argument("--now")
     p.set_defaults(func=cmd_collect)
 
