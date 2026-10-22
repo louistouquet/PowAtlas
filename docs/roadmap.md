@@ -1,6 +1,6 @@
 # Cible et feuille de route
 
-Document de synthèse de la recherche R0 · 21 octobre 2026 · statut : **proposé, à valider par le pilote**
+Document de synthèse de la recherche R0 · 21 octobre 2026 · statut : **validé par le pilote le 2026-10-22**
 
 Ce document tire les conclusions des cinq rapports R0 : [R0.1 Concurrence](research/R0.1-concurrence.md), [R0.2 Prévisions ouvertes](research/R0.2-previsions-ouvertes.md), [R0.3 Observations](research/R0.3-observations.md), [R0.4 Historique](research/R0.4-historique.md), [R0.5 Briques open source](research/R0.5-briques-open-source.md). Chaque rapport a été contrôlé (liens et licences) et relu par l'agent `relecteur-scientifique` ; tous les constats bloquants et importants ont été corrigés. Les chiffres viennent de ces rapports, qui donnent leurs sources datées ; ce document n'ajoute aucun fait nouveau, seulement des décisions proposées.
 

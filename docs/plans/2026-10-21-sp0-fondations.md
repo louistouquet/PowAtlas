@@ -272,7 +272,7 @@ Ces cinq tâches partagent la même procédure. Elles sont lancées **en même t
 - [x] **Étape 2 : relecture** par `relecteur-scientifique` ; corriger les constats `bloquant` et `important`.
 - [x] **Étape 3 : vérifier** — `python3 scripts/check_docs.py` → `OK`.
 - [x] **Étape 4 : PR et présentation au pilote.** Résumer la feuille de route en chat avec le lien de la PR. **Ne pas fusionner avant l'accord explicite du pilote.** Intégrer ses retours.
-- [ ] **Étape 5 : après accord**, passer les rapports en `statut: validee`, fusionner.
+- [x] **Étape 5 : après accord**, passer les rapports en `statut: validee`, fusionner.
 
 ---
 
