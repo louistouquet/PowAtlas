@@ -17,7 +17,9 @@
 | Réglages GitHub | en place | jalons SP0 à SP6, étiquettes, modèles d'issues et de PR (PR #15) ; `main` protégée, vérification `docs` obligatoire, branches fusionnées supprimées automatiquement (faits par le pilote le 2026-10-22) |
 | Recherche R0 : 5 rapports et 32 fiches (26 sources) | **validée par le pilote** le 2026-10-22 | PR #16 à #19 |
 | Cible et feuille de route [`docs/roadmap.md`](docs/roadmap.md) | **validée par le pilote** le 2026-10-22 | PR #21 |
+| Cadrage de SP1 et décision 0005 (collecte hybride) | **validés par le pilote** le 2026-10-22 | PR #23 |
+| Plan de SP1 | proposé au pilote le 2026-10-22 | [`docs/plans/2026-10-22-sp1-archive.md`](docs/plans/2026-10-22-sp1-archive.md) |
 
 ## Pas encore fait
 
-Tout ce qui produit ou collecte des données : c'est SP1, à démarrer d'urgence (collecte en service avant le 1er novembre 2026). Voir [`NEXT.md`](NEXT.md).
+Tout ce qui produit ou collecte des données : c'est SP1, cadré, dont la réalisation commence (collecte d'ICON en service avant le 1er novembre 2026). Voir [`NEXT.md`](NEXT.md).
