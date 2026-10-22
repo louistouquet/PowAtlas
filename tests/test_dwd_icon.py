@@ -103,6 +103,14 @@ class IconAdapterTest(unittest.TestCase):
         self.assertEqual(m.files, [])
         self.assertTrue(any("GridMismatch" in n for n in m.notes))
 
+    def test_undecodable_file_fails_unit(self):
+        s = small_source()
+        files = files_for(s)
+        files[icon_url(s, RUN, "t_2m", 1)] = bz2.compress(make_message("2t", step_range="1")[:-20])
+        m, _, _ = self.collect(s, files)
+        self.assertEqual(m.state, "missing")
+        self.assertTrue(any("FormatChange" in n for n in m.notes))
+
     def test_wrong_parameter_fails_unit(self):
         s = small_source()
         files = files_for(s)

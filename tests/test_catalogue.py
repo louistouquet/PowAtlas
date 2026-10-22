@@ -46,6 +46,15 @@ class CatalogueTest(unittest.TestCase):
         for s in self.sources.values():
             self.assertTrue((root / s.fiche).is_file(), s.fiche)
 
+    def test_source_ids_validated(self):
+        import tempfile
+        from pathlib import Path
+        text = (Path(__file__).resolve().parents[1] / "src/powatlas/catalogue.toml").read_text()
+        bad = Path(tempfile.mkdtemp()) / "c.toml"
+        bad.write_text(text.replace("[sources.icon-d2]", "[sources.ICON_d2]").replace("[sources.icon-d2.variables]", "[sources.ICON_d2.variables]"))
+        with self.assertRaises(ValueError):
+            load_catalogue(bad)
+
     def test_settings(self):
         self.assertEqual(self.settings["margin_cells"], 2)
         self.assertEqual(self.settings["bbox"], [5.0, 43.5, 7.9, 46.5])

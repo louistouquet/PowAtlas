@@ -36,10 +36,18 @@ class Response:
 
 
 def _last_modified(headers) -> datetime | None:
+    """Producer's Last-Modified in UTC; None if absent or unreadable (recorded as such by the writer)."""
     value = headers.get("Last-Modified")
     if not value:
         return None
-    return parsedate_to_datetime(value).astimezone(timezone.utc)
+    try:
+        t = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    # HTTP dates are GMT; "-0000" yields a naive datetime that must not be read as local time.
+    if t.tzinfo is None:
+        return t.replace(tzinfo=timezone.utc)
+    return t.astimezone(timezone.utc)
 
 
 class HttpClient:
@@ -88,9 +96,17 @@ class HttpClient:
             self._pace()
             try:
                 r = self.session.get(url, headers=headers, timeout=self.timeout)
-            except (requests.ConnectionError, requests.Timeout) as exc:
+            except (
+                requests.ConnectionError,
+                requests.Timeout,
+                requests.exceptions.ChunkedEncodingError,
+                requests.exceptions.ContentDecodingError,
+            ) as exc:
+                # Transient: connection reset, timeout, body cut during the transfer.
                 last_problem = f"{type(exc).__name__}: {exc}"
                 continue
+            except requests.RequestException as exc:
+                raise HttpError(f"{url}: {type(exc).__name__}: {exc}") from exc
             if r.status_code in RETRY_STATUS:
                 last_problem = f"HTTP {r.status_code}"
                 continue

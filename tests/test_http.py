@@ -102,6 +102,25 @@ class HttpClientTest(unittest.TestCase):
         c, s, _ = client([FakeResponse(200, b"x")], min_interval=0.0)
         self.assertIsNone(c.get("https://x").last_modified)
 
+    def test_last_modified_without_zone_is_utc(self):
+        c, s, _ = client([FakeResponse(200, b"x", {"Last-Modified": "Wed, 21 Oct 2026 06:30:15 -0000"})],
+                         min_interval=0.0)
+        self.assertEqual(c.get("https://x").last_modified, datetime(2026, 10, 21, 6, 30, 15, tzinfo=timezone.utc))
+
+    def test_unreadable_last_modified_is_none(self):
+        c, s, _ = client([FakeResponse(200, b"x", {"Last-Modified": "yesterday"})], min_interval=0.0)
+        self.assertIsNone(c.get("https://x").last_modified)
+
+    def test_truncated_body_retried(self):
+        c, s, _ = client([requests.exceptions.ChunkedEncodingError("cut"), FakeResponse(200, b"ok")],
+                         min_interval=0.0)
+        self.assertEqual(c.get("https://x").content, b"ok")
+
+    def test_other_request_error_becomes_http_error(self):
+        c, s, _ = client([requests.exceptions.InvalidURL("bad")], min_interval=0.0)
+        with self.assertRaises(HttpError):
+            c.get("https://x")
+
     def test_min_interval_spaces_requests(self):
         c, s, clock = client([FakeResponse(200, b"a"), FakeResponse(200, b"b")], min_interval=1.5)
         c.get("https://x")

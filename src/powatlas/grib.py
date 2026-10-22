@@ -93,7 +93,11 @@ def _decode(message: bytes) -> Field:
         grid_type = eccodes.codes_get(h, "gridType")
         if grid_type != "regular_ll":
             raise ValueError(f"unsupported gridType {grid_type}")
-        if eccodes.codes_get(h, "iScansNegatively") or eccodes.codes_get(h, "jPointsAreConsecutive"):
+        if (
+            eccodes.codes_get(h, "iScansNegatively")
+            or eccodes.codes_get(h, "jPointsAreConsecutive")
+            or eccodes.codes_get(h, "alternativeRowScanning")
+        ):
             raise ValueError("unsupported scanning mode")
         # Minutes: ICON-D2 files also hold quarter-hour steps that hours cannot express.
         eccodes.codes_set(h, "stepUnits", "m")
@@ -105,6 +109,14 @@ def _decode(message: bytes) -> Field:
         di = eccodes.codes_get(h, "iDirectionIncrementInDegrees")
         dj = eccodes.codes_get(h, "jDirectionIncrementInDegrees")
         sign = 1.0 if eccodes.codes_get(h, "jScansPositively") else -1.0
+        # Coordinates are rebuilt from the first point and the increment: check them
+        # against the last point so that a rounded increment cannot drift unnoticed.
+        lat_last = eccodes.codes_get(h, "latitudeOfLastGridPointInDegrees")
+        lon_last = eccodes.codes_get(h, "longitudeOfLastGridPointInDegrees")
+        if abs(lat0 + sign * dj * (nj - 1) - lat_last) > 1e-3 or abs(
+            float(normalize_lon(lon0 + di * (ni - 1))) - float(normalize_lon(lon_last))
+        ) > 1e-3:
+            raise ValueError("grid first point, increments and last point are inconsistent")
         values = eccodes.codes_get_values(h).astype(np.float64)
         if values.size != ni * nj:
             raise ValueError(f"{values.size} values for a {nj} x {ni} grid")

@@ -109,6 +109,55 @@ class ForecastWriterTest(unittest.TestCase):
         self.assertEqual(again.unit, "icon-d2__20261101T00Z")
 
 
+class ForecastWriterGuardsTest(ForecastWriterTest):
+    def test_field_step_must_match_key(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        fields[("tp", 2)] = field(5, 1)
+        with self.assertRaises(ValueError):
+            self.write(fields)
+
+    def test_identity_keys_constant_across_steps(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        (other,) = iter_fields(make_message("2t", values=np.ones((6, 11)), step_range="2"))
+        fields[("tp", 2)] = other
+        with self.assertRaises(ValueError):
+            self.write(fields)
+
+    def test_expected_must_belong_to_source(self):
+        self.expected.append(("tp", 9))
+        with self.assertRaises(ValueError):
+            self.write({})
+
+    def test_missing_last_modified_voids_range(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        lm = datetime(2026, 11, 1, 1, tzinfo=timezone.utc)
+        m = self.write(fields, [Fetched("https://x/a", lm, 5), Fetched("https://x/b", None, 5)])
+        self.assertIsNone(m.last_modified_max)
+        self.assertEqual(m.last_modified_min, "2026-11-01T01:00:00Z")
+        self.assertTrue(any("Last-Modified" in n for n in m.notes))
+
+    def test_all_nan_field_counts_as_absent(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        (empty,) = iter_fields(make_message(values=np.zeros((6, 11)), step_range="1"))
+        fields[("tp", 1)] = empty.__class__(**{**empty.__dict__, "values": np.full((6, 11), np.nan, np.float32)})
+        m = self.write(fields)
+        self.assertEqual((m.state, m.missing), ("partial", ["tp@1"]))
+        self.assertEqual(m.nan_counts["tp@1"], 66)
+        self.assertEqual(m.nan_counts["tp@0"], 0)
+
+    def test_fetched_recorded_in_netcdf(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        m = self.write(fields)
+        with netCDF4.Dataset(self.tmp / m.files[0]["name"]) as ds:
+            self.assertIn("https://x/a", ds.fetched)
+
+    def test_more_signed_links_rejected(self):
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        for q in ("X-Goog-Signature=a", "X-Amz-Security-Token=a", "Key-Pair-Id=a", "apikey=a", "api_key=a"):
+            with self.assertRaises(ValueError):
+                self.write(fields, [Fetched(f"https://b/x?{q}", None, 1)])
+
+
 class ObservationWriterTest(unittest.TestCase):
     def test_observation_payload_kept_verbatim(self):
         tmp = Path(tempfile.mkdtemp())

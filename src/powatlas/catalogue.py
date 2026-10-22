@@ -1,5 +1,6 @@
 """Loading of the declarative source catalogue (``catalogue.toml``)."""
 
+import re
 import tomllib
 from dataclasses import dataclass
 from importlib import resources
@@ -48,7 +49,13 @@ def expand_steps(ranges: list[list[int]]) -> tuple[int, ...]:
     return tuple(steps)
 
 
+# Same alphabet as unit and artifact names (powatlas.units).
+_SOURCE_ID = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
+
 def _source(sid: str, raw: dict) -> Source:
+    if not _SOURCE_ID.match(sid):
+        raise ValueError(f"source id {sid!r}: lower-case letters, digits and single hyphens only")
     if raw["kind"] not in ("forecast", "observation"):
         raise ValueError(f"{sid}: unknown kind {raw['kind']}")
     grid = GridSpec(**raw["grid"]) if "grid" in raw else None

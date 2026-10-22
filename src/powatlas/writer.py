@@ -26,7 +26,13 @@ from powatlas.units import Unit, unit_id
 MODES = ("daily", "catchup", "backfill")
 NETCDF_COMPRESSION = {"zlib": True, "complevel": 4, "shuffle": True}
 # Query parameters of signed links (S3, Azure, generic tokens): never archived.
-_SIGNED = re.compile(r"[?&](X-Amz-Signature|X-Amz-Credential|Signature|sig|token|access_token)=", re.I)
+_SIGNED = re.compile(
+    r"[?&](X-Amz-Signature|X-Amz-Credential|X-Amz-Security-Token|X-Goog-Signature|X-Goog-Credential"
+    r"|Signature|Key-Pair-Id|Policy|sig|token|access_token|apikey|api_key)=",
+    re.I,
+)
+# GRIB keys that must not change from one step to another within a variable.
+IDENTITY_KEYS = ("shortName", "paramId", "typeOfLevel", "level", "stepType")
 
 
 @dataclass(frozen=True)
@@ -51,6 +57,7 @@ class Manifest:
     last_modified_min: str | None = None
     last_modified_max: str | None = None
     missing: list = field(default_factory=list)
+    nan_counts: dict = field(default_factory=dict)  # "variable@step" -> NaN points in the cropped field
     notes: list = field(default_factory=list)
     fiche: str = ""
     licence: str = ""
@@ -101,7 +108,8 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
         raise ValueError(f"unknown mode {mode}")
     _check_urls(fetched)
     times = [f.last_modified for f in fetched if f.last_modified is not None]
-    return Manifest(
+    complete_times = len(times) == len(fetched)
+    m = Manifest(
         unit=unit_id(unit, source.kind),
         source=source.id,
         ref=_iso(unit.ref),
@@ -111,12 +119,16 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
         fetched=[{"url": f.url, "last_modified": _iso(f.last_modified), "size": f.size} for f in fetched],
         collected_start=_iso(collected_start),
         last_modified_min=_iso(min(times)) if times else None,
-        last_modified_max=_iso(max(times)) if times else None,
+        # The availability of the unit is unknown if any file lacks a Last-Modified.
+        last_modified_max=_iso(max(times)) if times and complete_times else None,
         fiche=source.fiche,
         licence=source.licence,
         attribution=source.attribution,
         git_commit=git_commit(),
     )
+    if not complete_times:
+        m.notes.append(f"Last-Modified absent for {len(fetched) - len(times)} of {len(fetched)} files")
+    return m
 
 
 def _write_manifest(out_dir: Path, stem: str, m: Manifest) -> Manifest:
@@ -153,10 +165,26 @@ def write_forecast_unit(
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"{source.id}_{unit.ref.strftime('%Y%m%dT%HZ')}"
     m = _base_manifest(unit, source, mode, stream, fetched, collected_start)
-    m.notes = list(notes or [])
+    m.notes += list(notes or [])
+    outside = [(v, s) for v, s in expected if v not in source.variables or s not in source.steps]
+    if outside:
+        raise ValueError(f"expected pairs not in the catalogue of {source.id}: {outside}")
     unexpected = set(fields) - set(expected)
     if unexpected:
         raise ValueError(f"fields not in the expected list: {sorted(unexpected)}")
+    fields = dict(fields)
+    for (var, step), f in list(fields.items()):
+        if f.step_end != step:
+            raise ValueError(f"{var}@{step}: field step is {f.step_end_minutes} min")
+        n_nan = int(np.isnan(f.values).sum())
+        m.nan_counts[f"{var}@{step}"] = n_nan
+        if n_nan == f.values.size:
+            m.notes.append(f"{var}@{step}: every point missing, counted as absent")
+            del fields[(var, step)]
+    for var in {v for v, _ in fields}:
+        ids = {tuple(f.keys.get(k) for k in IDENTITY_KEYS) for (v, _), f in fields.items() if v == var}
+        if len(ids) != 1:
+            raise ValueError(f"{var}: GRIB identity {IDENTITY_KEYS} varies across steps: {sorted(ids)}")
     m.missing = [f"{v}@{s}" for v, s in expected if (v, s) not in fields]
     if not fields:
         return _write_manifest(out_dir, stem, m)
@@ -209,6 +237,7 @@ def write_forecast_unit(
         ds.stream = stream or ""
         ds.powatlas_version = __version__
         ds.git_commit = m.git_commit
+        ds.fetched = json.dumps(m.fetched)
         ds.history = f"{_iso(_now())} written by powatlas {__version__}: cropped, values as published"
     os.replace(tmp, path)
     m.files = [{"name": path.name, "sha256": sha256_file(path), "size": path.stat().st_size}]
@@ -232,7 +261,7 @@ def write_observation_unit(
     stamp = collected_start.astimezone(timezone.utc).strftime("%Y%m%dT%H%MZ")
     stem = f"{source.id}_{unit.ref.strftime('%Y%m%d')}"
     m = _base_manifest(unit, source, mode, None, [p[2] for p in payloads], collected_start)
-    m.notes = list(notes or [])
+    m.notes += list(notes or [])
     names = [p[0] for p in payloads]
     if len(set(names)) != len(names) or set(names) - set(expected):
         raise ValueError(f"payload names {names} do not match expected {expected}")

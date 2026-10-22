@@ -54,6 +54,15 @@ class IterFieldsTest(unittest.TestCase):
         self.assertEqual(f.keys["stepType"], "accum")
         self.assertEqual(f.keys["shortName"], "tp")
 
+    def test_inconsistent_last_point_rejected(self):
+        import eccodes
+        h = eccodes.codes_new_from_message(make_message())
+        eccodes.codes_set(h, "longitudeOfLastGridPointInDegrees", 9.5)
+        bad = eccodes.codes_get_message(h)
+        eccodes.codes_release(h)
+        with self.assertRaises(ValueError):
+            list(iter_fields(bad))
+
     def test_truncated_data_raises(self):
         with self.assertRaises(ValueError):
             list(iter_fields(make_message()[:-10]))

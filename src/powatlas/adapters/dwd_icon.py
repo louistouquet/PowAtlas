@@ -30,7 +30,11 @@ def icon_url(source: Source, run: datetime, variable: str, step: int) -> str:
 
 
 def _select(data: bytes, variable: str, step: int, selector: dict) -> Field:
-    hourly = [f for f in iter_fields(data) if f.step_end == step]
+    try:
+        decoded = list(iter_fields(data))
+    except ValueError as exc:  # unsupported grid, scanning mode or truncated message
+        raise FormatChange(f"{variable}@{step}: {exc}") from exc
+    hourly = [f for f in decoded if f.step_end == step]
     if len(hourly) != 1:
         raise FormatChange(f"{variable}@{step}: {len(hourly)} messages at the whole hour instead of 1")
     f = hourly[0]
