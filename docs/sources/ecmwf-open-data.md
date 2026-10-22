@@ -15,7 +15,7 @@ verifie_le: 2026-10-22
 
 # ECMWF Open Data (IFS et AIFS, 0,25°)
 
-Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour toutes), et une marque : **[vérifié]** (constaté par nous), **[producteur]** (documentation officielle), **[tiers]** ou **[hypothèse]**.
+Chaque affirmation porte sa source et sa date de consultation (2026-10-21, sauf les constats marqués du 2026-10-22), et une marque : **[vérifié]** (constaté par nous), **[producteur]** (documentation officielle), **[tiers]** ou **[hypothèse]**.
 
 ## Contenu
 
@@ -47,7 +47,7 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour t
   - du 2023-01-18 au 2024-01-31 : seulement `AAAAMMJJ/00z/0p4-beta/` (grille 0,4° « beta ») ;
   - IFS 0,25° à partir du 2024-02-01, sous `AAAAMMJJ/00z/0p25/{oper,enfo,waef,wave}/` jusqu'au 2024-02-28, puis sous `AAAAMMJJ/00z/ifs/0p25/` dès le 2024-02-29 ;
   - champs de surface de l'IFS 0,25° : le 2024-02-01, 11 seulement (`10u`, `10v`, `2t`, `lsm`, `msl`, `ro`, `skt`, `sp`, `st`, `tcwv`, `tp`) ; le 2024-06-01 et le 2024-11-01, 28 et 29 (ajout de `2d`, `asn`, rayonnements, sols...) ; le 2025-06-01 et le 2025-11-15, 32 (ajout de `ptype`, `mn2t3`, `mx2t3`, `10fg`, `tprate`) ; le 2025-12-15 et le 2026-01-01, 35 avec **`sf`, `sd` et `tcc`**. **La chute de neige `sf` n'existe donc qu'à partir d'une date entre le 2025-11-15 et le 2025-12-15** ;
-  - AIFS expérimental sous `AAAAMMJJ/00z/aifs/0p25/oper/` au moins depuis le 2024-03-01 (champs de surface : `10u`, `10v`, `2d`, `2t`, `cp`, `msl`, `skt`, `sp`, `tcw`, `tp` ; pas de `sf`) ; préfixe `aifs-single/0p25/` à partir du 2025-02-20, mais l'index de l'échéance 24 h y est absent ce jour-là (arborescence à inventorier) ;
+  - AIFS expérimental sous `AAAAMMJJ/00z/aifs/0p25/oper/` au moins depuis le 2024-03-01 (champs de surface : `10u`, `10v`, `2d`, `2t`, `cp`, `msl`, `skt`, `sp`, `tcw`, `tp` ; pas de `sf`) ; AIFS Single sous `aifs-single/0p25/experimental/oper/` à partir du 2025-02-10, puis sous `aifs-single/0p25/oper/` (flux opérationnel) le 2025-03-01 [vérifié par le relecteur scientifique] : d'où l'index absent le 2025-02-20 sous `0p25/oper/` ; date exacte du passage à inventorier ; heure de dépôt historique plus tardive qu'aujourd'hui (`LastModified` 08:34 pour l'IFS du 2025-01-01) ;
   - débit : le bucket a répondu `SlowDown` (« Please reduce your request rate ») à une partie des requêtes, même espacées de 15 s, depuis le proxy de la session cloud : un rattrapage doit être lent et reprenable.
 - Conservation sur le portail : le 2026-10-21 à 15:38 UTC, `/forecasts/` listait 4 dates (20261018 à 20261021) ; les cycles 00, 06, 12 et 18 UTC des 18, 19 et 20 octobre répondaient HTTP 200 et un fichier du 18 octobre 00 UTC était présent [vérifié]. La page ECMWF annonce « Data are retained for the most recent 12 forecast runs » [producteur] : le constat (16 runs) est plus généreux, ne pas s'y fier. L'archivage doit donc télécharger chaque run dans les 2 jours, avec marge [hypothèse].
 - Tailles (index du run 2026-10-21 00 UTC, échéance 24 h) [vérifié] :
