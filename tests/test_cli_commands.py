@@ -88,6 +88,12 @@ class CliCommandsTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 cli.pc_token(self.tmp / "absent.env")
 
+    def test_backfill_probe_urls(self):
+        from powatlas.cli import probe_urls
+        urls = probe_urls("ifs-0p25", "2025-01-10", steps=[0, 24])
+        self.assertEqual(urls, ["https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/20250110/00z/ifs/0p25/oper/20250110000000-0h-oper-fc",
+                                "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/20250110/00z/ifs/0p25/oper/20250110000000-24h-oper-fc"])
+
     def test_report_opens_issue_and_fails_on_loss(self):
         now = datetime(2026, 11, 1, 8, 35, tzinfo=timezone.utc)
         gh = FakeGitHub([], now - timedelta(days=1))

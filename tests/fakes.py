@@ -10,6 +10,8 @@ LAST_MODIFIED = datetime(2026, 11, 1, 1, 4, tzinfo=timezone.utc)
 class FakeHttp:
     """Serves bytes by URL; unknown URLs raise NotFound. Records every request."""
 
+    retry_count = 0
+
     def __init__(self, files: dict[str, bytes], last_modified=LAST_MODIFIED, errors=None, headers=None):
         self.files = files
         self.last_modified = last_modified

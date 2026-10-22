@@ -147,6 +147,30 @@ def cmd_status(args) -> int:
     return 0
 
 
+def probe_urls(source_id: str, day: str, steps: list[int]) -> list[str]:
+    from datetime import date
+
+    from powatlas.adapters.ecmwf import ecmwf_path
+
+    sources, _, _ = load_catalogue()
+    s = sources[source_id]
+    d = date.fromisoformat(day)
+    run = datetime(d.year, d.month, d.day, tzinfo=timezone.utc)
+    return [s.urls["aws"] + ecmwf_path(s.urls["model"], run, step) for step in steps]
+
+
+def cmd_backfill_probe(args) -> int:
+    from powatlas.backfill import probe
+
+    _, _, settings = load_catalogue()
+    http = make_http(settings)
+    r = probe(http, probe_urls(args.source, args.day, [int(x) for x in args.steps.split(",")]), args.ranges)
+    rate = r.requests / r.seconds if r.seconds else float("inf")
+    print(f"requests {r.requests}, seconds {r.seconds:.1f} ({rate:.2f} req/s), retries {r.slowdowns}, "
+          f"bytes {r.bytes / 1e6:.1f} MB")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="powatlas", description="PowAtlas daily archive.")
     parser.add_argument("--version", action="version", version=f"powatlas {__version__}")
@@ -178,6 +202,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--data", required=True)
     p.add_argument("--env", default=".env", help="file holding POWATLAS_GITHUB_TOKEN (never committed)")
     p.set_defaults(func=cmd_sync)
+
+    p = sub.add_parser("backfill-probe", help="measure the request rate on the AWS copy (pilot's PC)")
+    p.add_argument("--source", required=True, choices=["ifs-0p25", "aifs-single"])
+    p.add_argument("--day", required=True, help="AAAA-MM-JJ")
+    p.add_argument("--steps", default="0,24,48,72")
+    p.add_argument("--ranges", type=int, default=14, help="ranges read per step file")
+    p.set_defaults(func=cmd_backfill_probe)
 
     p = sub.add_parser("status", help="complete / partial / missing units per source and day")
     p.add_argument("--data", required=True)

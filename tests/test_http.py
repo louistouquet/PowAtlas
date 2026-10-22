@@ -57,6 +57,11 @@ class HttpClientTest(unittest.TestCase):
         self.assertEqual(r.content, b"ok")
         self.assertEqual(clock.sleeps, [2.0])
 
+    def test_retries_are_counted(self):
+        c, s, clock = client([FakeResponse(503, SLOWDOWN), FakeResponse(429), FakeResponse(200, b"ok")], min_interval=0.0)
+        c.get("https://x/y")
+        self.assertEqual((c.retry_count, c.request_count), (2, 3))
+
     def test_gives_up_after_retries(self):
         c, s, clock = client([FakeResponse(503, SLOWDOWN)] * 6, min_interval=0.0)
         with self.assertRaises(HttpError):
