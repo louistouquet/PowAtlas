@@ -268,11 +268,11 @@ Ces cinq tâches partagent la même procédure. Elles sont lancées **en même t
 **Interfaces :**
 - Consomme : les 5 rapports R0 et les fiches `retenue`.
 
-- [ ] **Étape 1 : écrire `docs/roadmap.md`** (français) avec les sections : `## Fonctionnalités de la v1` (classées, chacune reliée à une lacune de R0.1) ; `## Liste d'archivage SP1` (reprise de R0.2, ordonnée par priorité) ; `## Vérité terrain et tableau des scores` (de R0.3 et R0.4 : variables, mesures, échéances, références à battre) ; `## Réutiliser ou construire` (de R0.5) ; `## Ordre des sous-projets` (confirmé ou modifié, avec raison) ; `## Risques` ; `## Questions pour le pilote`.
-- [ ] **Étape 2 : relecture** par `relecteur-scientifique` ; corriger les constats `bloquant` et `important`.
-- [ ] **Étape 3 : vérifier** — `python3 scripts/check_docs.py` → `OK`.
-- [ ] **Étape 4 : PR et présentation au pilote.** Résumer la feuille de route en chat avec le lien de la PR. **Ne pas fusionner avant l'accord explicite du pilote.** Intégrer ses retours.
-- [ ] **Étape 5 : après accord**, passer les rapports en `statut: validee`, fusionner.
+- [x] **Étape 1 : écrire `docs/roadmap.md`** (français) avec les sections : `## Fonctionnalités de la v1` (classées, chacune reliée à une lacune de R0.1) ; `## Liste d'archivage SP1` (reprise de R0.2, ordonnée par priorité) ; `## Vérité terrain et tableau des scores` (de R0.3 et R0.4 : variables, mesures, échéances, références à battre) ; `## Réutiliser ou construire` (de R0.5) ; `## Ordre des sous-projets` (confirmé ou modifié, avec raison) ; `## Risques` ; `## Questions pour le pilote`.
+- [x] **Étape 2 : relecture** par `relecteur-scientifique` ; corriger les constats `bloquant` et `important`.
+- [x] **Étape 3 : vérifier** — `python3 scripts/check_docs.py` → `OK`.
+- [x] **Étape 4 : PR et présentation au pilote.** Résumer la feuille de route en chat avec le lien de la PR. **Ne pas fusionner avant l'accord explicite du pilote.** Intégrer ses retours.
+- [x] **Étape 5 : après accord**, passer les rapports en `statut: validee`, fusionner.
 
 ---
 

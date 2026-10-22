@@ -15,7 +15,8 @@ Index de tous les documents du projet.
 - [`modeles-claude.md`](modeles-claude.md) : modèles Claude, niveaux d'effort et économie.
 - [`../CLAUDE.md`](../CLAUDE.md) et [`../AGENTS.md`](../AGENTS.md) : règles pour les sessions IA.
 
-## Recherche
+## Cible et recherche
+- [`roadmap.md`](roadmap.md) : « Cible et feuille de route », synthèse de la recherche R0 (validée par le pilote le 2026-10-22).
 - [`research/R0.1-concurrence.md`](research/R0.1-concurrence.md), [`research/R0.2-previsions-ouvertes.md`](research/R0.2-previsions-ouvertes.md), [`research/R0.3-observations.md`](research/R0.3-observations.md), [`research/R0.4-historique.md`](research/R0.4-historique.md), [`research/R0.5-briques-open-source.md`](research/R0.5-briques-open-source.md) : rapports R0.
 
 ## Cadrages et plans

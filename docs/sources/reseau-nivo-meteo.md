@@ -10,12 +10,12 @@ delai: fichier de l'année en cours mis à jour une fois par jour (Last-Modified
 resolution: ponctuelle, 79 à 81 stations dans l'emprise ; en pratique une observation par station et par jour, surtout entre 06 et 09 UTC ; neige fraîche (ssfrai) en m, hauteur totale (ht_neige) en m
 conservation: archive annuelle depuis 1996 (31 fichiers, de nivo_1996 à nivo_2026), mise à jour quotidienne de l'année en cours
 statut: retenue
-verifie_le: 2026-10-21
+verifie_le: 2026-10-22
 ---
 
 # Archive du réseau nivo-météorologique (stations de ski et postes de montagne, Météo-France)
 
-Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour toutes), et une marque : **[vérifié]** (constaté par nous), **[producteur]** (documentation officielle), **[tiers]** ou **[hypothèse]**.
+Chaque affirmation porte sa source et sa date de consultation (2026-10-21, ou 2026-10-22 pour les codes `perssfrai`), et une marque : **[vérifié]** (constaté par nous), **[producteur]** (documentation officielle), **[tiers]** ou **[hypothèse]**.
 
 **Conclusion sur le point du cadrage : l'accès ouvert aux données du réseau nivo-météo est confirmé.** Le jeu est publié sans compte, sous Licence Ouverte 2.0, avec un téléchargement testé le 2026-10-21 (voir Test d'accès). Voir le rapport [R0.3](../research/R0.3-observations.md).
 
@@ -23,7 +23,7 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour t
 
 - Description : observations « issues des stations de montagne opérées par les partenaires conventionnés avec Météo-France pour la surveillance du manteau neigeux en période hivernale » [producteur] (https://www.data.gouv.fr/api/1/datasets/68aeced879316c333d564f95/, champ description). Les pisteurs des stations fournissent des observations deux fois par jour (température, vent, couverture nuageuse, précipitations, hauteur et qualité de la neige, transport de neige, avalanches) et un profil détaillé du manteau une fois par semaine [producteur] (https://meteofrance.com/meteo-a-z/comment-prevoit-on-les-avalanches). Le réseau compte 146 stations entre 800 et 3 200 m (Alpes, Corse, Pyrénées) [producteur, même page]. Fréquence annoncée : « 12 h » [producteur] (page Confluence « Observations in situ »).
 - Variables utiles à la neige (descriptif technique officiel, colonnes réelles identiques) [producteur] [vérifié] :
-  - `ssfrai` : hauteur de la neige fraîche, m ; `perssfrai` : période de mesure de la neige fraîche, annoncée en 1/10 d'heure ; `neige_fraiche` : hauteur de neige fraîche, m (second champ, voir Limites) ;
+  - `ssfrai` : hauteur de la neige fraîche, m ; `perssfrai` : période de mesure de la neige fraîche, annoncée en 1/10 d'heure (voir la section « Codes `perssfrai` » ci-dessous : les valeurs réelles sont `-99` et `-50`) ; `neige_fraiche` : hauteur de neige fraîche, m (second champ, voir Limites) ;
   - `ht_neige` : hauteur totale de la couche de neige, glace, autre, au sol, m ; `ht_neige_alti` : hauteur de neige en altitude, m ;
   - `rr24` : précipitations des 24 dernières heures, mm ; `t`, `tn12`, `tx12`, `tn24`, `tx24` (K) ; `ff`, `dd` (vent) ; `ww`, `w1`, `w2` (temps présent et passé) ;
   - `teneur_eau` (teneur en eau liquide), `m_vol_neige` (masse volumique, kg/m3), `grain_*`, `etat_neige`, `prof_sonde`, `chasse_neige`, `aval_*` (avalanche observée ; c'est une observation du pisteur, pas un verdict de sécurité : référence = BRA de Météo-France).
@@ -53,6 +53,17 @@ Seules les stations sans `ssfrai` (Nivôse, voir [`nivose`](nivose.md)) imposent
 - Quand `HNEIGEF` vaut 0 (7 683 cas) : la différence atteint 3 cm ou plus dans 0,9 % des cas et 5 cm ou plus dans 0,5 % (faux positifs : vent, mesure).
 - Ces chiffres sont **dérivés** et propres à des postes manuels (même observateur, même heure pour les deux mesures) ; ils ne valent pas pour les Nivôse ni les capteurs d'altitude exposés au vent (étalonnage non disponible, dérivé brut) [hypothèse]. Tout étalonnage se fait sur les seules saisons d'entraînement ; 2025-2026 sert ici de test, donc elle est exclue de tout étalonnage ultérieur.
 
+## Codes `perssfrai`
+
+Recherche du 2026-10-22, sans contact avec le producteur, sur `nivo_2024.csv.gz` et `nivo_2025.csv.gz` (environ 0,7 Mo).
+
+- **Documentation officielle : aucune définition.** Le descriptif technique (PDF du 2026-04-22) ne contient que la ligne « perssfrai : période de mesure de la neige fraîche, réel, 1/10 heure » ; la page Confluence « Observations in situ » ne mentionne ni `perssfrai`, ni `ssfrai`, ni `-99` ; deux recherches web (2026-10-22) n'ont trouvé aucun document qui définisse ces codes [producteur, non documenté].
+- **Valeurs observées [vérifié, 2026-10-22].** 2025 : 10 517 lignes, `-99` 9 052 (86 %), `-50` 1 116 (10,6 %), vide 349 (3,3 %) ; 2024 : 10 115 lignes, `-99` 8 510, `-50` 1 397, vide 208. Aucune autre valeur. `perssfrai` est vide si et seulement si `ssfrai` est vide (349 sur 349 en 2025, 208 sur 208 en 2024). Les deux codes se rencontrent avec `ssfrai = 0` comme avec `ssfrai > 0` (2025, hors 42 lignes `-99.0` et 10 lignes `-50.0` : `-99` 6 324 zéros et 2 686 positifs, soit 30 % ; `-50` 973 zéros et 133 positifs, soit 12 %). Ce ne sont donc pas des codes de « valeur manquante » : la valeur manquante est la case vide.
+- **Le code suit l'heure d'observation [vérifié].** `-99` : toutes les observations de 05 à 09 UTC (et 152 à 10 UTC) en 2025 ; `-50` : uniquement de 10 à 14 UTC (0 observation avant 10 UTC, 0 observation `-99` après 10 UTC hors les 152 de 10 h). C'est donc le code de l'observation du matin (`-99`) et de celle de l'après-midi (`-50`). Les jours à deux observations (829 en 2025, 1 000 en 2024) sont, dans 97 % des cas, une paire (`-99`, `-50`) (804 sur 829 en 2025 ; 982 sur 1 000 en 2024) ; l'écart entre les deux heures est de 5 h au mode (387 paires sur 804 ; 4 à 6 h : 746 sur 804). 48 à 50 stations sur 110 émettent les deux codes, les autres seulement `-99`.
+- **Saisonnalité [vérifié].** Même répartition tout au long de l'année (2025 : janvier `-99` 2 357 et `-50` 317 ; juillet `-99` 33 et `-50` 5) ; `-50` ne dépend pas de la saison, seulement de la présence d'une seconde observation l'après-midi.
+- **Interprétation [hypothèse]** : `-50` pourrait se lire « -5,0 h », c'est-à-dire neige fraîche tombée depuis l'observation du matin (écart typique de 5 h, cohérent avec le mode observé). `-99` ne se lit pas comme une durée négative cohérente (l'écart du matin à la veille serait d'environ 19 h) : il sert vraisemblablement de code conventionnel pour « période standard / depuis l'observation précédente » ou de marqueur sans durée [hypothèse faible]. Dans tous les cas la durée exacte n'est pas fournie par le producteur.
+- **Conséquence pour le projet.** Le champ `perssfrai` ne permet pas de dater la fenêtre de `ssfrai` : ne pas l'utiliser comme durée, ne retenir comme neige fraîche journalière que `HNEIGEF` (06 à 06 UTC, voir [`meteo-france-observations`](meteo-france-observations.md)) ou le `ssfrai` de l'observation du matin (`-99`) ; les `ssfrai` marqués `-50` sont des chutes depuis le matin, à ne pas sommer avec le `-99` du même jour sans contrôle [hypothèse].
+
 ## Test d'accès
 
 - Date : 2026-10-21, entre 15:30 et 16:10 UTC, sans compte, sans clé.
@@ -73,7 +84,7 @@ Seules les stations sans `ssfrai` (Nivôse, voir [`nivose`](nivose.md)) imposent
 
 - Le jeu est **déclaratif et manuel** : des pisteurs, surtout le matin, avec des protocoles de station variables ; biais de station : sites de domaines skiables, donc potentiellement damés, abrités ou remaniés par le vent [hypothèse] ; altitude médiane 1 788 m, 80 stations sur 86 de l'emprise entre 1 200 et 2 400 m, 3 au-dessus de 2 500 m, 2 sous 1 200 m [vérifié sur la liste officielle]. Aucun profil de qualité de la mesure fourni par le producteur dans les fichiers.
 - Une seule observation par jour en pratique, malgré l'annonce « 12 h » : les neiges fraîches à 24 h sont possibles, mais pas de fenêtre glissante précise ; 48 et 72 h par somme de jours consécutifs (dérivé).
-- `perssfrai` prend les valeurs `-99` (6 140 observations de décembre à mars 2025 avec `ssfrai`) et `-50` (908), alors que le descriptif annonce une durée en 1/10 d'heure : la signification de ces codes n'est pas documentée au 2026-10-21. La période exacte de la neige fraîche est donc **inconnue** ; ne pas supposer 24 h.
+- `perssfrai` ne prend que deux valeurs, `-99` et `-50`, alors que le descriptif annonce une durée en 1/10 d'heure : le sens de ces codes n'est défini dans aucun document du producteur lu au 2026-10-22 (voir « Codes `perssfrai` »). La période exacte de la neige fraîche reste **inconnue** ; ne pas supposer 24 h.
 - `neige_fraiche` (en plus de `ssfrai`) est renseigné dans 2 314 lignes en 2025 (2 196 en 2026) ; relation avec `ssfrai` non documentée. Le projet utilise `ssfrai`.
 - Fichiers par année avec séparateurs différents ; homogénéiser à la lecture.
 - Une même station apparaît sous plusieurs noms (`ISOLA` et `ISOLA_NIVO`, `Les Portes en Valgaudemar` et `LES PORTES EN VALGAUDEMAR_NIVO`, `SUPER DEVOLUY_NIVO` et `_NIVO2`) : dédupliquer par identifiant OMM et nom.
@@ -92,3 +103,6 @@ Seules les stations sans `ssfrai` (Nivôse, voir [`nivose`](nivose.md)) imposent
 - https://confluence-meteofrance.atlassian.net/wiki/spaces/OpenDataMeteoFrance/pages/888143886/Observations+in+situ — consultée le 2026-10-21
 - https://confluence-meteofrance.atlassian.net/wiki/spaces/OpenDataMeteoFrance/pages/1351516182 — consultée le 2026-10-21
 - https://meteofrance.com/meteo-a-z/comment-prevoit-on-les-avalanches — consultée le 2026-10-21
+- https://meteofrance.s3.sbg.io.cloud.ovh.net/data/OBS/NIVOSE/nivo_2024.csv.gz — analysé le 2026-10-22 (et nivo_2025.csv.gz)
+- https://static.data.gouv.fr/resources/archive-reseau-nivo-meteorologique/20260422-141132/observations-descriptif-technique-donnees-nivo-20260422.pdf — relu le 2026-10-22 (ligne `perssfrai`)
+- https://confluence-meteofrance.atlassian.net/wiki/spaces/OpenDataMeteoFrance/pages/888143886/Observations+in+situ — relue le 2026-10-22 (aucune mention de `perssfrai`)
