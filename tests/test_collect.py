@@ -80,6 +80,16 @@ class CollectTest(unittest.TestCase):
         # later hourly runs do not report the same losses again
         self.assertEqual(collect.attempt_at(t, utc(2026, 11, 1, 9, 51)), "first")
 
+    def test_recent_attempt_not_retried_within_three_hours(self):
+        now = utc(2026, 11, 3, 9)
+        artifacts = [{"name": "s1__20261103T00Z__partial", "created_at": "2026-11-03T07:30:00Z"},
+                     {"name": "s2__20261102T00Z__missing", "created_at": "2026-11-03T05:00:00Z"}]
+        recent = collect.recently_attempted(artifacts, now, hours=3)
+        self.assertEqual(recent, {"s1__20261103T00Z"})
+        ids = collect.plan("t1", now, [a["name"] for a in artifacts], SOURCES, skip=recent)
+        self.assertNotIn("s1__20261103T00Z", ids)
+        self.assertIn("s2__20261102T00Z", ids)
+
     def test_report_warns_after_45_days_without_commit(self):
         now = utc(2026, 12, 20, 15)
         _, summary = collect.report("t1", now, "first", [], now - timedelta(days=45), SOURCES)

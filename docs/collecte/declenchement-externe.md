@@ -2,7 +2,7 @@
 
 Guide du 2026-10-22, pour un débutant. Le 2026-10-22, les déclenchements planifiés (`schedule`) du workflow `collect` ne partaient pas sur GitHub, alors que les lancements manuels fonctionnaient. Ce guide fait appeler le workflow **toutes les heures** par un service gratuit, [cron-job.org](https://cron-job.org/en/) (« absolutely free and financed entirely by voluntary donations », page consultée le 2026-10-22).
 
-Chaque appel lance la tâche `auto`, qui collecte tout ce qui est publié et pas encore complet, toutes sources confondues. Un appel manqué est donc rattrapé à l'heure suivante. Si les planifications de GitHub se mettent à marcher, elles s'ajoutent sans doublon : une unité déjà complète est sautée.
+Chaque appel lance la tâche `auto`, qui collecte tout ce qui est publié et pas encore complet, toutes sources confondues. Un appel manqué est donc rattrapé à l'heure suivante. Si les planifications de GitHub se mettent à marcher, elles s'ajoutent sans doublon de collecte (une unité déjà complète est sautée) ; une perte pourrait alors être signalée deux fois dans l'issue `collecte`. Une unité incomplète est retentée au plus toutes les 3 heures.
 
 Il faut deux choses : un **jeton GitHub** qui a seulement le droit de lancer les workflows de ce dépôt, et une **tâche** sur cron-job.org.
 
@@ -48,12 +48,12 @@ Ce jeton permet seulement de lancer, annuler ou effacer des workflows et des art
 
    - **Notifications** (onglet ou section *Notifications*) : cocher l'envoi d'un e-mail en cas d'échec.
 5. Enregistrer (**Create** ou **Save**).
-6. Tester tout de suite : dans la liste des cronjobs, bouton **Test run** (ou *Execute now*). Réponse attendue : **204 No Content** (ou 200), ce qui veut dire que GitHub a accepté. Une réponse **401** ou **403** veut dire que le jeton est faux ou n'a pas la permission *Actions : Read and write* ; **404** veut dire que l'URL est mal recopiée.
+6. Tester tout de suite : dans la liste des cronjobs, bouton **Test run** (ou *Execute now*). Réponse attendue : **200** ou **204** (la documentation de GitHub, consultée le 2026-10-22, annonce désormais 200 avec l'identifiant du run), ce qui veut dire que GitHub a accepté. Une réponse **401** ou **403** veut dire que le jeton est faux ou n'a pas la permission *Actions : Read and write* ; **404** veut dire que l'URL est mal recopiée.
 
 ## 3. Vérifier que ça marche
 
 - Sur GitHub : dépôt `PowAtlas` → onglet **Actions** → workflow **collect**. Un nouveau run *workflow_dispatch* doit apparaître à chaque heure et 17 minutes.
-- Sur cron-job.org : **History** de la tâche, avec une réponse 204 à chaque exécution.
+- Sur cron-job.org : **History** de la tâche, avec une réponse 200 ou 204 à chaque exécution.
 - Dire à une session Claude « vérifie les déclenchements de cron-job.org » : elle liste les runs du workflow et contrôle qu'il y en a un par heure.
 
 ## 4. Si un jour ça s'arrête

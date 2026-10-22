@@ -35,16 +35,35 @@ def _task_sources(task: str, sources: dict[str, Source]) -> list[Source]:
     return selected
 
 
+RETRY_HOURS = 3  # a unit attempted less than this ago (partial or missing) is not attempted again
+
+
+def recently_attempted(artifacts: list[dict], now: datetime, hours: float) -> set[str]:
+    """Unit ids with an artifact (any state) created less than ``hours`` before ``now``."""
+    recent = set()
+    for a in artifacts:
+        created = datetime.strptime(a["created_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=now.tzinfo)
+        if now - created < timedelta(hours=hours):
+            recent.add(a["name"].rsplit("__", 1)[0])
+    return recent
+
+
 def plan(
-    task: str, now: datetime, artifact_names: list[str], sources: dict[str, Source], tasks: dict[str, Task] | None = None
+    task: str,
+    now: datetime,
+    artifact_names: list[str],
+    sources: dict[str, Source],
+    tasks: dict[str, Task] | None = None,
+    skip: set[str] = frozenset(),
 ) -> list[str]:
-    """Unit ids of the task still to collect (absent or not complete within their window)."""
+    """Unit ids of the task still to collect (absent or not complete within their window),
+    except those in ``skip`` (attempted recently: spaced retries of the hourly ``auto`` runs)."""
     if task == AUTO:
-        return [uid for t in _scheduled(tasks) for uid in plan(t, now, artifact_names, sources)]
+        return [uid for t in _scheduled(tasks) for uid in plan(t, now, artifact_names, sources, skip=skip)]
     ids = []
     for s in _task_sources(task, sources):
         ids += [unit_id(u, s.kind) for u in units_to_collect(expected_units(s, now), artifact_names)]
-    return ids
+    return [i for i in ids if i not in skip]
 
 
 def collect_unit(
