@@ -275,10 +275,12 @@ def write_observation_unit(
     if len(set(names)) != len(names) or set(names) - set(expected):
         raise ValueError(f"payload names {names} do not match expected {expected}")
     for name, content, _ in payloads:
-        path = out_dir / f"{source.id}_{stamp}_{name}.gz"
+        already_gzip = content[:2] == b"\x1f\x8b"
+        path = out_dir / f"{source.id}_{stamp}_{name}{'' if already_gzip else '.gz'}"
         tmp = out_dir / f".{path.name}.tmp"
-        # mtime=0: the gzip bytes depend only on the content.
-        tmp.write_bytes(gzip.compress(content, mtime=0))
+        # Already gzip-compressed files are kept byte for byte; mtime=0 otherwise,
+        # so that the gzip bytes depend only on the content.
+        tmp.write_bytes(content if already_gzip else gzip.compress(content, mtime=0))
         os.replace(tmp, path)
         m.files.append({"name": path.name, "sha256": sha256_file(path), "size": path.stat().st_size})
     m.missing = [n for n in expected if n not in names]
