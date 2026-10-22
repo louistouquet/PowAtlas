@@ -1,14 +1,132 @@
-"""Command-line entry point: ``powatlas <command>``."""
+"""Command-line entry point: ``powatlas <command>``.
+
+Commands used by the ``collect.yml`` workflow: ``resolve-schedule``, ``plan``,
+``collect``, ``report``. GitHub access reads ``GITHUB_TOKEN`` and
+``GITHUB_REPOSITORY`` from the environment.
+"""
 
 import argparse
+import json
+import os
+from datetime import datetime, timezone
+from pathlib import Path
 
-from powatlas import __version__
+from powatlas import __version__, collect
+from powatlas.catalogue import load_catalogue, task_for_cron
+from powatlas.github import GitHub
+from powatlas.http import HttpClient
+
+ISSUE_LABEL = "collecte"
+
+
+def _now(text: str | None) -> datetime:
+    if text is None:
+        return datetime.now(timezone.utc)
+    t = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    if t.tzinfo is None:
+        raise ValueError("--now must carry a time zone (e.g. 2026-11-01T02:35:00Z)")
+    return t.astimezone(timezone.utc)
+
+
+def _output(**values: str) -> None:
+    """Write key=value lines to $GITHUB_OUTPUT (Actions) or stdout."""
+    text = "".join(f"{k}={v}\n" for k, v in values.items())
+    path = os.environ.get("GITHUB_OUTPUT")
+    if path:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(text)
+    else:
+        print(text, end="")
+
+
+def make_github() -> GitHub:
+    return GitHub(os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_TOKEN"])
+
+
+def make_http(settings: dict) -> HttpClient:
+    h = settings["http"]
+    return HttpClient(
+        retries=h["retries"], backoff=h["backoff"], max_backoff=h["max_backoff"],
+        min_interval=h["min_interval"], timeout=h["timeout"],
+    )
+
+
+def _register_adapters() -> None:
+    # Imported here so that adapters register themselves in powatlas.adapters.ADAPTERS.
+    import powatlas.adapters.all  # noqa: F401
+
+
+def cmd_resolve_schedule(args) -> int:
+    _, tasks, _ = load_catalogue()
+    task, attempt = task_for_cron(args.cron, tasks)
+    _output(task=task, attempt=attempt)
+    return 0
+
+
+def cmd_plan(args) -> int:
+    sources, _, _ = load_catalogue()
+    names = make_github().list_artifact_names()
+    _output(units=json.dumps(collect.plan(args.task, _now(args.now), names, sources)))
+    return 0
+
+
+def cmd_collect(args) -> int:
+    _register_adapters()
+    sources, _, settings = load_catalogue()
+    m = collect.collect_unit(args.unit, Path(args.out), make_http(settings), sources, settings, _now(args.now))
+    print(f"{args.unit}: {m.state}" + (f" (missing: {', '.join(m.missing[:10])})" if m.missing else ""))
+    for note in m.notes:
+        print(f"  note: {note}")
+    _output(state=m.state)
+    return 0
+
+
+def cmd_report(args) -> int:
+    sources, _, _ = load_catalogue()
+    now = _now(args.now)
+    gh = make_github()
+    last_commit = gh.last_commit_date("main")
+    losses, summary = collect.report(args.task, now, args.attempt, gh.list_artifact_names(), last_commit, sources)
+    inactive = (now - last_commit).days >= collect.INACTIVITY_WARNING_DAYS
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if path:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(summary)
+    print(summary)
+    if losses:
+        run = "{}/{}/actions/runs/{}".format(
+            os.environ.get("GITHUB_SERVER_URL", "https://github.com"), os.environ.get("GITHUB_REPOSITORY", ""),
+            os.environ.get("GITHUB_RUN_ID", ""))
+        body = f"Task `{args.task}`: units lost for good after the {args.attempt} trigger.\n\n{summary}\nRun: {run}\n"
+        gh.open_or_comment_issue(f"Collecte : pertes du {now:%Y-%m-%d}", body, ISSUE_LABEL)
+    return 1 if losses or inactive else 0
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="powatlas", description=__doc__)
+    parser = argparse.ArgumentParser(prog="powatlas", description="PowAtlas daily archive.")
     parser.add_argument("--version", action="version", version=f"powatlas {__version__}")
-    parser.add_subparsers(dest="command")
+    sub = parser.add_subparsers(dest="command")
+
+    p = sub.add_parser("resolve-schedule", help="task and attempt of a cron expression")
+    p.add_argument("--cron", required=True)
+    p.set_defaults(func=cmd_resolve_schedule)
+
+    p = sub.add_parser("plan", help="units of a task still to collect (JSON)")
+    p.add_argument("--task", required=True)
+    p.add_argument("--now")
+    p.set_defaults(func=cmd_plan)
+
+    p = sub.add_parser("collect", help="collect one unit")
+    p.add_argument("--unit", required=True)
+    p.add_argument("--out", required=True)
+    p.add_argument("--now")
+    p.set_defaults(func=cmd_collect)
+
+    p = sub.add_parser("report", help="summary, issue and exit status of a task run")
+    p.add_argument("--task", required=True)
+    p.add_argument("--attempt", required=True, choices=["first", "last"])
+    p.add_argument("--now")
+    p.set_defaults(func=cmd_report)
     return parser
 
 
@@ -18,4 +136,4 @@ def main(argv: list[str] | None = None) -> int:
     if args.command is None:
         parser.print_help()
         return 2
-    raise AssertionError(f"unhandled command {args.command}")
+    return args.func(args)

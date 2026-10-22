@@ -7,6 +7,13 @@ bbox = [5.0, 43.5, 7.9, 46.5]   # west, south, east, north (degrees, WGS84)
 margin_cells = 2                # grid cells kept around the bbox
 artifact_retention_days = 30
 
+[settings.http]
+retries = 5
+backoff = 2.0          # seconds, doubled at each retry
+max_backoff = 300.0
+min_interval = 0.2     # seconds between requests (politeness)
+timeout = 60.0
+
 # First and second trigger of each task (minute off the hour, spec section 3).
 [tasks.icon-d2]
 crons = ["35 2 * * *", "35 8 * * *"]
