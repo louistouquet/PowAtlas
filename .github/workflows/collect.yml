@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: "Task id from catalogue.toml (e.g. icon-d2)"
+        description: "Task id from catalogue.toml (e.g. icon-d2), or auto for every scheduled task"
         required: true
         type: string
       attempt:

@@ -77,9 +77,9 @@ def cmd_resolve_schedule(args) -> int:
 
 
 def cmd_plan(args) -> int:
-    sources, _, _ = load_catalogue()
+    sources, tasks, _ = load_catalogue()
     names = make_github().list_artifact_names()
-    _output(units=json.dumps(collect.plan(args.task, _now(args.now), names, sources)))
+    _output(units=json.dumps(collect.plan(args.task, _now(args.now), names, sources, tasks)))
     return 0
 
 
@@ -102,11 +102,12 @@ def cmd_collect(args) -> int:
 
 
 def cmd_report(args) -> int:
-    sources, _, _ = load_catalogue()
+    sources, tasks, _ = load_catalogue()
     now = _now(args.now)
     gh = make_github()
     last_commit = gh.last_commit_date("main")
-    losses, summary = collect.report(args.task, now, args.attempt, gh.list_artifact_names(), last_commit, sources)
+    losses, summary = collect.report(args.task, now, args.attempt, gh.list_artifact_names(), last_commit, sources,
+                                     tasks)
     inactive = (now - last_commit).days >= collect.INACTIVITY_WARNING_DAYS
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if path:

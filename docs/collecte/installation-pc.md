@@ -2,6 +2,8 @@
 
 Guide du 2026-10-22 pour `D:\Codage\PowAtlas` (Windows). Il met en place le rapatriement quotidien des artefacts de GitHub Actions vers l'archive de référence `D:\Codage\PowAtlas\data\` ([décision 0005](../decisions/0005-collecte-hybride-actions-et-pc.md), [cadrage SP1](../specs/2026-10-22-sp1-archive-design.md)). La collecte elle-même tourne sur GitHub Actions : ce guide n'est pas nécessaire pour qu'elle démarre, mais l'archive n'existe sur le PC qu'une fois `sync` lancé, et les artefacts disparaissent au bout de 30 jours.
 
+Le déclenchement horaire de la collecte par cron-job.org est décrit à part : [`declenchement-externe.md`](declenchement-externe.md).
+
 ## 1. Logiciels
 
 1. Installer **Python 3.12** pour Windows (python.org, cocher « Add python.exe to PATH ») et **Git pour Windows**.
