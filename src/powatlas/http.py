@@ -7,7 +7,7 @@ access change at a producer is noticed instead of being retried for hours.
 
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
@@ -20,11 +20,19 @@ RETRY_STATUS = frozenset({429, 500, 502, 503, 504})
 
 
 class HttpError(RuntimeError):
-    """A request failed for good."""
+    """A request failed for good; ``status`` is the HTTP status when there was one."""
+
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 class NotFound(HttpError):
     """HTTP 404: the resource does not exist (yet, or any more)."""
+
+
+# Response headers kept for traceability (cache state, identity of the copy).
+KEPT_HEADERS = ("Date", "ETag", "Age", "Cache-Control", "Content-Encoding", "Last-Modified")
 
 
 @dataclass(frozen=True)
@@ -33,6 +41,7 @@ class Response:
     content: bytes
     last_modified: datetime | None
     url: str
+    headers: dict = field(default_factory=dict)
 
 
 def _last_modified(headers) -> datetime | None:
@@ -111,13 +120,14 @@ class HttpClient:
                 last_problem = f"HTTP {r.status_code}"
                 continue
             if r.status_code == 404:
-                raise NotFound(f"HTTP 404 for {url}")
+                raise NotFound(f"HTTP 404 for {url}", status=404)
             if r.status_code not in (200, 206):
-                raise HttpError(f"HTTP {r.status_code} for {url}")
+                raise HttpError(f"HTTP {r.status_code} for {url}", status=r.status_code)
             content = r.content
             if byte_range is not None:
                 content = self._range_content(url, r.status_code, content, byte_range)
-            return Response(r.status_code, content, _last_modified(r.headers), url)
+            kept = {k: r.headers[k] for k in KEPT_HEADERS if k in r.headers}
+            return Response(r.status_code, content, _last_modified(r.headers), url, kept)
         raise HttpError(f"{url}: gave up after {self.retries + 1} attempts ({last_problem})")
 
     @staticmethod

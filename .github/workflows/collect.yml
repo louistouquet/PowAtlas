@@ -11,6 +11,8 @@ on:
     - cron: "35 8 * * *"   # icon-d2, last
     - cron: "5 5 * * *"    # icon-eu, first
     - cron: "35 10 * * *"  # icon-eu, last
+    - cron: "50 9 * * *"   # observations, first
+    - cron: "50 17 * * *"  # observations, last
   workflow_dispatch:
     inputs:
       task:

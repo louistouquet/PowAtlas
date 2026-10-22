@@ -21,6 +21,9 @@ crons = ["35 2 * * *", "35 8 * * *"]
 [tasks.icon-eu]
 crons = ["5 5 * * *", "35 10 * * *"]
 
+[tasks.observations]
+crons = ["50 9 * * *", "50 17 * * *"]
+
 [sources.icon-d2]
 family = "dwd-icon"
 kind = "forecast"
@@ -69,3 +72,78 @@ h_snow = { shortName = "sde" }
 w_snow = { shortName = "sd" }
 hzerocl = { shortName = "HZEROCL" }
 snowlmt = { shortName = "SNOWLMT" }
+
+# Observations: dated verbatim copies, one unit per collection day (window 0:
+# every copied answer covers at least 7 days, except the daily Météo-France
+# files, which are cumulative). "nature" tells observed,
+# modelled and metadata apart (R0.3, rule 9).
+
+[sources.slf]
+family = "snapshot"
+kind = "observation"
+task = "observations"
+fiche = "docs/sources/slf-imis.md"
+licence = "CC BY 4.0"
+attribution = "Source: WSL Institute for Snow and Avalanche Research SLF, www.slf.ch (CC BY 4.0)"
+window_days = 0
+available_after_hours = 9.5
+urls = {}
+
+[sources.slf.variables]
+# Global routes cover the last 24 h only: per-station routes with a 7-day period
+# are used for the stations of the domain (bbox plus 0.1 degree), so that a missed
+# day is caught up by the next copy. Rule "per-station": one payload per station
+# listed by the payload named in "stations"; no_data_status = answers meaning
+# "no data for this station in the period" (noted, not a loss).
+"imis-stations.json" = { url = "https://measurement-api.slf.ch/public/api/imis/stations", nature = "metadata" }
+"study-plot-stations.json" = { url = "https://measurement-api.slf.ch/public/api/study-plot/stations", nature = "metadata" }
+"imis-daily-snow.json" = { url = "https://measurement-api.slf.ch/public/api/imis/daily-snow?period_in_days=7", nature = "HS observed (daily aggregate of the sensor); HN_1D modelled by SNOWPACK" }
+"imis-measurements" = { rule = "per-station", stations = "imis-stations.json", no_data_status = [404], url = "https://measurement-api.slf.ch/public/api/imis/station/{code}/measurements?period_in_days=7", name = "imis-measurements_{code}.json", nature = "observed (IMIS sensors, 30 min, 7 days)" }
+"imis-measurements-precipitation" = { rule = "per-station", stations = "imis-stations.json", no_data_status = [400, 404], url = "https://measurement-api.slf.ch/public/api/imis/station/{code}/measurements-precipitation?period_in_days=7", name = "imis-measurements-precipitation_{code}.json", nature = "observed (precipitation, 10 min sums, 7 days; only some stations: HTTP 400 or 404 otherwise)" }
+"study-plot-measurements" = { rule = "per-station", stations = "study-plot-stations.json", no_data_status = [404], url = "https://measurement-api.slf.ch/public/api/study-plot/station/{code}/measurements?period_in_days=7", name = "study-plot-measurements_{code}.json", nature = "observed (manual study plots: HN_1D, HNW_1D, 7 days)" }
+
+[sources.arpa-piemonte]
+family = "snapshot"
+kind = "observation"
+task = "observations"
+fiche = "docs/sources/arpa-piemonte.md"
+licence = "CC BY 4.0"
+attribution = "Fonte: Arpa Piemonte - www.arpa.piemonte.it (CC BY 4.0)"
+window_days = 0
+available_after_hours = 9.5
+urls = {}
+
+[sources.arpa-piemonte.variables]
+"pie-neve.json" = { url = "https://utility.arpa.piemonte.it/api_realtime/pie_neve", nature = "observed (validated snow height, 7 days)" }
+"pie-anag.json" = { url = "https://utility.arpa.piemonte.it/api_realtime/pie_anag", nature = "metadata" }
+
+[sources.meteofrance-nivo]
+family = "snapshot"
+kind = "observation"
+task = "observations"
+fiche = "docs/sources/reseau-nivo-meteo.md"
+licence = "Licence Ouverte 2.0"
+attribution = "Source : Météo-France (Licence Ouverte 2.0)"
+window_days = 0
+available_after_hours = 9.5     # file refreshed once a day, 06:30 UTC on 2026-10-21 and 2026-10-22
+urls = {}
+
+[sources.meteofrance-nivo.variables]
+# rule "yearly": file of the collection year; from 1 to 7 January also the previous
+# year's file (last updates), the new year's file being optional.
+"nivo" = { url = "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/OBS/NIVOSE/nivo_{year}.csv.gz", rule = "yearly", name = "nivo_{year}.csv.gz", nature = "observed (manual, ssfrai, ht_neige)" }
+
+[sources.meteofrance-quot]
+family = "snapshot"
+kind = "observation"
+task = "observations"
+fiche = "docs/sources/meteo-france-observations.md"
+licence = "Licence Ouverte 2.0"
+attribution = "Source : Météo-France (Licence Ouverte 2.0)"
+window_days = 0
+available_after_hours = 9.5     # daily files refreshed 08:50-09:00 UTC on 2026-10-21
+urls = {}
+
+[sources.meteofrance-quot.variables]
+# rule "quot": season name (e.g. 2025-2026) read from the bucket listing.
+"quot" = { url = "https://meteofrance.s3.sbg.io.cloud.ovh.net/data/synchro_ftp/BASE/QUOT/Q_{dep}_latest-{season}_autres-parametres.csv.gz", rule = "quot", name = "Q_{dep}_latest-{season}_autres-parametres.csv.gz", departments = ["04", "05", "06", "38", "73", "74"], listing = "https://meteofrance.s3.sbg.io.cloud.ovh.net/?list-type=2&prefix=data/synchro_ftp/BASE/QUOT/Q_{dep}_latest", nature = "observed (HNEIGEF, NEIGETOT06 and quality codes)" }

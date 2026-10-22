@@ -41,6 +41,7 @@ class Fetched:
     last_modified: datetime | None
     size: int
     rejected: bool = False  # read but not archived (e.g. previous day's run still on the server)
+    headers: dict = field(default_factory=dict)  # kept response headers (powatlas.http.KEPT_HEADERS)
 
 
 @dataclass
@@ -119,7 +120,8 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
         mode=mode,
         stream=stream,
         fetched=[
-            {"url": f.url, "last_modified": _iso(f.last_modified), "size": f.size, "rejected": f.rejected}
+            {"url": f.url, "last_modified": _iso(f.last_modified), "size": f.size, "rejected": f.rejected,
+             "headers": f.headers}
             for f in fetched
         ],
         collected_start=_iso(collected_start),
@@ -275,10 +277,12 @@ def write_observation_unit(
     if len(set(names)) != len(names) or set(names) - set(expected):
         raise ValueError(f"payload names {names} do not match expected {expected}")
     for name, content, _ in payloads:
-        path = out_dir / f"{source.id}_{stamp}_{name}.gz"
+        already_gzip = content[:2] == b"\x1f\x8b"
+        path = out_dir / f"{source.id}_{stamp}_{name}{'' if already_gzip else '.gz'}"
         tmp = out_dir / f".{path.name}.tmp"
-        # mtime=0: the gzip bytes depend only on the content.
-        tmp.write_bytes(gzip.compress(content, mtime=0))
+        # Already gzip-compressed files are kept byte for byte; mtime=0 otherwise,
+        # so that the gzip bytes depend only on the content.
+        tmp.write_bytes(content if already_gzip else gzip.compress(content, mtime=0))
         os.replace(tmp, path)
         m.files.append({"name": path.name, "sha256": sha256_file(path), "size": path.stat().st_size})
     m.missing = [n for n in expected if n not in names]
