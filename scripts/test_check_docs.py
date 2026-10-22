@@ -286,6 +286,8 @@ class MainTests(TempTree):
         write(self.root, "a.md", "x\n")
         write(self.root, ".git/x.md", "[x](nope.md)\n")
         write(self.root, ".superpowers/sdd/brief.md", "[x](nope.md)\n")
+        write(self.root, ".venv/lib/pkg/README.md", "[x](nope.md)\n")
+        write(self.root, "src/powatlas.egg-info/x.md", "[x](nope.md)\n")
         files = check_docs.iter_markdown_files(self.root)
         self.assertEqual([p.relative_to(self.root).as_posix() for p in files], ["a.md", "b.md"])
 

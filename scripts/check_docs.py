@@ -23,7 +23,7 @@ FENCE_RE = re.compile(r"^\s{0,3}(```|~~~)")
 SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
-SKIPPED_DIRS = {".git", ".superpowers"}
+SKIPPED_DIRS = {".git", ".superpowers", ".venv"}
 PLACEHOLDERS = {"", "todo", "tbd", "?", "...", "…", "<à compléter>"}
 DATE_FIELDS = {"date", "verifie_le"}
 
@@ -95,7 +95,7 @@ def iter_markdown_files(root: Path) -> list[Path]:
     files = []
     for path in root.rglob("*.md"):
         rel_parts = path.relative_to(root).parts
-        if any(part in SKIPPED_DIRS for part in rel_parts[:-1]):
+        if any(part in SKIPPED_DIRS or part.endswith(".egg-info") for part in rel_parts[:-1]):
             continue
         if path.is_file():
             files.append(path)

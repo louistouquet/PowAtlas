@@ -36,6 +36,7 @@ Sources (`docs/sources/`), expériences (`docs/experiments/`), rapports (`docs/r
 ```bash
 python3 -m unittest discover -s scripts -p 'test_*.py' -v   # tests du vérificateur
 python3 scripts/check_docs.py                                 # liens et fiches → "OK: ..."
+.venv/bin/python -m unittest discover -s tests -v              # tests du paquet powatlas (.venv créé par scripts/session-start.sh)
 ```
 
 ## Git

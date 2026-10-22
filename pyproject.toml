@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "powatlas"
+version = "0.1.0"
+description = "Open, verifiable mountain snow forecasting for the French Alps: daily forecast and observation archive."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+# Exact pins: the archive records the software that produced each file.
+dependencies = [
+    "numpy==2.5.4",
+    "eccodes==2.50.0",
+    "eccodeslib==2.50.0.33",
+    "netCDF4==1.7.5",
+    "requests==2.34.2",
+]
+
+[project.scripts]
+powatlas = "powatlas.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+powatlas = ["catalogue.toml"]

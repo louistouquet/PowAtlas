@@ -81,7 +81,7 @@ Le dépôt garde la mémoire, pas le fil de discussion.
 ## 7. Procédure Git
 
 1. Une branche `claude/<sujet>` par tâche ou groupe de tâches, partie de `main` à jour.
-2. Avant de pousser : `python3 -m unittest discover -s scripts -p 'test_*.py'` et `python3 scripts/check_docs.py` (puis les tests du code Python à partir de SP1).
+2. Avant de pousser : `python3 -m unittest discover -s scripts -p 'test_*.py'` et `python3 scripts/check_docs.py` puis `.venv/bin/python -m unittest discover -s tests -v` (tests du paquet `powatlas`, environnement installé par `scripts/session-start.sh` en session cloud).
 3. Chaque message de commit finit par les lignes `Co-Authored-By` et `Claude-Session` de la session.
 4. Une PR par branche, ouverte par l'API REST de GitHub (GraphQL est bloqué depuis les sessions cloud) : `gh api repos/louistouquet/PowAtlas/pulls -f title=... -f head=... -f base=main -f body=...`, ou les outils GitHub MCP quand `gh` n'est pas disponible. La PR suit le modèle `.github/pull_request_template.md`.
 5. Attendre le job `docs` vert, puis fusionner en un seul commit (*squash*).
