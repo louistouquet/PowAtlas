@@ -14,14 +14,14 @@
 | Workflow `collect.yml` (deux déclenchements par tâche, une unité par artefact, artefacts de 30 jours, issue `collecte` en cas de perte) | en service | lancements manuels du 2026-10-22, toutes les unités `complete` |
 | ICON-D2, ICON-EU | collectés | run 2026-10-22 00 UTC : 6,9 Mo et 2,0 Mo |
 | AROME 0,025° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 6,6 à 7,3 Mo par run |
-| ARPEGE 0,1° | premier lancement en cours le 2026-10-22 | — |
+| ARPEGE 0,1° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 1,2 à 1,3 Mo par run |
 | IFS 0,25°, AIFS Single | collectés | runs 00 UTC du 2026-10-20 au 2026-10-22 : 0,9 à 1,1 Mo (IFS), 0,3 à 0,4 Mo (AIFS) |
 | Observations : SLF (routes par station sur 7 jours), Arpa Piemonte, nivo-météo, base quotidienne Météo-France | collectées | copie du 2026-10-22 : 0,84 Mo, 22 Ko, 0,32 Mo, 1,9 Mo |
 | `powatlas sync`, `status`, `backfill`, `backfill-probe` (PC du pilote) | écrits et testés | essais réels : rattrapage AIFS du 2025-12-01 et GFS de 2021 et 2026 `complete` ; pas encore lancés sur le PC |
 
 ## Pas encore fait
 
-- **Déclenchements planifiés** : aucun n'avait encore tourné le 2026-10-22 à 12:40 UTC (ceux de 09:50 et 10:35 ne sont pas partis, alors que le workflow est actif). À surveiller avant le 1er novembre ; les lancements manuels fonctionnent.
+- **Déclenchements planifiés** : aucun n'avait encore tourné le 2026-10-22 à 13:40 UTC (09:50, 10:35 et 12:50 ne sont pas partis), alors que le workflow est actif et qu'aucun incident GitHub n'est signalé ; cause non établie (démarrage tardif des planifications d'un workflow neuf, hypothèse). À vérifier avant le 1er novembre ; les lancements manuels fonctionnent.
 - Archive de référence sur le PC du pilote, rattrapage historique (IFS, AIFS, GFS) : attendent l'installation du pilote.
 - Priorité 2 (ICON-CH1, AROME 0,01° et niveaux de pression, IFS ENS) : après une semaine de cœur sans trou (plan, tâche 20).
 - Horaires remesurés sur une semaine et figés (plan, tâche 21).
