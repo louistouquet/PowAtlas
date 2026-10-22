@@ -2,24 +2,26 @@
 
 *Mis à jour le 2026-10-22.*
 
-**Rien n'est opérationnel** : aucune donnée n'est encore collectée, aucune prévision n'est produite. Les fondations (SP0) sont terminées ; la prochaine étape est SP1 (archive et observations).
+**La collecte quotidienne de SP1 tourne sur GitHub Actions depuis le 2026-10-22** : prévisions du cœur de score (run 00 UTC de ICON-D2, ICON-EU, AROME 0,025°, ARPEGE 0,1°, IFS 0,25°, AIFS Single) et observations qui ne restent que quelques jours en ligne. Aucune prévision ni aucun score n'est encore produit (SP2, SP3). L'archive de référence sur le PC du pilote n'existe pas encore : son installation est décrite dans [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md).
 
 ## Ce qui existe et fonctionne
 
 | Élément | État | Preuve |
 |---|---|---|
-| Dépôt public `louistouquet/PowAtlas` | en place | licence Apache-2.0, README anglais et français, `NOTICE`, `DATA_LICENSES.md`, `CONTRIBUTING.md` |
-| Cadrage et plan de SP0 | validés par le pilote le 2026-10-21 | [`docs/specs/`](docs/specs/2026-10-21-sp0-fondations-design.md), [`docs/plans/`](docs/plans/2026-10-21-sp0-fondations.md) |
-| Vérificateur de documentation `scripts/check_docs.py` | fonctionne | 33 tests `unittest` ; job CI `docs` vert sur chaque PR et sur `main` |
-| Règles de travail (`CLAUDE.md`, `AGENTS.md`, `docs/methode.md`, `docs/modeles-claude.md`) | en place | PR #4, mises à jour par la clôture de SP0 |
-| Décisions du pilote | 4 enregistrées | [`docs/decisions/`](docs/decisions/README.md) (0001 à 0004) |
-| Skills `qualifier-source` et `experience-modele` ; agents `chercheur-sources` et `relecteur-scientifique` | en place et testés | fiche réelle `ecmwf-open-data` (PR #7) ; faille de la fiche fictive trouvée par le relecteur (PR #6) |
-| Réglages GitHub | en place | jalons SP0 à SP6, étiquettes, modèles d'issues et de PR (PR #15) ; `main` protégée, vérification `docs` obligatoire, branches fusionnées supprimées automatiquement (faits par le pilote le 2026-10-22) |
-| Recherche R0 : 5 rapports et 32 fiches (26 sources) | **validée par le pilote** le 2026-10-22 | PR #16 à #19 |
-| Cible et feuille de route [`docs/roadmap.md`](docs/roadmap.md) | **validée par le pilote** le 2026-10-22 | PR #21 |
-| Cadrage de SP1 et décision 0005 (collecte hybride) | **validés par le pilote** le 2026-10-22 | PR #23 |
-| Plan de SP1 | **validé par le pilote** le 2026-10-22 ; exécution dans la session | [`docs/plans/2026-10-22-sp1-archive.md`](docs/plans/2026-10-22-sp1-archive.md) |
+| Dépôt public, règles de travail, vérificateur de documentation | en place depuis SP0 | CI `docs` verte sur chaque PR |
+| Cadrage, décision 0005 et plan de SP1 | validés par le pilote le 2026-10-22 | [`docs/specs/2026-10-22-sp1-archive-design.md`](docs/specs/2026-10-22-sp1-archive-design.md), [`docs/plans/2026-10-22-sp1-archive.md`](docs/plans/2026-10-22-sp1-archive.md) |
+| Paquet Python `powatlas` (Python 3.12) et CI `python` | en place | 192 tests `unittest` ; CI `python` verte ; hook de démarrage des sessions cloud `scripts/session-start.sh` |
+| Workflow `collect.yml` (deux déclenchements par tâche, une unité par artefact, artefacts de 30 jours, issue `collecte` en cas de perte) | en service | lancements manuels du 2026-10-22, toutes les unités `complete` |
+| ICON-D2, ICON-EU | collectés | run 2026-10-22 00 UTC : 6,9 Mo et 2,0 Mo |
+| AROME 0,025° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 6,6 à 7,3 Mo par run |
+| ARPEGE 0,1° | premier lancement en cours le 2026-10-22 | — |
+| IFS 0,25°, AIFS Single | collectés | runs 00 UTC du 2026-10-20 au 2026-10-22 : 0,9 à 1,1 Mo (IFS), 0,3 à 0,4 Mo (AIFS) |
+| Observations : SLF (routes par station sur 7 jours), Arpa Piemonte, nivo-météo, base quotidienne Météo-France | collectées | copie du 2026-10-22 : 0,84 Mo, 22 Ko, 0,32 Mo, 1,9 Mo |
+| `powatlas sync`, `status`, `backfill`, `backfill-probe` (PC du pilote) | écrits et testés | essais réels : rattrapage AIFS du 2025-12-01 et GFS de 2021 et 2026 `complete` ; pas encore lancés sur le PC |
 
 ## Pas encore fait
 
-Tout ce qui produit ou collecte des données : c'est SP1, cadré, dont la réalisation commence (collecte d'ICON en service avant le 1er novembre 2026). Voir [`NEXT.md`](NEXT.md).
+- **Déclenchements planifiés** : aucun n'avait encore tourné le 2026-10-22 à 12:40 UTC (ceux de 09:50 et 10:35 ne sont pas partis, alors que le workflow est actif). À surveiller avant le 1er novembre ; les lancements manuels fonctionnent.
+- Archive de référence sur le PC du pilote, rattrapage historique (IFS, AIFS, GFS) : attendent l'installation du pilote.
+- Priorité 2 (ICON-CH1, AROME 0,01° et niveaux de pression, IFS ENS) : après une semaine de cœur sans trou (plan, tâche 20).
+- Horaires remesurés sur une semaine et figés (plan, tâche 21).
