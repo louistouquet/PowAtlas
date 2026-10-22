@@ -57,7 +57,7 @@ Un seul paquet Python, `powatlas` (dans `src/`, Python 3.12 ; dépendances `nump
 | `ecmwf` | IFS, AIFS (IFS 00 UTC publié vers 07:34) | 08:50 | 14:50 |
 | `observations` | SLF, Arpa Piemonte, nivo-météo, base quotidienne | 09:50 | 17:50 |
 
-**Fenêtres de rattrapage** (unités recollectées si absentes ou partielles) : ICON, le run du jour ; AROME et ARPEGE, J-7 à J ; IFS et AIFS, J-2 à J sur le portail (12 runs annoncés : le run 00 UTC de J-3 en sort à 08:50), au-delà depuis AWS par le PC ; observations à 7 jours, couvertes par la réponse de 7 jours de chaque appel ; copies Météo-France, un jour manqué perd seulement la copie de ce jour.
+**Fenêtres de rattrapage** (unités recollectées si absentes ou partielles) : ICON, le run du jour ; AROME et ARPEGE, J-7 à J ; IFS et AIFS, J-2 à J sur le portail (12 runs annoncés : le run 00 UTC de J-3 en sort à 08:50), au-delà depuis AWS par le PC ; observations à 7 jours, couvertes par la réponse de 7 jours de chaque appel (pour le SLF, routes par station sur 7 jours des stations de l'emprise, les routes globales ne couvrant que 24 h ; constat de la relecture du 2026-10-22) ; copies Météo-France, un jour manqué perd seulement la copie de ce jour.
 
 **Alertes.** Le premier déclenchement reste vert même si des unités manquent. Une unité encore manquante au second déclenchement ou à la fin de sa fenêtre fait échouer le job (courriel de GitHub) et ouvre ou commente une issue étiquetée `collecte`. Sur le PC, `sync` signale l'absence d'artefact depuis 48 h ; la réactivation manuelle d'un workflow désactivé est décrite dans le guide d'installation.
 
@@ -73,7 +73,7 @@ Un seul paquet Python, `powatlas` (dans `src/`, Python 3.12 ; dépendances `nump
 
 ```text
 data/forecasts/<source>/<AAAA>/<MM>/<source>_<AAAAMMJJTHHZ>.nc
-data/observations/<source>/<AAAA>/<MM>/<source>_<AAAAMMJJTHHMMZ>.<ext>.gz
+data/observations/<source>/<AAAA>/<MM>/<source>_<AAAAMMJJTHHMMZ>_<réponse>.<ext>.gz
 data/journal/inventaire.jsonl
 ```
 

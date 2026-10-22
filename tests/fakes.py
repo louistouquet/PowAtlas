@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from powatlas.http import NotFound, Response
+from powatlas.http import HttpError, NotFound, Response
 
 LAST_MODIFIED = datetime(2026, 11, 1, 1, 4, tzinfo=timezone.utc)
 
@@ -10,16 +10,20 @@ LAST_MODIFIED = datetime(2026, 11, 1, 1, 4, tzinfo=timezone.utc)
 class FakeHttp:
     """Serves bytes by URL; unknown URLs raise NotFound. Records every request."""
 
-    def __init__(self, files: dict[str, bytes], last_modified=LAST_MODIFIED):
+    def __init__(self, files: dict[str, bytes], last_modified=LAST_MODIFIED, errors=None, headers=None):
         self.files = files
         self.last_modified = last_modified
+        self.errors = errors or {}  # url -> HTTP status raised as HttpError
+        self.headers = headers or {}
         self.requests = []
 
     def get(self, url, byte_range=None):
         self.requests.append((url, byte_range))
+        if url in self.errors:
+            raise HttpError(f"HTTP {self.errors[url]} for {url}", status=self.errors[url])
         if url not in self.files:
-            raise NotFound(url)
+            raise NotFound(url, status=404)
         data = self.files[url]
         if byte_range is not None:
             data = data[byte_range[0] : byte_range[1] + 1]
-        return Response(206 if byte_range else 200, data, self.last_modified, url)
+        return Response(206 if byte_range else 200, data, self.last_modified, url, dict(self.headers))
