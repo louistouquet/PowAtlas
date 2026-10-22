@@ -18,7 +18,7 @@
 | Recherche R0 : 5 rapports et 32 fiches (26 sources) | **validée par le pilote** le 2026-10-22 | PR #16 à #19 |
 | Cible et feuille de route [`docs/roadmap.md`](docs/roadmap.md) | **validée par le pilote** le 2026-10-22 | PR #21 |
 | Cadrage de SP1 et décision 0005 (collecte hybride) | **validés par le pilote** le 2026-10-22 | PR #23 |
-| Plan de SP1 | proposé au pilote le 2026-10-22 | [`docs/plans/2026-10-22-sp1-archive.md`](docs/plans/2026-10-22-sp1-archive.md) |
+| Plan de SP1 | **validé par le pilote** le 2026-10-22 ; exécution dans la session | [`docs/plans/2026-10-22-sp1-archive.md`](docs/plans/2026-10-22-sp1-archive.md) |
 
 ## Pas encore fait
 
