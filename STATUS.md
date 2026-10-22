@@ -21,7 +21,7 @@
 
 ## Pas encore fait
 
-- **Déclenchements planifiés** : aucun n'est parti de 09:50 à 14:40 UTC le 2026-10-22 ; le premier est parti à 14:41 UTC (plan vide, tout était déjà complet). GitHub ne garantit pas ces déclenchements : la tâche `auto` ([PR 30](https://github.com/louistouquet/PowAtlas/pull/30)), appelée chaque heure par cron-job.org une fois le [guide](docs/collecte/declenchement-externe.md) suivi par le pilote, sert de filet. Essai réel de `auto` le 2026-10-22 à 15:04 UTC : les cinq tâches parcourues, toutes les unités complètes, rien à collecter.
+- **Déclenchements planifiés** : ils partent, mais avec environ 5 h de retard le 2026-10-22. Le cron de 09:50 (observations) est parti à 14:41 UTC, celui de 10:35 (icon-eu) à 15:32 et celui de 12:50 (meteofrance-pnt) à 17:39 ; à 18:06 UTC, ceux de 14:50 et de 17:50 n'étaient pas encore partis. Chaque run a reconnu sa tâche et trouvé toutes les unités déjà complètes. GitHub ne garantit ni l'heure ni l'exécution de ces déclenchements : la tâche `auto` ([PR 30](https://github.com/louistouquet/PowAtlas/pull/30)), appelée chaque heure par cron-job.org une fois le [guide](docs/collecte/declenchement-externe.md) suivi par le pilote, sert de filet. Essai réel de `auto` le 2026-10-22 à 15:04 UTC : les cinq tâches parcourues, toutes les unités complètes, rien à collecter.
 - Archive de référence sur le PC du pilote, rattrapage historique (IFS, AIFS, GFS) : attendent l'installation du pilote.
 - Priorité 2 (ICON-CH1, AROME 0,01° et niveaux de pression, IFS ENS) : après une semaine de cœur sans trou (plan, tâche 20).
 - Horaires remesurés sur une semaine et figés (plan, tâche 21).
