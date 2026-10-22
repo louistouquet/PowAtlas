@@ -44,6 +44,23 @@ def ecmwf_path(model: str, run: datetime, step: int) -> str:
     return f"{day}/{hh}z/{model}/0p25/oper/{stem}"
 
 
+def _drop_unpublished(expected, unpublished, notes):
+    """Backfill: a variable absent from the producer's index at every step of the unit was
+    not published at that date (e.g. sf before 2025-11-22): it is noted and not expected.
+    Absent at only some steps, it stays expected: a cut index is a loss, not a gap."""
+    if not unpublished:
+        return expected
+    steps_of: dict[str, set[int]] = {}
+    for var, step in expected:
+        steps_of.setdefault(var, set()).add(step)
+    dropped = set()
+    for var, steps in steps_of.items():
+        absent = {s for v, s in unpublished if v == var}
+        if absent and absent == steps:
+            dropped.add(var)
+            notes.append(f"not published at this date (absent from the index at all {len(steps)} steps): {var}")
+    return [p for p in expected if p[0] not in dropped]
+
 class EcmwfAdapter:
     def collect(
         self, unit: Unit, source: Source, http: HttpClient, out_dir: Path, mode: str, settings: dict
@@ -55,6 +72,7 @@ class EcmwfAdapter:
         fields: dict[tuple[str, int], Field] = {}
         fetched: list[Fetched] = []
         notes: list[str] = []
+        unpublished: set[tuple[str, int]] = set()  # backfill only: absent from the producer's index
         first_run = datetime.fromisoformat(source.urls["first_run"]).replace(tzinfo=timezone.utc)
         if unit.ref < first_run:
             notes.append(f"{source.urls['model']} 0.25 degree open data starts on {first_run:%Y-%m-%d}: nothing to fetch")
@@ -67,15 +85,17 @@ class EcmwfAdapter:
                 wanted = [v for v, s in expected if s == step]
                 if wanted:
                     self._collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes,
-                                       start)
+                                       start, unpublished, mode)
         except (GridMismatch, FormatChange) as exc:
             notes.append(f"{type(exc).__name__}: {exc}")
             fields = {}
+        expected = _drop_unpublished(expected, unpublished, notes)
         stream = f"{source.urls['model']}/0p25/oper"
         return write_forecast_unit(out_dir, unit, source, fields, expected, fetched, mode, stream, start, notes)
 
     @staticmethod
-    def _collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes, start):
+    def _collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes, start,
+                      unpublished, mode):
         url = base + ecmwf_path(source.urls["model"], unit.ref, step)
         try:
             index = parse_ecmwf_index(http.get(url + ".index").content)
@@ -94,6 +114,8 @@ class EcmwfAdapter:
                 raise FormatChange(f"step {step}: {len(hits)} index entries for {var}")
             if hits:
                 selected.append((hits[0], var))
+            elif mode == "backfill":
+                unpublished.add((var, step))
         for first, last in coalesce([(e.offset, e.offset + e.length - 1) for e, _ in selected]):
             if out_of_time(start, settings):
                 return  # the caller notes the exhausted budget

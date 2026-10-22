@@ -1,12 +1,9 @@
 # Prochaine action
 
-**SP1 en cours : réaliser la PR 3 (socle) du [plan SP1](docs/plans/2026-10-22-sp1-archive.md)**, puis la PR 4 (ICON et workflow `collect.yml`), qui doit tourner en réel vers le 26 octobre. Urgence : ICON doit être collecté **avant le 1er novembre 2026** (24 h de conservation) ; SLF et Arpa Piemonte avant le 8 novembre ; AROME et ARPEGE avant le 15 novembre.
+**SP1, suite du [plan](docs/plans/2026-10-22-sp1-archive.md)** : la collecte du cœur de score tourne sur GitHub Actions depuis le 2026-10-22 (voir [`STATUS.md`](STATUS.md)).
 
-- Cadrage validé : [`docs/specs/2026-10-22-sp1-archive-design.md`](docs/specs/2026-10-22-sp1-archive-design.md) ; décision [0005](docs/decisions/0005-collecte-hybride-actions-et-pc.md) (collecte hybride).
-- Exécution du plan : tâche par tâche, TDD, skill `scientific-coding`, une PR par groupe, CI verte, relecture par un agent.
-
-## Ce que le pilote aura à faire (le plan le demandera au bon moment)
-
-1. Après la PR 3 : ajouter la vérification `python` aux vérifications obligatoires de `main`.
-2. Après la PR 8 (début novembre) : suivre `docs/collecte/installation-pc.md` sur `D:\Codage\PowAtlas` (Python 3.12, jeton GitHub à grain fin en lecture seule dans `.env`, tâche planifiée Windows).
-3. PR 9 : lancer l'essai de débit puis le rattrapage historique sur le PC.
+1. **Vérifier les déclenchements planifiés** du workflow `collect` (onglet *Actions*, événement `schedule`). Le 2026-10-22, aucun n'était encore parti ; s'ils ne partent toujours pas, c'est le point à régler en premier, avant le 1er novembre. En attendant, `workflow_dispatch` (tâche `icon-d2`, `icon-eu`, `meteofrance-pnt`, `ecmwf`, `observations`) collecte à la main.
+2. **Pilote** : ajouter la vérification `python` aux vérifications obligatoires de `main`.
+3. **Pilote, début novembre** : suivre [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md) sur `D:\Codage\PowAtlas` (jeton GitHub à grain fin en lecture seule dans `.env`, `sync`, `status`, essai de débit, tâche planifiée Windows), puis coller les sorties dans une session Claude ; ensuite lancer le rattrapage historique (§ 5 du guide).
+4. **Mi-novembre**, après une semaine de cœur sans trou : priorité 2 (plan, tâche 20).
+5. **Fin novembre** : horaires remesurés sur sept jours et figés, clôture de SP1 (plan, tâche 21) ; puis démarrage de SP2.

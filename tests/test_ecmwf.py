@@ -115,6 +115,30 @@ class EcmwfTest(unittest.TestCase):
         self.assertIn("2026 European Centre", m.attribution)
         self.assertIn("www.ecmwf.int", m.attribution)
 
+    def test_field_not_yet_published_is_not_partial_in_backfill(self):
+        served = files()
+        # remove t_850 from both indexes: as sf before 2025-11-22 on the AWS copy
+        for url in [u for u in served if u.endswith(".index")]:
+            lines = [l for l in served[url].decode().splitlines() if '"levelist": "850"' not in l]
+            served[url] = "\n".join(lines).encode()
+        aws = load_catalogue()[0]["ifs-0p25"].urls["aws"]
+        http = FakeHttp({u.replace(PORTAL, aws): v for u, v in served.items()})  # backfill reads the AWS copy
+        m = EcmwfAdapter().collect(Unit("ifs-0p25", RUN), source(), http, Path(tempfile.mkdtemp()), "backfill", SETTINGS)
+        self.assertEqual((m.state, m.missing), ("complete", []))
+        self.assertTrue(any("not published" in n and "t_850" in n for n in m.notes))
+        m2 = EcmwfAdapter().collect(Unit("ifs-0p25", RUN), source(), FakeHttp(served), Path(tempfile.mkdtemp()), "daily",
+                                    SETTINGS)
+        self.assertEqual(m2.state, "partial")
+
+    def test_field_missing_at_one_step_only_is_partial_in_backfill(self):
+        served = files()
+        aws = load_catalogue()[0]["ifs-0p25"].urls["aws"]
+        url = PORTAL + ecmwf_path("ifs", RUN, 3) + ".index"
+        served[url] = "\n".join(l for l in served[url].decode().splitlines() if '"levelist": "850"' not in l).encode()
+        http = FakeHttp({u.replace(PORTAL, aws): v for u, v in served.items()})
+        m = EcmwfAdapter().collect(Unit("ifs-0p25", RUN), source(), http, Path(tempfile.mkdtemp()), "backfill", SETTINGS)
+        self.assertEqual((m.state, m.missing), ("partial", ["t_850@3"]))
+
     def test_stale_run_rejected(self):
         m, _ = collect(files(date=20261031))
         self.assertEqual(m.state, "missing")

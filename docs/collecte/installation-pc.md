@@ -61,11 +61,29 @@ schtasks /Create /TN "PowAtlas sync (ouverture)" /SC ONLOGON /TR $cmd /F
 
 La première tâche tourne chaque jour à midi si le PC est allumé, la seconde à chaque ouverture de session. Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub.
 
-## 5. Si la collecte s'arrête
+## 5. Rattrapage historique (une seule fois, reprenable)
+
+D'abord l'essai de débit, à coller dans la session Claude :
+
+```powershell
+.venv\Scripts\powatlas backfill-probe --source ifs-0p25 --day 2025-01-10
+```
+
+Puis le rattrapage, source par source, par tranches de quelques heures (il reprend là où il s'est arrêté, les unités complètes sont sautées) :
+
+```powershell
+.venv\Scripts\powatlas backfill --source aifs-single --from 2025-02-26 --to 2026-04-30 --data D:\Codage\PowAtlas\data --max-hours 3
+.venv\Scripts\powatlas backfill --source ifs-0p25 --from 2024-02-01 --to 2026-04-30 --data D:\Codage\PowAtlas\data --max-hours 3
+.venv\Scripts\powatlas backfill --source gfs-0p25 --from 2021-11-01 --to 2026-04-30 --data D:\Codage\PowAtlas\data --max-hours 3
+```
+
+Seuls les mois de novembre à avril et les échéances jusqu'à +78 h sont pris ([cadrage](../specs/2026-10-22-sp1-archive-design.md), § 5) : environ 185 Go téléchargés au total, moins de 1 Go gardé. Relancer la même commande jusqu'à ce qu'elle affiche `done 0` : une unité encore partielle après 3 tentatives est abandonnée et le motif est noté dans son manifeste (`given up`). Ensuite, chaque semaine, la commande GFS avec `--from` à la date d'une semaine plus tôt et `--to` à la date du jour tient l'archive GFS à jour (les jours pas encore publiés sont ignorés).
+
+## 6. Si la collecte s'arrête
 
 - `sync` affiche `WARNING: newest artifact is N h old` : ouvrir l'onglet *Actions* du dépôt, workflow `collect`. Si GitHub l'a désactivé (60 jours sans activité du dépôt), cliquer sur *Enable workflow*. Une issue étiquetée `collecte` signale aussi les pertes définitives et l'inactivité à 45 jours.
 - Si GitHub conteste l'usage d'Actions, la collecte bascule sur ce PC avec le même code (décision 0005) : demander la procédure à une session Claude.
 
-## 6. Sauvegarde
+## 7. Sauvegarde
 
 L'archive n'existe qu'à un seul endroit tant qu'elle n'est pas publiée. Copier `D:\Codage\PowAtlas\data\` une fois par mois sur un disque externe (par exemple `robocopy D:\Codage\PowAtlas\data E:\PowAtlas-data /MIR`).

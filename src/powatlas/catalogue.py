@@ -33,7 +33,7 @@ class Source:
 @dataclass(frozen=True)
 class Task:
     id: str
-    crons: tuple[str, str]  # first trigger, then second (last) trigger
+    crons: tuple[str, ...]  # first then second (last) trigger; empty for PC-only tasks
 
 
 def expand_steps(ranges: list[list[int]]) -> tuple[int, ...]:
@@ -87,8 +87,8 @@ def load_catalogue(path: Path | None = None) -> tuple[dict[str, Source], dict[st
     tasks = {}
     for tid, t in raw["tasks"].items():
         crons = tuple(t["crons"])
-        if len(crons) != 2:
-            raise ValueError(f"task {tid}: exactly two crons expected")
+        if len(crons) not in (0, 2):
+            raise ValueError(f"task {tid}: two crons expected (or none for a task run only on the PC)")
         tasks[tid] = Task(id=tid, crons=crons)
     sources = {sid: _source(sid, s) for sid, s in raw["sources"].items()}
     for s in sources.values():
@@ -111,6 +111,8 @@ def expected_pairs(source: Source) -> list[tuple[str, int]]:
 
 def task_for_cron(cron: str, tasks: dict[str, Task]) -> tuple[str, Attempt]:
     for t in tasks.values():
+        if not t.crons:
+            continue
         if cron == t.crons[0]:
             return t.id, "first"
         if cron == t.crons[1]:

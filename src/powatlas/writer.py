@@ -61,6 +61,7 @@ class Manifest:
     missing: list = field(default_factory=list)
     nan_counts: dict = field(default_factory=dict)  # "variable@step" -> NaN points in the cropped field
     notes: list = field(default_factory=list)
+    attempts: int = 1  # backfill: collections of this unit so far
     fiche: str = ""
     licence: str = ""
     attribution: str = ""
