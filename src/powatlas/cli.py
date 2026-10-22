@@ -44,6 +44,18 @@ def make_github() -> GitHub:
     return GitHub(os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_TOKEN"])
 
 
+def pc_token(env_file: Path) -> str:
+    """Read-only GitHub token of the pilot's PC: POWATLAS_GITHUB_TOKEN, else the .env file."""
+    if os.environ.get("POWATLAS_GITHUB_TOKEN"):
+        return os.environ["POWATLAS_GITHUB_TOKEN"]
+    if env_file.is_file():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            key, sep, value = line.strip().partition("=")
+            if sep and key.strip() == "POWATLAS_GITHUB_TOKEN" and value.strip():
+                return value.strip().strip('"')
+    raise SystemExit(f"POWATLAS_GITHUB_TOKEN not set and not found in {env_file}")
+
+
 def make_http(settings: dict) -> HttpClient:
     h = settings["http"]
     return HttpClient(
@@ -110,6 +122,31 @@ def cmd_report(args) -> int:
     return 1 if losses or inactive else 0
 
 
+def cmd_sync(args) -> int:
+    from powatlas.sync import STALE_WARNING_HOURS, sync
+
+    _, _, settings = load_catalogue()
+    gh = GitHub(settings["repository"], pc_token(Path(args.env)))
+    r = sync(Path(args.data), gh, _now(None))
+    print(f"new {r.new}, replaced {r.replaced}, kept {r.kept}, rejected {len(r.rejected)}")
+    for name in r.rejected:
+        print(f"  rejected (retried next time): {name}")
+    if r.stale_hours > STALE_WARNING_HOURS:
+        print(f"WARNING: newest artifact is {r.stale_hours:.0f} h old: check the collect workflow on GitHub "
+              "(Actions tab; re-enable it if GitHub disabled it).")
+        return 1
+    return 1 if r.rejected else 0
+
+
+def cmd_status(args) -> int:
+    from datetime import date
+
+    from powatlas.status import status
+
+    print(status(Path(args.data), date.fromisoformat(args.start), date.fromisoformat(args.end)), end="")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="powatlas", description="PowAtlas daily archive.")
     parser.add_argument("--version", action="version", version=f"powatlas {__version__}")
@@ -136,6 +173,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--attempt", required=True, choices=["first", "last"])
     p.add_argument("--now")
     p.set_defaults(func=cmd_report)
+
+    p = sub.add_parser("sync", help="bring new artifacts into the archive (pilot's PC)")
+    p.add_argument("--data", required=True)
+    p.add_argument("--env", default=".env", help="file holding POWATLAS_GITHUB_TOKEN (never committed)")
+    p.set_defaults(func=cmd_sync)
+
+    p = sub.add_parser("status", help="complete / partial / missing units per source and day")
+    p.add_argument("--data", required=True)
+    p.add_argument("--from", dest="start", required=True)
+    p.add_argument("--to", dest="end", required=True)
+    p.set_defaults(func=cmd_status)
     return parser
 
 

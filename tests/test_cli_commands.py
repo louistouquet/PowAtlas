@@ -73,6 +73,21 @@ class CliCommandsTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(self.out.read_text(), "state=already-complete\n")
 
+    def test_token_read_from_env_file(self):
+        env = self.tmp / ".env"
+        env.write_text("# local secrets\nPOWATLAS_GITHUB_TOKEN=abc123\nOTHER=x\n")
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("POWATLAS_GITHUB_TOKEN", None)
+            self.assertEqual(cli.pc_token(env), "abc123")
+        with mock.patch.dict(os.environ, {"POWATLAS_GITHUB_TOKEN": "fromenv"}):
+            self.assertEqual(cli.pc_token(env), "fromenv")
+
+    def test_missing_token_is_an_error(self):
+        with mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("POWATLAS_GITHUB_TOKEN", None)
+            with self.assertRaises(SystemExit):
+                cli.pc_token(self.tmp / "absent.env")
+
     def test_report_opens_issue_and_fails_on_loss(self):
         now = datetime(2026, 11, 1, 8, 35, tzinfo=timezone.utc)
         gh = FakeGitHub([], now - timedelta(days=1))
