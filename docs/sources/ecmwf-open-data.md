@@ -8,9 +8,9 @@ acces: HTTPS public sans compte, https://data.ecmwf.int/forecasts/ (fichiers GRI
 quotas: limite documentée de 500 à 2000 connexions simultanées pour tout le portail ; aucune limite par IP constatée sur le test ; limite par utilisateur non documentée pour l'accès anonyme au 2026-10-21
 delai: environ 6 h 30 à 7 h 40 après l'heure du run (Last-Modified constaté), voir Contenu
 resolution: 0,25° (environ 28 km), global, 1440 x 721 points ; pas de temps 3 h puis 6 h (IFS) ou 6 h (AIFS)
-conservation: portail : 12 runs annoncés, 16 constatés le 2026-10-21 (4 jours calendaires) ; copie AWS : historique constaté depuis 2023-01-18 (liste des dates), conservation non garantie [hypothèse]
+conservation: portail : 12 runs annoncés, 16 constatés le 2026-10-21 (4 jours calendaires) ; copie AWS : historique constaté depuis 2023-01-18 (0,4° beta), IFS 0,25° depuis le 2024-02-01 (constat du 2026-10-22), conservation non garantie [hypothèse]
 statut: retenue
-verifie_le: 2026-10-21
+verifie_le: 2026-10-22
 ---
 
 # ECMWF Open Data (IFS et AIFS, 0,25°)
@@ -43,6 +43,12 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour t
   - AIFS ENS 00 UTC : échéance 24 h `-cf` à 06:44, 360 h `-pf` à 07:40.
   - La documentation ne donne pas de délai chiffré pour l'IFS 0,25° (« publié à la fin du calendrier de diffusion ») ni pour l'AIFS [producteur].
 - Copies cloud : la page open-data cite AWS (`registry.opendata.aws/ecmwf-forecasts/`), Azure (`ai4edataeuwest.blob.core.windows.net/ecmwf/`) et Google Cloud (BigQuery public data) ; elle ne dit ni si un compte est nécessaire, ni si la licence diffère [producteur]. Test AWS : le bucket `ecmwf-forecasts` (région eu-central-1) se liste et se lit en HTTPS anonyme, sans compte ni clé : `https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/?delimiter=/` rend la liste des dates depuis `20230118/` jusqu'à `20261021/` (295 dates en 2026, journalières) ; `20261021/00z/ifs/0p25/oper/` liste `20261021000000-0h-oper-fc.grib2` et `.index`, `20261010/00z/ifs/0p25/oper/` 173 clés et `20250101/00z/ifs/0p25/oper/` 172 clés, `20260601/00z/aifs-single/0p25/oper/` 125 clés (les arborescences de 2024 sont différentes, non explorées) [vérifié]. La copie AWS conserve donc des années d'historique, contre 12 runs sur le portail : **les runs ECMWF d'un jour manqué par SP1 restent récupérables sur AWS** ; la page ne garantit pas cette durée [hypothèse : politique de conservation AWS non lue]. Licence des copies : aucune mention séparée, la licence CC BY 4.0 du produit s'applique [hypothèse, non confirmée par la page de copie] ; Azure et GCP non testés.
+- **Historique de la copie AWS (constat du 2026-10-22)** [vérifié, listings et index anonymes du run 00 UTC, échéance 24 h] :
+  - du 2023-01-18 au 2024-01-31 : seulement `AAAAMMJJ/00z/0p4-beta/` (grille 0,4° « beta ») ;
+  - IFS 0,25° à partir du 2024-02-01, sous `AAAAMMJJ/00z/0p25/{oper,enfo,waef,wave}/` jusqu'au 2024-02-28, puis sous `AAAAMMJJ/00z/ifs/0p25/` dès le 2024-02-29 ;
+  - champs de surface de l'IFS 0,25° : le 2024-02-01, 11 seulement (`10u`, `10v`, `2t`, `lsm`, `msl`, `ro`, `skt`, `sp`, `st`, `tcwv`, `tp`) ; le 2024-06-01 et le 2024-11-01, 28 et 29 (ajout de `2d`, `asn`, rayonnements, sols...) ; le 2025-06-01 et le 2025-11-15, 32 (ajout de `ptype`, `mn2t3`, `mx2t3`, `10fg`, `tprate`) ; le 2025-12-15 et le 2026-01-01, 35 avec **`sf`, `sd` et `tcc`**. **La chute de neige `sf` n'existe donc qu'à partir d'une date entre le 2025-11-15 et le 2025-12-15** ;
+  - AIFS expérimental sous `AAAAMMJJ/00z/aifs/0p25/oper/` au moins depuis le 2024-03-01 (champs de surface : `10u`, `10v`, `2d`, `2t`, `cp`, `msl`, `skt`, `sp`, `tcw`, `tp` ; pas de `sf`) ; préfixe `aifs-single/0p25/` à partir du 2025-02-20, mais l'index de l'échéance 24 h y est absent ce jour-là (arborescence à inventorier) ;
+  - débit : le bucket a répondu `SlowDown` (« Please reduce your request rate ») à une partie des requêtes, même espacées de 15 s, depuis le proxy de la session cloud : un rattrapage doit être lent et reprenable.
 - Conservation sur le portail : le 2026-10-21 à 15:38 UTC, `/forecasts/` listait 4 dates (20261018 à 20261021) ; les cycles 00, 06, 12 et 18 UTC des 18, 19 et 20 octobre répondaient HTTP 200 et un fichier du 18 octobre 00 UTC était présent [vérifié]. La page ECMWF annonce « Data are retained for the most recent 12 forecast runs » [producteur] : le constat (16 runs) est plus généreux, ne pas s'y fier. L'archivage doit donc télécharger chaque run dans les 2 jours, avec marge [hypothèse].
 - Tailles (index du run 2026-10-21 00 UTC, échéance 24 h) [vérifié] :
   - IFS HRES, fichier complet 99 883 680 octets (environ 100 Mo), 191 champs.
@@ -68,6 +74,7 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour t
   - La première tentative de `GET /forecasts/` a reçu « Empty reply from server » (curl 52) à travers le proxy du sandbox ; la requête identique répétée juste après a réussi (HTTP 200, 430 257 octets). Un `GET /forecasts` sans barre finale renvoie 404. Des échecs ponctuels sont donc possibles : prévoir des reprises.
   - La lecture partielle a rendu HTTP (200 et non 206 : code lu à travers le proxy du sandbox) avec 160 406 octets exactement égaux à `_length`, début `GRIB`, fin `7777`, édition 2, grille de 1 038 240 points, Ni 1440, Nj 721 [vérifié].
   - Le répertoire racine liste 4 dates et un dossier `wis2/` ; le portail propose aussi des listes JSON ou CSV via l'en-tête `Accept` et un accès S3 et WebDAV pour les comptes connectés (page d'aide du portail, non utilisés ici) [producteur].
+- Complément du 2026-10-22 (copie AWS, sans compte) : `curl -sS "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/?list-type=2&delimiter=/&prefix=<AAAAMMJJ>/00z/"` pour une vingtaine de dates de 2024 à 2026, puis téléchargement des index `<AAAAMMJJ>000000-24h-oper-fc.index` (environ 18 à 45 Ko chacun, une douzaine d'index, moins de 1 Mo au total) et comptage des champs `levtype = sfc` avec `python3 -I`. Résultat : voir « Historique de la copie AWS » dans Contenu ; plusieurs réponses HTTP 503 `SlowDown`, une réponse `NoSuchKey` pour `20250220/00z/aifs-single/0p25/oper/20250220000000-24h-oper-fc.index`.
 - Les fichiers temporaires du test restent hors du dépôt et sont supprimés à la fin.
 
 ## Limites
@@ -77,6 +84,7 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour t
 - Absence de `deg0l`, `sde`, hauteur de neige : isotherme 0 °C et limite pluie-neige à dériver (champs de pression `gh`, `t`, ou `ptype`), ce qui est un traitement du projet, pas une donnée du producteur.
 - AIFS ne fournit ni `sd`, ni `ptype`, ni `rsn`, ni min/max 2 m.
 - Conservation du portail courte (12 runs annoncés, 16 constatés le 2026-10-21, soit 4 jours calendaires) : pas d'historique sur le portail. La copie AWS affiche un historique constaté depuis 2023-01-18 (liste des dates), conservation non garantie par le producteur [hypothèse] : un run manqué est probablement récupérable sur AWS, pas sur le portail.
+- Copie AWS : avant décembre 2025, l'IFS 0,25° n'a pas de chute de neige `sf` (constat du 2026-10-22) ; la neige des saisons rattrapées devra être dérivée de `tp` et des températures, et marquée comme dérivée.
 - Résolution de 28 km sur des Alpes très relief : biais de précipitation et d'altitude attendus, à corriger par post-traitement ; la sortie n'est pas un verdict de sécurité avalanche (référence : BRA Météo-France).
 - Limite de connexions par client non documentée pour l'accès anonyme ; limite globale annoncée 500 (Confluence) ou 500 à 2000 (page open-data), sources discordantes [producteur].
 - Les sommes de volumes pour un run entier sont des extrapolations à partir de l'échéance 24 h.
@@ -92,4 +100,4 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour t
 - https://www.ecmwf.int/en/forecasts/datasets/open-data — consultée le 2026-10-21
 - https://apps.ecmwf.int/datasets/licences/general/ — consultée le 2026-10-21
 - https://confluence.ecmwf.int/display/DAC/ECMWF+open+data%3A+real-time+forecasts+from+IFS+and+AIFS — consultée le 2026-10-21
-- https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/ — copie AWS, liste anonyme — consultée le 2026-10-21
+- https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/ — copie AWS, liste anonyme — consultée le 2026-10-21 et le 2026-10-22 (historique 2023-2026, index de l'échéance 24 h)
