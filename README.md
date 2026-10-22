@@ -4,7 +4,7 @@
 
 PowAtlas is an open-source system to understand and forecast snow in the mountains, starting with the French Alps. It aims to tell how much snow will fall, where and at what elevation, and how the snowpack evolves — with every claim backed by public verification scores.
 
-**Status:** project foundations in progress (SP0). **Nothing is operational yet.**
+**Status:** SP1 in progress. The daily collection of open forecasts (ICON-D2, ICON-EU, AROME, ARPEGE, IFS, AIFS) and of observations that stay online only a few days runs on GitHub Actions since October 2026; the reference archive is kept on the maintainer's machine. **No forecast or score is published yet.**
 
 ## Principles
 
@@ -26,6 +26,10 @@ PowAtlas is an open-source system to understand and forecast snow in the mountai
 | SP6 | Products | Open API, website, map, alerts, live resort conditions |
 
 More in the vision document (French): [`docs/vision.md`](docs/vision.md). Documentation index: [`docs/README.md`](docs/README.md).
+
+## Data collection
+
+The `powatlas` Python package (`src/powatlas/`) collects, crops to the French Alps and archives each source as published, with a manifest per unit (sha256, producer's Last-Modified, missing fields). Sources and schedules: [`src/powatlas/catalogue.toml`](src/powatlas/catalogue.toml); workflow: [`.github/workflows/collect.yml`](.github/workflows/collect.yml); design (French): [`docs/specs/2026-10-22-sp1-archive-design.md`](docs/specs/2026-10-22-sp1-archive-design.md). No data is stored in Git.
 
 ## Contributing and licences
 
