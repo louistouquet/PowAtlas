@@ -11,6 +11,11 @@ from dataclasses import dataclass
 from powatlas.http import HttpClient
 
 
+# Product definition templates whose octets 10 to 28 (parameter, surface) share the
+# layout of template 4.0 (WMO manual on codes, GRIB2 section 4).
+SAME_LAYOUT_TEMPLATES = frozenset({0, 1, 2, 8, 11, 12, 15})
+
+
 @dataclass(frozen=True)
 class HeaderInfo:
     offset: int
@@ -19,8 +24,8 @@ class HeaderInfo:
     category: int
     number: int
     template: int  # product definition template (0 instant, 8 statistical period, ...)
-    level_type: int  # type of first fixed surface (code table 4.5)
-    level_value: float | None  # None when the scaled value is missing
+    level_type: int | None  # type of first fixed surface (code table 4.5); None for other templates
+    level_value: float | None  # None when the scaled value is missing or the template is not read
 
 
 def parse_header(buf: bytes, offset: int) -> HeaderInfo:
@@ -42,8 +47,10 @@ def parse_header(buf: bytes, offset: int) -> HeaderInfo:
                 break
             s = buf[p : p + sec_len]
             template = int.from_bytes(s[7:9], "big")
-            if template not in (0, 8):
-                raise ValueError(f"unsupported product definition template 4.{template} at offset {offset}")
+            if template not in SAME_LAYOUT_TEMPLATES:
+                # Category and number are at the same place in every template; the
+                # surface is not read: such a message never matches a catalogue entry.
+                return HeaderInfo(offset, length, discipline, s[9], s[10], template, None, None)
             scale, value = s[23], int.from_bytes(s[24:28], "big")
             missing = scale == 255 or value == 0xFFFFFFFF
             level_value = None if missing else value / 10 ** (scale if scale < 128 else -(scale - 128))

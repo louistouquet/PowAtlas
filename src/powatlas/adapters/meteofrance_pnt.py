@@ -10,7 +10,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from powatlas.adapters import ADAPTERS
+from powatlas.adapters import ADAPTERS, accumulation_from_run_start, out_of_time
 from powatlas.adapters.dwd_icon import FormatChange
 from powatlas.catalogue import Source, expected_pairs
 from powatlas.domain import BBox
@@ -48,9 +48,11 @@ def _listing(source: Source, run: datetime, package: str, http: HttpClient) -> l
     xml = http.get(f"{source.urls['base']}?list-type=2&prefix={prefix}").content.decode("utf-8")
     files = []
     for block in _CONTENTS.findall(xml):
-        key = re.search(r"<Key>(.*?)</Key>", block)[1]
-        size = int(re.search(r"<Size>(\d+)</Size>", block)[1])
-        files.append((source.urls["base"] + key, size))
+        key = re.search(r"<Key>(.*?)</Key>", block)
+        size = re.search(r"<Size>(\d+)</Size>", block)
+        if key is None or size is None:
+            raise FormatChange(f"listing of {prefix}: entry without Key or Size")
+        files.append((source.urls["base"] + key[1], int(size[1])))
     if "<IsTruncated>true</IsTruncated>" in xml:
         raise FormatChange(f"listing of {prefix} truncated: more than one page")
     return files
@@ -58,6 +60,8 @@ def _listing(source: Source, run: datetime, package: str, http: HttpClient) -> l
 
 def _matches(head, grib: list) -> bool:
     d, c, n, lt, lv = grib
+    if head.template not in (0, 8):
+        return False
     if (head.discipline, head.category, head.number, head.level_type) != (d, c, n, lt):
         return False
     if lv is None or head.level_value is None:
@@ -88,6 +92,9 @@ class MeteoFrancePntAdapter:
                     notes.append(f"{package}: listing failed ({exc})")
                     continue
                 for url, size in files:
+                    if out_of_time(start, settings):
+                        notes.append("time budget exhausted: unit written as it stands")
+                        break
                     first, last = group_steps(url)
                     if not any(first <= s <= last for steps in wanted_steps.values() for s in steps):
                         continue
@@ -119,10 +126,11 @@ class MeteoFrancePntAdapter:
             except HttpError as exc:
                 notes.append(f"{name}: bytes {first}-{last}: {exc}")
                 continue
-            stale = False
+            in_range = stale_count = 0
             for h, var in selected:
                 if not first <= h.offset <= last:
                     continue
+                in_range += 1
                 msg = r.content[h.offset - first : h.offset - first + h.length]
                 try:
                     (f,) = iter_fields(msg)
@@ -133,6 +141,8 @@ class MeteoFrancePntAdapter:
                     raise FormatChange(f"{name}: {var} at {h.offset}: {exc}") from exc
                 if f.short_name != pvars[var]["shortName"]:
                     raise FormatChange(f"{name}: shortName {f.short_name} instead of {pvars[var]['shortName']}")
+                if not accumulation_from_run_start(f.keys):
+                    raise FormatChange(f"{name}: {var} accumulated over {f.keys['stepRange']}, not from the run start")
                 if f.step_end not in wanted_steps[var]:
                     notes.append(f"{name}: {var} at step {f.step_end_minutes} min not in the catalogue, ignored")
                     continue
@@ -140,13 +150,15 @@ class MeteoFrancePntAdapter:
                     check_ref_time(f, unit.ref)
                 except RefTimeMismatch as exc:
                     notes.append(f"stale message skipped: {exc}")
-                    stale = True
+                    stale_count += 1
                     continue
                 check_grid(f, source.grid)
                 if (var, f.step_end) in fields:
                     raise FormatChange(f"{name}: two messages for {var}@{f.step_end}")
                 fields[(var, f.step_end)] = crop_field(f, bbox, settings["margin_cells"])
-            fetched.append(Fetched(f"{url}#bytes={first}-{last}", r.last_modified, len(r.content), rejected=stale))
+            # A range counts as rejected only when none of its messages was kept.
+            rejected = in_range > 0 and stale_count == in_range
+            fetched.append(Fetched(f"{url}#bytes={first}-{last}", r.last_modified, len(r.content), rejected=rejected))
 
 
 ADAPTERS["meteofrance-pnt"] = MeteoFrancePntAdapter()

@@ -9,7 +9,7 @@ maximum temperatures, which belong to step 3.
 from datetime import datetime, timezone
 from pathlib import Path
 
-from powatlas.adapters import ADAPTERS
+from powatlas.adapters import ADAPTERS, accumulation_from_run_start, out_of_time
 from powatlas.adapters.dwd_icon import FormatChange
 from powatlas.catalogue import Source, expected_pairs
 from powatlas.domain import BBox
@@ -57,6 +57,9 @@ class EcmwfAdapter:
         notes: list[str] = []
         try:
             for step in source.steps:
+                if out_of_time(start, settings):
+                    notes.append("time budget exhausted: unit written as it stands")
+                    break
                 wanted = [v for v, s in expected if s == step]
                 if wanted:
                     self._collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes)
@@ -92,10 +95,11 @@ class EcmwfAdapter:
             except HttpError as exc:
                 notes.append(f"step {step}: bytes {first}-{last}: {exc}")
                 continue
-            stale = False
+            in_range = stale_count = 0
             for e, var in selected:
                 if not first <= e.offset <= last:
                     continue
+                in_range += 1
                 part = r.content[e.offset - first : e.offset - first + e.length]
                 try:
                     (f,) = iter_fields(part)
@@ -106,15 +110,18 @@ class EcmwfAdapter:
                     raise FormatChange(f"step {step}: {var}: {exc}") from exc
                 if f.short_name != source.variables[var]["param"] or f.step_end != step:
                     raise FormatChange(f"step {step}: {var} decoded as {f.short_name} at {f.step_end_minutes} min")
+                if not accumulation_from_run_start(f.keys):
+                    raise FormatChange(f"step {step}: {var} accumulated over {f.keys['stepRange']}, not from the run start")
                 try:
                     check_ref_time(f, unit.ref)
                 except RefTimeMismatch as exc:
                     notes.append(f"stale message skipped: {exc}")
-                    stale = True
+                    stale_count += 1
                     continue
                 check_grid(f, source.grid)
                 fields[(var, step)] = crop_field(f, bbox, settings["margin_cells"])
-            fetched.append(Fetched(f"{url}.grib2#bytes={first}-{last}", r.last_modified, len(r.content), rejected=stale))
+            rejected = in_range > 0 and stale_count == in_range
+            fetched.append(Fetched(f"{url}.grib2#bytes={first}-{last}", r.last_modified, len(r.content), rejected=rejected))
 
 
 ADAPTERS["ecmwf"] = EcmwfAdapter()

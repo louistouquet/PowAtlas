@@ -13,7 +13,7 @@ from powatlas.indexes import IndexEntry, parse_ecmwf_index
 from powatlas.units import Unit
 
 RUN = datetime(2026, 11, 1, tzinfo=timezone.utc)
-SETTINGS = {"bbox": [5.0, 44.0, 6.0, 45.0], "margin_cells": 0}
+SETTINGS = {"bbox": [5.0, 44.0, 6.0, 45.0], "margin_cells": 0, "collect_budget_minutes": 75}
 PORTAL = "https://data.ecmwf.int/forecasts/"
 
 
@@ -96,6 +96,12 @@ class EcmwfTest(unittest.TestCase):
     def test_missing_index_gives_partial(self):
         m, _ = collect(files(skip_step=3))
         self.assertEqual((m.state, m.missing), ("partial", ["tp@3", "2t@3", "t_850@3"]))
+
+    def test_time_budget_stops_with_partial(self):
+        http = FakeHttp(files())
+        m = EcmwfAdapter().collect(Unit("ifs-0p25", RUN), source(), http, Path(tempfile.mkdtemp()), "daily",
+                                   dict(SETTINGS, collect_budget_minutes=0))
+        self.assertTrue(any("time budget" in n for n in m.notes))
 
     def test_stale_run_rejected(self):
         m, _ = collect(files(date=20261031))

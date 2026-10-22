@@ -10,7 +10,7 @@ import bz2
 from datetime import datetime, timezone
 from pathlib import Path
 
-from powatlas.adapters import ADAPTERS
+from powatlas.adapters import ADAPTERS, out_of_time
 from powatlas.catalogue import Source, expected_pairs
 from powatlas.domain import BBox
 from powatlas.grib import (
@@ -72,6 +72,9 @@ class DwdIconAdapter:
         not_found = 0
         try:
             for variable, step in expected:
+                if out_of_time(start, settings):
+                    notes.append("time budget exhausted: unit written as it stands")
+                    break
                 url = icon_url(source, unit.ref, variable, step)
                 try:
                     r = http.get(url)

@@ -7,7 +7,7 @@ licence: Licence Ouverte 2.0 (Etalab) ; attribution : source (nom du concédant)
 acces: HTTPS anonyme, sans compte ni clé ; bucket S3 public meteofrance-pnt (déterministe) et meteofrance-pe (ensemble) ; portail API non utilisé
 quotas: aucune limite constatée ; limites du portail anonyme non documentées au 2026-10-21
 delai: déterministe 2,9 à 5,6 h après l'heure du run (Last-Modified constaté) ; ensemble 3,2 à 6,5 h
-resolution: 0,1° (grille EURAT01, 72N 20N 32W 42E) et 0,25° (GLOB025) ; 1 h jusqu'à 48 h puis 3 h ; 4 runs par jour (00, 06, 12, 18 UTC), échéances 0 à 102 h
+resolution: 0,1° (grille EURAT01, 72N 20N 32W 42E) et 0,25° (GLOB025) ; 1 h jusqu'à 48 h puis 3 h ; 4 runs par jour (00, 06, 12, 18 UTC), échéances 0 à 102 h ; constat du 2026-10-22 pour le 0,1° : champs instantanés horaires de 0 à 102 h, cumuls de 1 à 102 h, `sd` horaire jusqu'à 48 h puis toutes les 3 h (R0.2 comptait 67 échéances, il y en a 103)
 conservation: déterministe 14 jours (plus ancien run constaté 2026-10-06 18 UTC) ; ensemble environ 2 jours (plus ancien run 2026-10-19 06 UTC)
 statut: retenue
 verifie_le: 2026-10-22

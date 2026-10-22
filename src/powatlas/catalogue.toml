@@ -7,6 +7,7 @@ bbox = [5.0, 43.5, 7.9, 46.5]   # west, south, east, north (degrees, WGS84)
 margin_cells = 2                # grid cells kept around the bbox
 artifact_retention_days = 30
 repository = "louistouquet/PowAtlas"
+collect_budget_minutes = 75     # per unit; the collect job is killed at 90 minutes
 
 [settings.http]
 retries = 5

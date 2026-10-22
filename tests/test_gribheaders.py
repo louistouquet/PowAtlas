@@ -30,6 +30,22 @@ class ParseHeaderTest(unittest.TestCase):
         self.assertEqual((h.discipline, h.category, h.number, h.level_type, h.level_value, h.template),
                          (0, 0, 0, 103, 2.0, 0))
 
+    def test_negative_scale_factor(self):
+        h = eccodes.codes_new_from_message(make_message("2t", step_range="6", type_of_level="heightAboveGround", level=2))
+        eccodes.codes_set(h, "scaleFactorOfFirstFixedSurface", -1)
+        eccodes.codes_set(h, "scaledValueOfFirstFixedSurface", 2)
+        msg = eccodes.codes_get_message(h)
+        eccodes.codes_release(h)
+        self.assertEqual(parse_header(msg, 0).level_value, 20.0)
+
+    def test_other_template_identified_without_level(self):
+        h = eccodes.codes_new_from_message(make_message("2t", step_range="6", type_of_level="heightAboveGround", level=2))
+        eccodes.codes_set(h, "productDefinitionTemplateNumber", 40)
+        msg = eccodes.codes_get_message(h)
+        eccodes.codes_release(h)
+        head = parse_header(msg, 0)
+        self.assertEqual((head.template, head.level_type, head.level_value), (40, None, None))
+
     def test_short_buffer_raises(self):
         with self.assertRaises(ValueError):
             parse_header(make_message()[:40], 0)

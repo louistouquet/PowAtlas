@@ -16,7 +16,7 @@ RUN = datetime(2026, 11, 1, tzinfo=timezone.utc)
 ISO = "2026-11-01T00:00:00Z"
 BASE = "https://meteofrance-pnt.s3.rbx.io.cloud.ovh.net/"
 PREFIX = f"pnt/{ISO}/arome/0025/SP1/"
-SETTINGS = {"bbox": [5.0, 44.0, 6.0, 45.0], "margin_cells": 0}
+SETTINGS = {"bbox": [5.0, 44.0, 6.0, 45.0], "margin_cells": 0, "collect_budget_minutes": 75}
 
 
 def identity(msg):
@@ -124,6 +124,28 @@ class PntTest(unittest.TestCase):
         files = standard_files()
         files[name("02H03H")] = t2m(2) + t2m(2) + tp(2) + t2m(3) + tp(3)
         m, _ = collect(files)
+        self.assertEqual(m.state, "missing")
+        self.assertTrue(any("FormatChange" in n for n in m.notes))
+
+    def test_time_budget_stops_with_partial(self):
+        http = http_for(standard_files())
+        settings = dict(SETTINGS, collect_budget_minutes=0)
+        m = MeteoFrancePntAdapter().collect(Unit("arome-0025", RUN), source(), http, Path(tempfile.mkdtemp()),
+                                            "daily", settings)
+        self.assertIn(m.state, ("partial", "missing"))
+        self.assertTrue(any("time budget" in n for n in m.notes))
+
+    def test_accumulation_not_from_run_start_fails_unit(self):
+        files = standard_files()
+        files[name("02H03H")] = t2m(2) + make_message("tp", step_range="1-2") + t2m(3) + tp(3)
+        m, _ = collect(files)
+        self.assertEqual(m.state, "missing")
+        self.assertTrue(any("run start" in n for n in m.notes))
+
+    def test_malformed_listing_fails_unit(self):
+        served = {f"{BASE}?list-type=2&prefix={PREFIX}": b"<ListBucketResult><Contents><Size>3</Size></Contents></ListBucketResult>"}
+        m = MeteoFrancePntAdapter().collect(Unit("arome-0025", RUN), source(), FakeHttp(served), Path(tempfile.mkdtemp()),
+                                            "daily", SETTINGS)
         self.assertEqual(m.state, "missing")
         self.assertTrue(any("FormatChange" in n for n in m.notes))
 
