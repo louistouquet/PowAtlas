@@ -1,0 +1,63 @@
+# PowAtlas SP1 catalogue: what is collected, where, when.
+# Spec: docs/specs/2026-10-22-sp1-archive-design.md. All times are UTC.
+# Steps are inclusive [start, stop, step] ranges in hours.
+
+[settings]
+bbox = [5.0, 43.5, 7.9, 46.5]   # west, south, east, north (degrees, WGS84)
+margin_cells = 2                # grid cells kept around the bbox
+artifact_retention_days = 30
+
+# First and second trigger of each task (minute off the hour, spec section 3).
+[tasks.icon-d2]
+crons = ["35 2 * * *", "35 8 * * *"]
+
+[tasks.icon-eu]
+crons = ["5 5 * * *", "35 10 * * *"]
+
+[sources.icon-d2]
+family = "dwd-icon"
+kind = "forecast"
+task = "icon-d2"
+fiche = "docs/sources/icon-dwd.md"
+licence = "CC BY 4.0"
+attribution = "Contains data from Deutscher Wetterdienst (DWD), licensed CC BY 4.0; cropped to the French Alps by PowAtlas"
+run_hours = [0]
+steps = [[0, 48, 1]]
+window_days = 0                 # 24 h retention: only today's run can be fetched
+available_after_hours = 1.5     # last step of the 12 UTC run seen at +1 h 21 (R0.2)
+grid = { ni = 1215, nj = 746, lat_first = 43.18, lon_first = 356.06, di = 0.02, dj = 0.02 }
+urls = { base = "https://opendata.dwd.de/weather/nwp/icon-d2/grib/" }
+
+[sources.icon-d2.variables]
+t_2m = {}
+tot_prec = {}
+snow_gsp = {}
+snow_con = {}
+h_snow = {}
+w_snow = {}
+hzerocl = {}
+snowlmt = {}
+
+[sources.icon-eu]
+family = "dwd-icon"
+kind = "forecast"
+task = "icon-eu"
+fiche = "docs/sources/icon-dwd.md"
+licence = "CC BY 4.0"
+attribution = "Contains data from Deutscher Wetterdienst (DWD), licensed CC BY 4.0; cropped to the French Alps by PowAtlas"
+run_hours = [0]
+steps = [[0, 78, 1], [81, 120, 3]]
+window_days = 0
+available_after_hours = 3.7     # last step of the 12 UTC run seen at +3 h 39 (R0.2)
+grid = { ni = 1377, nj = 657, lat_first = 29.5, lon_first = 336.5, di = 0.0625, dj = 0.0625 }
+urls = { base = "https://opendata.dwd.de/weather/nwp/icon-eu/grib/" }
+
+[sources.icon-eu.variables]
+t_2m = {}
+tot_prec = {}
+snow_gsp = {}
+snow_con = {}
+h_snow = {}
+w_snow = {}
+hzerocl = {}
+snowlmt = {}
