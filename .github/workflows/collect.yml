@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: "Task id from catalogue.toml (e.g. icon-d2)"
+        description: "Task id from catalogue.toml (e.g. icon-d2), or auto for every scheduled task"
         required: true
         type: string
       attempt:
@@ -47,6 +47,7 @@ jobs:
       task: ${{ steps.resolve.outputs.task }}
       attempt: ${{ steps.resolve.outputs.attempt }}
       units: ${{ steps.plan.outputs.units }}
+      now: ${{ steps.plan.outputs.now }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -141,5 +142,5 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           TASK: ${{ needs.plan.outputs.task }}
           ATTEMPT: ${{ needs.plan.outputs.attempt }}
-          NOW: ${{ inputs.now }}
-        run: powatlas report --task "$TASK" --attempt "$ATTEMPT" ${NOW:+--now "$NOW"}
+          NOW: ${{ needs.plan.outputs.now }}
+        run: powatlas report --task "$TASK" --attempt "$ATTEMPT" --now "$NOW"

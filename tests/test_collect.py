@@ -62,6 +62,34 @@ class CollectTest(unittest.TestCase):
         losses, _ = collect.report("t1", now, "first", [], now, SOURCES)
         self.assertEqual(losses, [])
 
+    def test_auto_plans_every_scheduled_task(self):
+        sources, tasks, _ = __import__("powatlas.catalogue", fromlist=["x"]).load_catalogue()
+        now = utc(2026, 11, 1, 9, 55)
+        ids = collect.plan("auto", now, [], sources, tasks)
+        self.assertIn("icon-d2__20261101T00Z", ids)
+        self.assertIn("ifs-0p25__20261101T00Z", ids)
+        self.assertIn("slf__20261101", ids)
+        self.assertFalse(any(i.startswith("gfs-0p25") for i in ids))  # PC-only source
+
+    def test_auto_attempt_follows_second_trigger_time(self):
+        from powatlas.catalogue import Task
+        t = Task("icon-d2", ("35 2 * * *", "35 8 * * *"))
+        self.assertEqual(collect.attempt_at(t, utc(2026, 11, 1, 8, 0)), "first")
+        self.assertEqual(collect.attempt_at(t, utc(2026, 11, 1, 8, 35)), "last")
+        self.assertEqual(collect.attempt_at(t, utc(2026, 11, 1, 9, 45)), "last")
+        # later hourly runs do not report the same losses again
+        self.assertEqual(collect.attempt_at(t, utc(2026, 11, 1, 9, 51)), "first")
+
+    def test_recent_attempt_not_retried_within_three_hours(self):
+        now = utc(2026, 11, 3, 9)
+        artifacts = [{"name": "s1__20261103T00Z__partial", "created_at": "2026-11-03T07:30:00Z"},
+                     {"name": "s2__20261102T00Z__missing", "created_at": "2026-11-03T05:00:00Z"}]
+        recent = collect.recently_attempted(artifacts, now, hours=3)
+        self.assertEqual(recent, {"s1__20261103T00Z"})
+        ids = collect.plan("t1", now, [a["name"] for a in artifacts], SOURCES, skip=recent)
+        self.assertNotIn("s1__20261103T00Z", ids)
+        self.assertIn("s2__20261102T00Z", ids)
+
     def test_report_warns_after_45_days_without_commit(self):
         now = utc(2026, 12, 20, 15)
         _, summary = collect.report("t1", now, "first", [], now - timedelta(days=45), SOURCES)

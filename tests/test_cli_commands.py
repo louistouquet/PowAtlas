@@ -19,6 +19,9 @@ class FakeGitHub:
     def list_artifact_names(self):
         return list(self.names)
 
+    def list_artifacts(self):
+        return [{"name": n, "created_at": "2026-01-01T00:00:00Z"} for n in self.names]
+
     def last_commit_date(self, branch):
         return self.last_commit
 
@@ -46,12 +49,13 @@ class CliCommandsTest(unittest.TestCase):
         self.assertEqual(cli.main(["resolve-schedule", "--cron", "35 8 * * *"]), 0)
         self.assertEqual(self.out.read_text(), "task=icon-d2\nattempt=last\n")
 
-    def test_plan_writes_units(self):
+    def test_plan_writes_units_and_plan_time(self):
         gh = FakeGitHub([], datetime.now(timezone.utc))
         with mock.patch.object(cli, "make_github", return_value=gh):
             code = cli.main(["plan", "--task", "icon-d2", "--now", "2026-11-01T02:35:00Z"])
         self.assertEqual(code, 0)
-        self.assertEqual(self.out.read_text(), 'units=["icon-d2__20261101T00Z"]\n')
+        # the plan time is passed to the report job, which may start much later
+        self.assertEqual(self.out.read_text(), 'units=["icon-d2__20261101T00Z"]\nnow=2026-11-01T02:35:00Z\n')
 
     def test_collect_reports_state(self):
         old = dict(adapters.ADAPTERS)

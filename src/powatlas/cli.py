@@ -77,9 +77,14 @@ def cmd_resolve_schedule(args) -> int:
 
 
 def cmd_plan(args) -> int:
-    sources, _, _ = load_catalogue()
-    names = make_github().list_artifact_names()
-    _output(units=json.dumps(collect.plan(args.task, _now(args.now), names, sources)))
+    sources, tasks, _ = load_catalogue()
+    now = _now(args.now)
+    artifacts = make_github().list_artifacts()
+    names = [a["name"] for a in artifacts]
+    skip = collect.recently_attempted(artifacts, now, collect.RETRY_HOURS) if args.task == collect.AUTO else set()
+    units = collect.plan(args.task, now, names, sources, tasks, skip=skip)
+    # The report job starts after the collection (up to 90 min later): it uses this time.
+    _output(units=json.dumps(units), now=f"{now:%Y-%m-%dT%H:%M:%SZ}")
     return 0
 
 
@@ -102,22 +107,26 @@ def cmd_collect(args) -> int:
 
 
 def cmd_report(args) -> int:
-    sources, _, _ = load_catalogue()
+    sources, tasks, _ = load_catalogue()
     now = _now(args.now)
     gh = make_github()
     last_commit = gh.last_commit_date("main")
-    losses, summary = collect.report(args.task, now, args.attempt, gh.list_artifact_names(), last_commit, sources)
+    losses, summary = collect.report(args.task, now, args.attempt, gh.list_artifact_names(), last_commit, sources,
+                                     tasks)
     inactive = (now - last_commit).days >= collect.INACTIVITY_WARNING_DAYS
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if path:
         with open(path, "a", encoding="utf-8") as f:
             f.write(summary)
     print(summary)
+    if args.task == collect.AUTO:
+        inactive = inactive and now.hour == 12  # one failed run a day, not one an hour
     if losses:
         run = "{}/{}/actions/runs/{}".format(
             os.environ.get("GITHUB_SERVER_URL", "https://github.com"), os.environ.get("GITHUB_REPOSITORY", ""),
             os.environ.get("GITHUB_RUN_ID", ""))
-        body = f"Task `{args.task}`: units lost for good after the {args.attempt} trigger.\n\n{summary}\nRun: {run}\n"
+        when = "the last trigger of each task" if args.task == collect.AUTO else f"the {args.attempt} trigger"
+        body = f"Task `{args.task}`: units lost for good after {when}.\n\n{summary}\nRun: {run}\n"
         gh.open_or_comment_issue(f"Collecte : pertes du {now:%Y-%m-%d}", body, ISSUE_LABEL)
     return 1 if losses or inactive else 0
 
