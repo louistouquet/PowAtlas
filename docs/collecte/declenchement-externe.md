@@ -1,8 +1,8 @@
 # Déclencher la collecte toutes les heures depuis cron-job.org
 
-Guide du 2026-10-22, pour un débutant. Le 2026-10-22, les déclenchements planifiés (`schedule`) du workflow `collect` ne partaient pas sur GitHub, alors que les lancements manuels fonctionnaient. Ce guide fait appeler le workflow **toutes les heures** par un service gratuit, [cron-job.org](https://cron-job.org/en/) (« absolutely free and financed entirely by voluntary donations », page consultée le 2026-10-22).
+Guide du 2026-10-22, pour un débutant. Le 2026-10-22, les déclenchements planifiés (`schedule`) du workflow `collect` ne sont pas partis sur GitHub de 09:50 à 14:40 UTC, alors que les lancements manuels fonctionnaient ; le premier est parti à 14:41 UTC. GitHub ne garantit ni l'heure ni l'exécution de ces déclenchements, qui peuvent être retardés ou sautés quand ses serveurs sont chargés. Ce guide fait appeler le workflow **toutes les heures** par un service gratuit, [cron-job.org](https://cron-job.org/en/) (« absolutely free and financed entirely by voluntary donations », page consultée le 2026-10-22).
 
-Chaque appel lance la tâche `auto`, qui collecte tout ce qui est publié et pas encore complet, toutes sources confondues. Un appel manqué est donc rattrapé à l'heure suivante. Si les planifications de GitHub se mettent à marcher, elles s'ajoutent sans doublon de collecte (une unité déjà complète est sautée) ; une perte pourrait alors être signalée deux fois dans l'issue `collecte`. Une unité incomplète est retentée au plus toutes les 3 heures.
+Chaque appel lance la tâche `auto`, qui collecte tout ce qui est publié et pas encore complet, toutes sources confondues. Un appel manqué est donc rattrapé à l'heure suivante. Les planifications de GitHub restent actives : elles s'ajoutent sans doublon de collecte (une unité déjà complète est sautée) ; une perte pourrait alors être signalée deux fois dans l'issue `collecte`. Une unité incomplète est retentée au plus toutes les 3 heures.
 
 Il faut deux choses : un **jeton GitHub** qui a seulement le droit de lancer les workflows de ce dépôt, et une **tâche** sur cron-job.org.
 
