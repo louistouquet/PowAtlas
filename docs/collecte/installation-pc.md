@@ -1,0 +1,71 @@
+# Installation de la collecte sur le PC du pilote
+
+Guide du 2026-10-22 pour `D:\Codage\PowAtlas` (Windows). Il met en place le rapatriement quotidien des artefacts de GitHub Actions vers l'archive de référence `D:\Codage\PowAtlas\data\` ([décision 0005](../decisions/0005-collecte-hybride-actions-et-pc.md), [cadrage SP1](../specs/2026-10-22-sp1-archive-design.md)). La collecte elle-même tourne sur GitHub Actions : ce guide n'est pas nécessaire pour qu'elle démarre, mais l'archive n'existe sur le PC qu'une fois `sync` lancé, et les artefacts disparaissent au bout de 30 jours.
+
+## 1. Logiciels
+
+1. Installer **Python 3.12** pour Windows (python.org, cocher « Add python.exe to PATH ») et **Git pour Windows**.
+2. Cloner le dépôt si ce n'est pas fait, puis le mettre à jour :
+
+   ```powershell
+   git clone https://github.com/louistouquet/PowAtlas.git D:\Codage\PowAtlas
+   cd D:\Codage\PowAtlas
+   git pull
+   ```
+
+3. Créer l'environnement Python et installer `powatlas` :
+
+   ```powershell
+   py -3.12 -m venv .venv
+   .venv\Scripts\python -m pip install -e .
+   .venv\Scripts\powatlas --version
+   ```
+
+   Résultat attendu : `powatlas 0.1.0`.
+
+## 2. Jeton GitHub (à créer par le pilote)
+
+Le téléchargement des artefacts exige un jeton, même pour un dépôt public. Sur GitHub : *Settings* → *Developer settings* → *Personal access tokens* → *Fine-grained tokens* → *Generate new token* :
+
+- nom : `PowAtlas sync` ; expiration : 1 an ;
+- *Repository access* : *Only select repositories* → `louistouquet/PowAtlas` ;
+- *Permissions* → *Repository permissions* → **Actions : Read-only** (rien d'autre).
+
+Copier le jeton dans le fichier `D:\Codage\PowAtlas\.env` (ignoré par Git, **jamais commité**) :
+
+```text
+POWATLAS_GITHUB_TOKEN=github_pat_...
+```
+
+## 3. Premier rapatriement
+
+```powershell
+cd D:\Codage\PowAtlas
+.venv\Scripts\powatlas sync --data D:\Codage\PowAtlas\data
+.venv\Scripts\powatlas status --data D:\Codage\PowAtlas\data --from 2026-10-22 --to 2026-11-01
+```
+
+Le premier affiche `new N, replaced 0, kept 0, rejected 0` ; le second, un tableau par source et par jour (`C` complet, `P` partiel, `M` manquant, `-` absent). Coller ces deux sorties dans la session Claude.
+
+Codes de sortie de `sync` : 0 si tout va bien ; 1 si un artefact a été rejeté (il sera retenté) ou si le dernier artefact a plus de 48 h (voir § 5).
+
+## 4. Tâche planifiée Windows
+
+Dans une invite PowerShell :
+
+```powershell
+$cmd = 'D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe sync --data D:\Codage\PowAtlas\data --env D:\Codage\PowAtlas\.env'
+schtasks /Create /TN "PowAtlas sync" /SC DAILY /ST 12:00 /TR $cmd /F
+schtasks /Create /TN "PowAtlas sync (ouverture)" /SC ONLOGON /TR $cmd /F
+```
+
+La première tâche tourne chaque jour à midi si le PC est allumé, la seconde à chaque ouverture de session. Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub.
+
+## 5. Si la collecte s'arrête
+
+- `sync` affiche `WARNING: newest artifact is N h old` : ouvrir l'onglet *Actions* du dépôt, workflow `collect`. Si GitHub l'a désactivé (60 jours sans activité du dépôt), cliquer sur *Enable workflow*. Une issue étiquetée `collecte` signale aussi les pertes définitives et l'inactivité à 45 jours.
+- Si GitHub conteste l'usage d'Actions, la collecte bascule sur ce PC avec le même code (décision 0005) : demander la procédure à une session Claude.
+
+## 6. Sauvegarde
+
+L'archive n'existe qu'à un seul endroit tant qu'elle n'est pas publiée. Copier `D:\Codage\PowAtlas\data\` une fois par mois sur un disque externe (par exemple `robocopy D:\Codage\PowAtlas\data E:\PowAtlas-data /MIR`).

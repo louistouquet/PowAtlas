@@ -10,7 +10,7 @@ delai: 1,8 à 5,6 h après l'heure du run selon le run et le paquet (Last-Modifi
 resolution: 0,01° (grille EURW1S100, 2801 x 1791 points) et 0,025° (EURW1S40) ; pas de temps horaire ; 8 runs par jour, échéances 0 à 51 h
 conservation: 14 jours (plus ancien run constaté : 2026-10-06 18 UTC le 2026-10-21)
 statut: retenue
-verifie_le: 2026-10-21
+verifie_le: 2026-10-22
 ---
 
 # AROME France 0,01° et 0,025° (paquets Météo-France)
@@ -34,7 +34,13 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21 pour t
 - Documentation officielle : page Confluence « Modèles et données de prévision » (résolutions, formats ; ne donne ni noms de paquets, ni paramètres, ni délais) ; descriptions techniques en PDF sur donneespubliques.meteofrance.fr, inaccessibles le 2026-10-21 (page de maintenance, connexions réinitialisées) : le contenu des paquets ci-dessus vient donc de la lecture des fichiers, pas du PDF. Actualités Confluence citées : anomalie des cumuls AROME et ARPEGE (2026-09-03) et nouvelles ressources AROME IFS (2026-07-08), texte non lu [producteur].
 - Licence : métadonnées data.gouv.fr `license: lov2` (« Licence Ouverte / Open Licence version 2.0 ») pour les jeux 0,01°, 0,025° et AROME IFS [producteur]. Texte (https://github.com/etalab/licence-ouverte/blob/master/LO.md, consulté le 2026-10-21) : réutilisation libre, y compris commerciale, adaptation et redistribution, « sous réserve de : mentionner la paternité de l'Information : sa source (a minima le nom du Concédant) et la date de la dernière mise à jour de l'Information réutilisée » ; la mention ne doit pas suggérer une caution du concédant [producteur].
 
+- **Paquets du run 00 UTC (inspection du 2026-10-22, run 2026-10-22 00 UTC)** [vérifié, listing S3 et lecture des en-têtes GRIB2 par plages d'octets, puis décodage `eccodes` d'un message par paramètre] :
+  - `arome/0025/` contient les paquets `SP1`, `SP2`, `SP3`, `HP1` à `HP3`, `IP1` à `IP5` ; chaque paquet a 9 fichiers `arome__0025__<paquet>__<échéances>__<run>.grib2` (`00H06H`, `07H12H`, ..., `43H48H`, `49H51H`), de 22 à 61 Mo ; dépôt de 02:02 à 02:54 UTC (environ 2 h 54 après le run).
+  - **`SP1` contient les 7 variables d'archivage** : `2t` (0.0.0, 2 m), `2r` (0.1.1, 2 m), `10u` (0.2.2) et `10v` (0.2.3, 10 m), `tp` (0.1.52), `tsnowp` (0.1.66), `tgrp` (0.1.75), ainsi que `10wdir`, `10si`, rafales, `ssrd`, `prmsl` et la nébulosité (0.6.1, `shortName` inconnu d'`eccodes`). Les cumuls (gabarit 4.8, depuis le début du run, kg m-2) commencent à l'échéance 1 ; les instantanés vont de 0 à 51 h, au pas horaire.
+  - Grille 0,025° : 1121 x 717 points depuis 55,4 N et 348,0 E (12 W), jusqu'à 37,5 N et 16 E ; messages de 0,14 à 0,9 Mo.
 ## Test d'accès
+
+- Complément du 2026-10-22 : `curl -sS "https://meteofrance-pnt.s3.rbx.io.cloud.ovh.net/?list-type=2&prefix=pnt/2026-10-22T00:00:00Z/arome/0025/SP1/"` (fichiers, tailles, dates de dépôt), puis lecture des en-têtes de chaque message par requêtes `Range` de 1 024 octets et décodage `eccodes` d'un message par paramètre (moins de 15 Mo lus). HTTP 206 sur toutes les plages.
 
 - Date : 2026-10-21, entre 15:40 et 17:00 UTC, sans compte.
 - Commandes exactes (extraits) :

@@ -10,7 +10,7 @@ Ce cadrage fixe ce que SP1 livre : un programme de collecte quotidienne des pré
 |---|---|
 | Lieu d'exécution de la collecte (roadmap, décision 8) | **Hybride** : GitHub Actions collecte chaque jour et dépose des artefacts gardés 30 jours ; le PC du pilote les rapatrie et garde l'archive de référence. Bascule sur le PC seul (même code) si GitHub conteste l'usage d'Actions ([décision 0005](../decisions/0005-collecte-hybride-actions-et-pc.md)) |
 | Ordre | Le **cœur de score** d'abord (run 00 UTC des six modèles de priorité 1, observations à 7 jours, copies datées Météo-France) ; le reste suit |
-| Rattrapage de l'historique | **Complet, mois d'hiver seulement** (novembre à avril), échéances jusqu'à +78 h, exécuté sur le PC après la mise en service de la collecte quotidienne : IFS 0,25° depuis le 2024-02-01, AIFS Single opérationnel depuis son premier run du flux `aifs-single/0p25/oper/` (2025-03-01 au plus tard), GFS depuis la saison 2021-22 ; flux AIFS expérimentaux (2024 et février 2025) écartés |
+| Rattrapage de l'historique | **Complet, mois d'hiver seulement** (novembre à avril), échéances jusqu'à +78 h, exécuté sur le PC après la mise en service de la collecte quotidienne : IFS 0,25° depuis le 2024-02-01, AIFS Single opérationnel depuis son premier run du flux `aifs-single/0p25/oper/` (2025-02-26), GFS depuis la saison 2021-22 ; flux AIFS expérimentaux (2024 et février 2025) écartés |
 | Priorité 2 (roadmap, question 5) | **Dans SP1, après une semaine du cœur sans trou** (vers mi-novembre) ; IFS ENS limité à +78 h et récupéré par le PC depuis AWS |
 | État côté Actions | Porté par le **nom des artefacts** (une unité par artefact) ; aucun commit automatique, aucun service tiers |
 | Format | NetCDF4 float32 compressé par unité ; observations brutes telles que reçues |
@@ -109,7 +109,7 @@ Les valeurs manquantes du GRIB (bitmap) deviennent `NaN` avec `_FillValue`. En r
 | Source | Période | Jours | Champs | Requêtes (plages) | Téléchargement |
 |---|---|---|---|---|---|
 | IFS 0,25° | 2024-02-01 au 2026-04-30 | 452 (89 + 182 + 181) | jusqu'à 14 (champs du cœur présents à la date, plus `t`, `gh`, `r` à 850 hPa) | 14 x 27 x 452 = 171 000 au plus | 0,4 Mo x 171 000 = environ 68 Go |
-| AIFS Single | flux opérationnel, du 2025-03-01 au plus tard au 2026-04-30 | environ 242 (61 + 181) | 6 | 6 x 14 x 242 = 20 300 | environ 10 Go |
+| AIFS Single | flux opérationnel, du 2025-02-26 au 2026-04-30 | environ 245 (64 + 181) | 6 | 6 x 14 x 242 = 20 300 | environ 10 Go |
 | GFS 0,25° | saisons 2021-22 à 2025-26 (une seule version du modèle, GFS v16 et suivantes, chemin `atmos/`) | 905 (5 x 181) | 8 (`CSNOW`, `CRAIN`, `APCP`, `PRATE`, `SNOD`, `WEASD`, température à 2 m, hauteur de l'isotherme 0 °C) | 8 x 27 x 905 = 195 000 | 0,49 Mo x 195 000 = environ 96 Go |
 | **Total** | | | | **environ 386 000** | **environ 175 Go** |
 
@@ -159,6 +159,7 @@ En cas de retard, les PR 4 et 5 passent avant tout ; le reste glisse sans perte 
 | Workflows planifiés retardés, perdus ou désactivés | Deux déclenchements, fenêtres de rattrapage, `workflow_dispatch`, issue à 45 jours sans commit, alerte de 48 h sur le PC (dont la tâche tourne chaque jour où le PC est allumé) ; pas d'astuce de maintien |
 | Changement de format chez un producteur | Contrôles bloquants de grille et de date ; issue `collecte` |
 | Débit limité par AWS | Essai de débit d'abord, rattrapage lent et reprenable avec reprise sur `SlowDown`, ordre de réduction fixé (section 5) |
+| Charge sur les serveurs des producteurs | Requêtes espacées de 0,2 s au moins par job, 4 jobs en parallèle au plus (environ 20 requêtes par seconde au pire, pendant un rattrapage de 7 jours) ; un run ARPEGE complet demande environ 3 250 requêtes (en-têtes et plages), AROME environ 1 000, IFS environ 1 000 (85 index et environ 12,5 plages par échéance, environ 420 Mo), AIFS environ 370 ; budget de 75 min par unité, au-delà de quoi l'unité est écrite `partial` |
 | Stockage d'artefacts plafonné | Rétention de 30 jours ; volume conservé environ 0,8 Go |
 | Disque unique du pilote | Copie mensuelle recommandée ; publication publique plus tard |
 | Faits encore à mesurer : 4 messages des fichiers de cumul ICON, contenu des paquets AROME, routes SLF, nom annuel des fichiers de la base quotidienne, arborescence `aifs-single` | Une étape d'inspection en tête de chaque PR d'adaptateur |

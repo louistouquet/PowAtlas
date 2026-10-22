@@ -7,10 +7,10 @@ licence: Licence Ouverte 2.0 (Etalab) ; attribution : source (nom du concédant)
 acces: HTTPS anonyme, sans compte ni clé ; bucket S3 public meteofrance-pnt (déterministe) et meteofrance-pe (ensemble) ; portail API non utilisé
 quotas: aucune limite constatée ; limites du portail anonyme non documentées au 2026-10-21
 delai: déterministe 2,9 à 5,6 h après l'heure du run (Last-Modified constaté) ; ensemble 3,2 à 6,5 h
-resolution: 0,1° (grille EURAT01, 72N 20N 32W 42E) et 0,25° (GLOB025) ; 1 h jusqu'à 48 h puis 3 h ; 4 runs par jour (00, 06, 12, 18 UTC), échéances 0 à 102 h
+resolution: 0,1° (grille EURAT01, 72N 20N 32W 42E) et 0,25° (GLOB025) ; 1 h jusqu'à 48 h puis 3 h ; 4 runs par jour (00, 06, 12, 18 UTC), échéances 0 à 102 h ; constat du 2026-10-22 pour le 0,1° : champs instantanés horaires de 0 à 102 h, cumuls de 1 à 102 h, `sd` horaire jusqu'à 48 h puis toutes les 3 h (R0.2 comptait 67 échéances, il y en a 103)
 conservation: déterministe 14 jours (plus ancien run constaté 2026-10-06 18 UTC) ; ensemble environ 2 jours (plus ancien run 2026-10-19 06 UTC)
 statut: retenue
-verifie_le: 2026-10-21
+verifie_le: 2026-10-22
 ---
 
 # ARPEGE (déterministe 0,1° et 0,25°) et PE-ARPEGE
@@ -33,7 +33,14 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21), et u
 - Documentation officielle : voir Sources (description technique PDF inaccessible le 2026-10-21, site en maintenance).
 - Licence : `lov2` dans les métadonnées de « Paquets Arpège » 0,1° et 0,25°, PE-ARPEGE GLOB025 et EURAT01 [producteur]. Conditions : voir [arome](arome.md) (paternité, date de mise à jour, pas de caution).
 
+- **Paquets du run 00 UTC (inspection du 2026-10-22, run 2026-10-22 00 UTC)** [vérifié, listing S3 et lecture des en-têtes GRIB2 par plages d'octets, puis décodage `eccodes` d'un message par paramètre] :
+  - `arpege/01/` contient `SP1`, `SP2`, `HP1`, `HP2`, `IP1` à `IP4` ; chaque paquet a 9 fichiers `arpege__01__<paquet>__<échéances>__<run>.grib2` (`000H012H`, ..., `085H096H`, `097H102H`), de 23 à 113 Mo ; dépôt de 02:54 à 03:30 UTC.
+  - **`SP1` contient les 8 variables d'archivage** : `2t`, `10u`, `10v`, `tp` (0.1.52), `tsnowp` (0.1.66), `tirf` (0.1.65), `sd` (0.1.60, équivalent en eau de la neige au sol, kg m-2), `prmsl`, ainsi que `cp`, `lsp`, `csfwe`, `lsfwe`, rafales, `ssrd` et quelques paramètres locaux.
+  - **Échéances du 0,1° : horaires de 0 à 102 h** pour les instantanés (et non « 1 h puis 3 h » comme écrit en R0.2 pour ce maillage) ; cumuls de 1 à 102 h ; `sd` horaire de 0 à 48 h, puis toutes les 3 h (51, 54, ..., 102).
+  - Grille 0,1° : 741 x 521 points depuis 72 N et 328 E (32 W) ; messages de 0,02 à 0,47 Mo ; 312 messages dans le fichier `037H048H` de `SP1`.
 ## Test d'accès
+
+- Complément du 2026-10-22 : `curl -sS "https://meteofrance-pnt.s3.rbx.io.cloud.ovh.net/?list-type=2&prefix=pnt/2026-10-22T00:00:00Z/arpege/01/SP1/"` (fichiers, tailles, dates de dépôt), puis lecture des en-têtes de chaque message par requêtes `Range` de 1 024 octets et décodage `eccodes` d'un message par paramètre (moins de 15 Mo lus). HTTP 206 sur toutes les plages.
 
 - Date : 2026-10-21, 15:40 à 17:00 UTC, sans compte.
 - Commande exacte : `curl -sS "https://meteofrance-pnt.s3.rbx.io.cloud.ovh.net/?list-type=2&prefix=pnt/2026-10-21T06:00:00Z/arpege/&max-keys=1000"` (74 fichiers 0,1° et 38 fichiers 0,25°, tailles et dates) ; `curl -sS "https://meteofrance-pe.s3.rbx.io.cloud.ovh.net/?list-type=2&prefix=prod/data/arpege/eurat01/&max-keys=1000"` (954 fichiers) ; lecture d'en-têtes par `Range: bytes=a-b` sur `arpege__01__SP1__000H012H`, `arpege__01__SP2__000H012H`, `arpege__025__SP1__000H024H`, `arpege__025__SP2__...`, `arpege__025__SP3__...` du run 06 UTC.

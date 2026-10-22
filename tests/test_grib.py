@@ -49,6 +49,11 @@ class IterFieldsTest(unittest.TestCase):
         self.assertEqual((hourly.step_end, hourly.step_end_minutes), (24, 1440))
         self.assertEqual((quarter.step_end, quarter.step_end_minutes), (None, 1455))
 
+    def test_period_parameter_name_kept(self):
+        # mn2t3 (3-hour minimum) must not be renamed by the switch to minute units.
+        (f,) = iter_fields(make_message("mn2t3", step_range="0-3", type_of_level="heightAboveGround", level=2))
+        self.assertEqual((f.short_name, f.step_end), ("mn2t3", 3))
+
     def test_keys_recorded(self):
         (f,) = iter_fields(make_message())
         self.assertIn("bitsPerValue", f.keys)

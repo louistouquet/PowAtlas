@@ -103,9 +103,10 @@ def _decode(message: bytes) -> Field:
             or eccodes.codes_get(h, "alternativeRowScanning")
         ):
             raise ValueError("unsupported scanning mode")
-        # Minutes: ICON-D2 files also hold quarter-hour steps that hours cannot express.
-        eccodes.codes_set(h, "stepUnits", "m")
+        # Keys, shortName included, are read in the message's own step units: changing
+        # them first renames period parameters (mn2t3 would become mn2t).
         keys = {k: eccodes.codes_get(h, k) for k in GRIB_KEYS if eccodes.codes_is_defined(h, k)}
+        short_name = eccodes.codes_get(h, "shortName")
         ni = eccodes.codes_get(h, "Ni")
         nj = eccodes.codes_get(h, "Nj")
         lat0 = eccodes.codes_get(h, "latitudeOfFirstGridPointInDegrees")
@@ -127,16 +128,19 @@ def _decode(message: bytes) -> Field:
         if eccodes.codes_get(h, "bitmapPresent"):
             bitmap = eccodes.codes_get_array(h, "bitmap")
             values[bitmap == 0] = np.nan
+        # Minutes for the end step: ICON-D2 files also hold quarter-hour steps.
+        eccodes.codes_set(h, "stepUnits", "m")
+        step_end_minutes = eccodes.codes_get_long(h, "endStep")
         date = str(eccodes.codes_get(h, "dataDate"))
         hhmm = eccodes.codes_get(h, "dataTime")
         ref_time = datetime(
             int(date[:4]), int(date[4:6]), int(date[6:8]), hhmm // 100, hhmm % 100, tzinfo=timezone.utc
         )
         return Field(
-            short_name=eccodes.codes_get(h, "shortName"),
+            short_name=short_name,
             keys=keys,
             ref_time=ref_time,
-            step_end_minutes=eccodes.codes_get_long(h, "endStep"),
+            step_end_minutes=step_end_minutes,
             lats=lat0 + sign * dj * np.arange(nj),
             lons=normalize_lon(lon0 + di * np.arange(ni)),
             values=values.reshape(nj, ni).astype(np.float32),

@@ -14,7 +14,7 @@ from powatlas.grib import GridSpec
 from powatlas.units import Unit
 
 RUN = datetime(2026, 11, 1, tzinfo=timezone.utc)
-SETTINGS = {"bbox": [5.0, 44.0, 6.0, 45.0], "margin_cells": 0}
+SETTINGS = {"bbox": [5.0, 44.0, 6.0, 45.0], "margin_cells": 0, "collect_budget_minutes": 75}
 SHORT = {"tot_prec": "tp", "t_2m": "2t"}
 
 

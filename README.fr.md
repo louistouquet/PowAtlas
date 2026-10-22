@@ -4,7 +4,7 @@
 
 PowAtlas est un système open source pour comprendre et prévoir la neige en montagne, en commençant par les Alpes françaises. Il veut dire combien il va tomber, où et à quelle altitude, et comment le manteau neigeux évolue — chaque affirmation étant appuyée par des scores de vérification publics.
 
-**État :** fondations du projet en cours (SP0). **Rien n'est encore opérationnel.**
+**État :** SP1 en cours. La collecte quotidienne des prévisions ouvertes (ICON-D2, ICON-EU, AROME, ARPEGE, IFS, AIFS) et des observations qui ne restent que quelques jours en ligne tourne sur GitHub Actions depuis octobre 2026 ; l'archive de référence est gardée sur la machine du pilote. **Aucune prévision ni aucun score n'est encore publié.**
 
 ## Principes
 
@@ -26,6 +26,10 @@ PowAtlas est un système open source pour comprendre et prévoir la neige en mon
 | SP6 | Produits | API ouverte, site, carte, alertes, état des stations en direct |
 
 Pour en savoir plus : [`docs/vision.md`](docs/vision.md). Index de la documentation : [`docs/README.md`](docs/README.md).
+
+## Collecte des données
+
+Le paquet Python `powatlas` (`src/powatlas/`) collecte chaque source, la découpe sur les Alpes françaises et l'archive telle que publiée, avec un manifeste par unité (sha256, `Last-Modified` du producteur, champs absents). Sources et horaires : [`src/powatlas/catalogue.toml`](src/powatlas/catalogue.toml) ; workflow : [`.github/workflows/collect.yml`](.github/workflows/collect.yml) ; cadrage : [`docs/specs/2026-10-22-sp1-archive-design.md`](docs/specs/2026-10-22-sp1-archive-design.md) ; installation sur le PC du pilote : [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md). Aucune donnée n'est stockée dans Git.
 
 ## Contribuer et licences
 

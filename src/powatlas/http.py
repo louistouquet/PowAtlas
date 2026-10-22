@@ -80,6 +80,8 @@ class HttpClient:
         self._sleep = sleep
         self._monotonic = monotonic
         self._last_request: float | None = None
+        self.request_count = 0  # requests sent, retries included
+        self.retry_count = 0  # retries after a transient failure (SlowDown, 429, 5xx, cut connection)
 
     def _pace(self) -> None:
         if self._last_request is not None and self.min_interval > 0:
@@ -100,9 +102,11 @@ class HttpClient:
         last_problem = ""
         for attempt in range(self.retries + 1):
             if attempt:
+                self.retry_count += 1
                 self._sleep(delay)
                 delay = min(delay * 2, self.max_backoff)
             self._pace()
+            self.request_count += 1
             try:
                 r = self.session.get(url, headers=headers, timeout=self.timeout)
             except (
