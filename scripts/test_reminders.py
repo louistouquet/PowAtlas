@@ -32,8 +32,7 @@ class RemindersTest(unittest.TestCase):
         self.assertEqual(reminders.reminders({**CONF, "waiting": []}, date(2026, 11, 11)), [])
 
     def test_deadline_warned_within_window_and_after(self):
-        conf = {**CONF, "waiting": []}
-        conf["pc"] = {**CONF["pc"], "last_sync": date(2027, 10, 15)}
+        conf = {"deadline": CONF["deadline"]}
         self.assertEqual(reminders.reminders(conf, date(2027, 9, 21)), [])
         self.assertEqual(reminders.reminders(conf, date(2027, 9, 22)), ["Due 2027-10-22 (in 30 days): Renew token"])
         self.assertEqual(reminders.reminders(conf, date(2027, 10, 23)), ["OVERDUE since 2027-10-22: Renew token"])
