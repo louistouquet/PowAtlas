@@ -55,5 +55,17 @@ class RemindersTest(unittest.TestCase):
         self.assertTrue(text.startswith("PowAtlas reminders"))
 
 
+    def test_malformed_entry_reported_without_losing_others(self):
+        conf = {"deadline": [{"what": "No due date"}], "waiting": CONF["waiting"]}
+        lines = reminders.reminders(conf, date(2026, 10, 24))
+        self.assertEqual(len(lines), 2)
+        self.assertIn("malformed entry in rappels.toml", lines[0])
+        self.assertIn("Backfill AIFS", lines[1])
+
+    def test_future_sync_date_flagged(self):
+        lines = reminders.reminders({"pc": {"last_sync": date(2026, 11, 1)}}, date(2026, 10, 24))
+        self.assertEqual(lines, ["PC: last sync date 2026-11-01 is in the future: fix rappels.toml"])
+
+
 if __name__ == "__main__":
     unittest.main()

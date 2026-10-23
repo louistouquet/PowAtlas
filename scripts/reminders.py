@@ -24,19 +24,31 @@ def reminders(conf: dict, today: date) -> list[str]:
     pc = conf.get("pc", {})
     if "last_sync" in pc:
         age = (today - pc["last_sync"]).days
-        if age >= pc.get("warn_after_days", 20):
+        if age < 0:
+            lines.append(f"PC: last sync date {pc['last_sync']} is in the future: fix rappels.toml")
+        elif age >= pc.get("warn_after_days", 20):
             lines.append(
                 f"PC: last sync known {pc['last_sync']} ({age} days ago; artifacts are deleted after 30 days): "
                 "ask the pilot to run `status` and check that the scheduled task runs"
             )
-    for d in conf.get("deadline", []):
-        if today > d["due"]:
-            lines.append(f"OVERDUE since {d['due']}: {d['what']}")
-        elif (d["due"] - today).days <= d.get("warn_days", 30):
-            lines.append(f"Due {d['due']} (in {(d['due'] - today).days} days): {d['what']}")
-    for w in conf.get("waiting", []):
-        lines.append(f"Waiting for the pilot since {w['since']} ({(today - w['since']).days} days): {w['what']}")
+    # One bad entry must not hide the others: the hook would then show nothing.
+    for kind, entries in (("deadline", conf.get("deadline", [])), ("waiting", conf.get("waiting", []))):
+        for e in entries:
+            try:
+                lines.extend(_entry(kind, e, today))
+            except (KeyError, TypeError) as exc:
+                lines.append(f"malformed entry in rappels.toml ({kind}, {exc!r}): {e}")
     return lines
+
+
+def _entry(kind: str, e: dict, today: date) -> list[str]:
+    if kind == "deadline":
+        if today > e["due"]:
+            return [f"OVERDUE since {e['due']}: {e['what']}"]
+        if (e["due"] - today).days <= e.get("warn_days", 30):
+            return [f"Due {e['due']} (in {(e['due'] - today).days} days): {e['what']}"]
+        return []
+    return [f"Waiting for the pilot since {e['since']} ({(today - e['since']).days} days): {e['what']}"]
 
 
 def render(path: Path, today: date) -> str:
