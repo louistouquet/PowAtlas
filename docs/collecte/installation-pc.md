@@ -7,19 +7,13 @@ Le déclenchement horaire de la collecte par cron-job.org est décrit à part : 
 ## 1. Logiciels
 
 1. Installer **Python 3.12 ou plus récent** pour Windows (python.org, cocher « Add python.exe to PATH ») et **Git pour Windows**. Le PC du pilote a Python 3.14 : l'installation et les tests sont vérifiés sous Windows avec Python 3.14 à chaque PR (job CI `windows`, depuis le 2026-10-23). Sous Windows, la bibliothèque ecCodes est celle que contient le paquet `eccodes` ; sa version est notée dans chaque manifeste (`eccodes_version`).
-2. Relier `D:\Codage\PowAtlas` à GitHub. Le 2026-10-23, ce dossier existait sur le PC du pilote sans être relié au dépôt (`git pull` répondait « not a git repository »). On le met de côté sous un autre nom, on clone le dépôt à sa place, puis on y remet ce qui doit rester sur le PC (`data\`, `.env`). Fermer d'abord les fenêtres de l'Explorateur et les éditeurs ouverts sur ce dossier, sinon Windows refuse le renommage.
+2. Cloner le dépôt si ce n'est pas fait, puis le mettre à jour :
 
    ```powershell
-   cd D:\Codage
-   Rename-Item PowAtlas PowAtlas-ancien
    git clone https://github.com/louistouquet/PowAtlas.git D:\Codage\PowAtlas
-   if (Test-Path D:\Codage\PowAtlas-ancien\data) { Move-Item D:\Codage\PowAtlas-ancien\data D:\Codage\PowAtlas\data }
-   if (Test-Path D:\Codage\PowAtlas-ancien\.env) { Move-Item D:\Codage\PowAtlas-ancien\.env D:\Codage\PowAtlas\.env }
    cd D:\Codage\PowAtlas
-   git status
+   git pull
    ```
-
-   `git status` doit répondre `On branch main` et `Your branch is up to date with 'origin/main'`. Garder `PowAtlas-ancien` jusqu'à ce que tout marche (§ 3), puis le supprimer. Ensuite, `git pull` dans `D:\Codage\PowAtlas` suffit pour mettre le code à jour.
 
 3. Créer l'environnement Python et installer `powatlas` :
 
@@ -59,15 +53,16 @@ Codes de sortie de `sync` : 0 si tout va bien ; 1 si un artefact a été rejeté
 
 ## 4. Tâche planifiée Windows
 
-Dans une invite PowerShell :
+Dans une invite PowerShell ordinaire (pas besoin d'administrateur) :
 
 ```powershell
-$cmd = 'D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe sync --data D:\Codage\PowAtlas\data --env D:\Codage\PowAtlas\.env'
-schtasks /Create /TN "PowAtlas sync" /SC DAILY /ST 12:00 /TR $cmd /F
-schtasks /Create /TN "PowAtlas sync (ouverture)" /SC ONLOGON /TR $cmd /F
+$a = New-ScheduledTaskAction -Execute 'D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe' -Argument 'sync --data D:\Codage\PowAtlas\data --env D:\Codage\PowAtlas\.env'
+$t = New-ScheduledTaskTrigger -Daily -At 12:00
+$s = New-ScheduledTaskSettingsSet -StartWhenAvailable
+Register-ScheduledTask -TaskName "PowAtlas sync" -Action $a -Trigger $t -Settings $s -Force
 ```
 
-La première tâche tourne chaque jour à midi si le PC est allumé, la seconde à chaque ouverture de session. Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub.
+La tâche tourne chaque jour à midi ; si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`). Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub. Le 2026-10-23, `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé » sans droits d'administrateur sur le PC du pilote : ce réglage la remplace. Vérifier : `Get-ScheduledTaskInfo -TaskName "PowAtlas sync"` affiche `NextRunTime`.
 
 ## 5. Rattrapage historique (une seule fois, reprenable)
 

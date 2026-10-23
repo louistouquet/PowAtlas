@@ -4,12 +4,11 @@
 
 1. **Vérifier** qu'un run `workflow_dispatch` part chaque heure à la minute 17 (déclencheur cron-job.org créé le 2026-10-23, test réussi à 10:13 UTC).
 2. **Pilote** : ajouter la vérification `python` aux vérifications obligatoires de `main`.
-3. **Pilote, début novembre** : suivre [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md) sur `D:\Codage\PowAtlas` (jeton GitHub à grain fin en lecture seule dans `.env`, `sync`, `status`, essai de débit, tâche planifiée Windows), puis coller les sorties dans une session Claude ; ensuite lancer le rattrapage historique (§ 5 du guide).
+3. **Pilote** : remplacer la tâche planifiée par la version sans administrateur (§ 4 de [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md)), puis lancer le rattrapage historique (§ 5 du guide, environ 22 h de téléchargement au total, par tranches de 3 h) et coller les sorties dans une session Claude. Installation, premier `sync` et essai de débit faits le 2026-10-23.
 4. **Mi-novembre**, après une semaine de cœur sans trou : priorité 2 (plan, tâche 20).
 5. **Fin novembre** : horaires remesurés sur sept jours et figés, clôture de SP1 (plan, tâche 21) ; puis démarrage de SP2.
 
 ## Échéances à ne pas oublier
 
-- **Avant le 2026-11-21** : faire tourner `sync` sur le PC au moins une fois ; les artefacts du 2026-10-22 disparaissent de GitHub 30 jours après leur création.
 - **2027-10-22** : le jeton `PowAtlas cron-job` expire ; le renouveler avant ([guide](docs/collecte/declenchement-externe.md#configuration-en-service)). Faire de même pour le jeton `PowAtlas sync` du PC à sa date d'expiration.
 - **2028-03-10** : fin de la version d'API GitHub `2022-11-28` utilisée par cron-job.org ; la changer avant.
