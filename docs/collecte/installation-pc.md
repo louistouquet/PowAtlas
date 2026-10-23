@@ -70,6 +70,7 @@ $t = New-ScheduledTaskTrigger -Daily -At 12:00
 $s = New-ScheduledTaskSettingsSet -StartWhenAvailable
 $s.DisallowStartIfOnBatteries = $false
 $s.StopIfGoingOnBatteries = $false
+$s.RunOnlyIfNetworkAvailable = $true
 Register-ScheduledTask -TaskName "PowAtlas sync" -Action $a -Trigger $t -Settings $s -Force
 ```
 
@@ -77,6 +78,7 @@ Fonctionnement :
 - La tâche tourne chaque jour à midi. Si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`), y compris sur batterie.
 - Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub.
 - `-ExecutionPolicy Bypass` ne vaut que pour ce lancement ; il ne change pas le réglage de Windows.
+- Sans réseau, rien n'est lancé : la tâche attend le réseau, et le script attend jusqu'à 10 minutes que `github.com` réponde. Sinon, un rattrapage hors ligne gaspillerait les 3 tentatives de chaque unité.
 
 Constats du 2026-10-23 sur le PC du pilote :
 - `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé », faute de droits d'administrateur ;
@@ -100,7 +102,7 @@ Les essais de débit du 2026-10-23 (4,9 et 5,0 requêtes par seconde) donnent un
 
 **Sans rien faire**, la tâche du § 4 avance chaque jour d'une heure par source : le rattrapage complet prend alors environ deux semaines de passages quotidiens (AIFS en 2 jours, IFS en une dizaine, GFS en une quinzaine, d'après les essais de débit). Elle ne lance pas de rattrapage si un autre `powatlas` tourne déjà.
 
-**Pour aller plus vite**, lancer à la main une source à la fois, en lignes courtes, depuis `D:\Codage\PowAtlas` :
+**Pour aller plus vite**, lancer à la main une source à la fois, en lignes courtes, depuis `D:\Codage\PowAtlas`. Ne pas le faire pendant que la tâche de midi tourne : deux rattrapages écriraient les mêmes fichiers. `Get-Process powatlas` ne doit alors rien afficher.
 
 ```powershell
 cd D:\Codage\PowAtlas
