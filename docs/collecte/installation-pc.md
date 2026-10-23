@@ -66,7 +66,7 @@ $s.StopIfGoingOnBatteries = $false
 Register-ScheduledTask -TaskName "PowAtlas sync" -Action $a -Trigger $t -Settings $s -Force
 ```
 
-La tâche tourne chaque jour à midi ; si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`), y compris sur batterie. Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub. Le 2026-10-23, `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé » sans droits d'administrateur sur le PC du pilote : ce réglage la remplace (sans élévation pour une tâche de l'utilisateur, à confirmer sur ce PC). Vérifier : `Get-ScheduledTaskInfo -TaskName "PowAtlas sync"` affiche `NextRunTime`.
+La tâche tourne chaque jour à midi ; si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`), y compris sur batterie. Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub. Le 2026-10-23, `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé » sans droits d'administrateur sur le PC du pilote : ce réglage la remplace (constaté le 2026-10-23 : créée sans droits d'administrateur, état `Ready`, prochain passage le lendemain à 12:00 ; `LastTaskResult` 267011, soit 0x41303, veut dire « pas encore lancée »). Vérifier : `Get-ScheduledTaskInfo -TaskName "PowAtlas sync"` affiche `NextRunTime`.
 
 ## 5. Rattrapage historique (une seule fois, reprenable)
 

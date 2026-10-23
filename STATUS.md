@@ -17,7 +17,7 @@
 | ARPEGE 0,1° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 1,2 à 1,3 Mo par run |
 | IFS 0,25°, AIFS Single | collectés | runs 00 UTC du 2026-10-20 au 2026-10-22 : 0,9 à 1,1 Mo (IFS), 0,3 à 0,4 Mo (AIFS) |
 | Observations : SLF (routes par station sur 7 jours), Arpa Piemonte, nivo-météo, base quotidienne Météo-France | collectées | copie du 2026-10-22 : 0,84 Mo, 22 Ko, 0,32 Mo, 1,9 Mo |
-| `powatlas sync`, `status`, `backfill`, `backfill-probe` (PC du pilote) | écrits et testés | essais réels : rattrapage AIFS du 2025-12-01 et GFS de 2021 et 2026 `complete` ; sur le PC du pilote (Windows, Python 3.14) depuis le 2026-10-23 : premier `sync` de 38 artefacts, `status` complet les 22 et 23 octobre, tâche planifiée quotidienne créée, essai de débit IFS à 4,9 requêtes par seconde sans `SlowDown` ; rattrapage pas encore lancé |
+| `powatlas sync`, `status`, `backfill`, `backfill-probe` (PC du pilote) | écrits et testés | essais réels : rattrapage AIFS du 2025-12-01 et GFS de 2021 et 2026 `complete` ; sur le PC du pilote (Windows, Python 3.14) depuis le 2026-10-23 : premier `sync` de 38 artefacts, `status` complet les 22 et 23 octobre, tâche planifiée quotidienne créée sans droits d'administrateur, essais de débit IFS et AIFS à 4,9 et 5,0 requêtes par seconde sans `SlowDown` ; rattrapage pas encore lancé |
 
 ## Pas encore fait
 
