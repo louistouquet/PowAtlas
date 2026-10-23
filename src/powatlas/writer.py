@@ -63,6 +63,7 @@ class Manifest:
     nan_counts: dict = field(default_factory=dict)  # "variable@step" -> NaN points in the cropped field
     notes: list = field(default_factory=list)
     attempts: int = 1  # backfill: collections of this unit so far
+    throttled_passes: int = 0  # backfill: passes left partial only by server throttling (not attempts)
     fiche: str = ""
     licence: str = ""
     attribution: str = ""

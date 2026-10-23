@@ -67,6 +67,7 @@ class HttpClient:
         max_backoff: float,
         min_interval: float,
         timeout: float,
+        max_interval: float | None = None,
         session: requests.Session | None = None,
         sleep: Callable[[float], None] = time.sleep,
         monotonic: Callable[[], float] = time.monotonic,
@@ -75,6 +76,9 @@ class HttpClient:
         self.backoff = backoff
         self.max_backoff = max_backoff
         self.min_interval = min_interval
+        # Pacing widens on SlowDown/429/5xx up to max_interval, then relaxes on each success.
+        self.max_interval = max_interval if max_interval is not None else min_interval
+        self.interval = min_interval
         self.timeout = timeout
         self.session = session if session is not None else requests.Session()
         self._sleep = sleep
@@ -82,10 +86,11 @@ class HttpClient:
         self._last_request: float | None = None
         self.request_count = 0  # requests sent, retries included
         self.retry_count = 0  # retries after a transient failure (SlowDown, 429, 5xx, cut connection)
+        self.exhausted_count = 0  # requests given up after all retries, the last one throttled (429/5xx)
 
     def _pace(self) -> None:
-        if self._last_request is not None and self.min_interval > 0:
-            wait = self.min_interval - (self._monotonic() - self._last_request)
+        if self._last_request is not None and self.interval > 0:
+            wait = self.interval - (self._monotonic() - self._last_request)
             if wait > 0:
                 self._sleep(wait)
         self._last_request = self._monotonic()
@@ -100,6 +105,7 @@ class HttpClient:
             headers["Range"] = f"bytes={first}-{last}"
         delay = self.backoff
         last_problem = ""
+        throttled = False
         for attempt in range(self.retries + 1):
             if attempt:
                 self.retry_count += 1
@@ -117,21 +123,27 @@ class HttpClient:
             ) as exc:
                 # Transient: connection reset, timeout, body cut during the transfer.
                 last_problem = f"{type(exc).__name__}: {exc}"
+                throttled = False
                 continue
             except requests.RequestException as exc:
                 raise HttpError(f"{url}: {type(exc).__name__}: {exc}") from exc
             if r.status_code in RETRY_STATUS:
                 last_problem = f"HTTP {r.status_code}"
+                throttled = True
+                if self.max_interval > self.min_interval:
+                    self.interval = min(max(self.interval * 2, 1.0), self.max_interval)
                 continue
             if r.status_code == 404:
                 raise NotFound(f"HTTP 404 for {url}", status=404)
             if r.status_code not in (200, 206):
                 raise HttpError(f"HTTP {r.status_code} for {url}", status=r.status_code)
+            self.interval = max(self.min_interval, self.interval * 0.95)
             content = r.content
             if byte_range is not None:
                 content = self._range_content(url, r.status_code, content, byte_range)
             kept = {k: r.headers[k] for k in KEPT_HEADERS if k in r.headers}
             return Response(r.status_code, content, _last_modified(r.headers), url, kept)
+        self.exhausted_count += throttled
         raise HttpError(f"{url}: gave up after {self.retries + 1} attempts ({last_problem})")
 
     @staticmethod
