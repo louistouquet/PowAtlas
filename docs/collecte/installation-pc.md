@@ -53,12 +53,16 @@ Codes de sortie de `sync` : 0 si tout va bien ; 1 si un artefact a été rejeté
 
 ## 4. Tâche planifiée Windows
 
-Dans une invite PowerShell ordinaire :
+Dans une invite PowerShell ordinaire, une ligne à la fois (lignes courtes : le 2026-10-23, une ligne trop longue a été coupée au copier-coller) :
 
 ```powershell
-$a = New-ScheduledTaskAction -Execute 'D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe' -Argument 'sync --data D:\Codage\PowAtlas\data --env D:\Codage\PowAtlas\.env'
+$exe = 'D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe'
+$arg = 'sync --data D:\Codage\PowAtlas\data --env D:\Codage\PowAtlas\.env'
+$a = New-ScheduledTaskAction -Execute $exe -Argument $arg
 $t = New-ScheduledTaskTrigger -Daily -At 12:00
-$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
+$s = New-ScheduledTaskSettingsSet -StartWhenAvailable
+$s.DisallowStartIfOnBatteries = $false
+$s.StopIfGoingOnBatteries = $false
 Register-ScheduledTask -TaskName "PowAtlas sync" -Action $a -Trigger $t -Settings $s -Force
 ```
 
