@@ -86,7 +86,7 @@ class HttpClient:
         self._last_request: float | None = None
         self.request_count = 0  # requests sent, retries included
         self.retry_count = 0  # retries after a transient failure (SlowDown, 429, 5xx, cut connection)
-        self.exhausted_count = 0  # requests given up after all retries on transient failures
+        self.exhausted_count = 0  # requests given up after all retries, the last one throttled (429/5xx)
 
     def _pace(self) -> None:
         if self._last_request is not None and self.interval > 0:
@@ -105,6 +105,7 @@ class HttpClient:
             headers["Range"] = f"bytes={first}-{last}"
         delay = self.backoff
         last_problem = ""
+        throttled = False
         for attempt in range(self.retries + 1):
             if attempt:
                 self.retry_count += 1
@@ -122,11 +123,13 @@ class HttpClient:
             ) as exc:
                 # Transient: connection reset, timeout, body cut during the transfer.
                 last_problem = f"{type(exc).__name__}: {exc}"
+                throttled = False
                 continue
             except requests.RequestException as exc:
                 raise HttpError(f"{url}: {type(exc).__name__}: {exc}") from exc
             if r.status_code in RETRY_STATUS:
                 last_problem = f"HTTP {r.status_code}"
+                throttled = True
                 if self.max_interval > self.min_interval:
                     self.interval = min(max(self.interval * 2, 1.0), self.max_interval)
                 continue
@@ -140,7 +143,7 @@ class HttpClient:
                 content = self._range_content(url, r.status_code, content, byte_range)
             kept = {k: r.headers[k] for k in KEPT_HEADERS if k in r.headers}
             return Response(r.status_code, content, _last_modified(r.headers), url, kept)
-        self.exhausted_count += 1
+        self.exhausted_count += throttled
         raise HttpError(f"{url}: gave up after {self.retries + 1} attempts ({last_problem})")
 
     @staticmethod

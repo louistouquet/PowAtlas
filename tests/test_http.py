@@ -73,6 +73,11 @@ class HttpClientTest(unittest.TestCase):
         with self.assertRaises(HttpError):
             c.get("https://x/y")
         self.assertEqual(c.exhausted_count, 1)
+        # A network outage is not server throttling: not counted.
+        c3, _, _ = client([requests.ConnectionError("down")] * 6, min_interval=0.0)
+        with self.assertRaises(HttpError):
+            c3.get("https://x/y")
+        self.assertEqual(c3.exhausted_count, 0)
         c2, _, _ = client([FakeResponse(404)], min_interval=0.0)
         with self.assertRaises(NotFound):
             c2.get("https://x/y")
