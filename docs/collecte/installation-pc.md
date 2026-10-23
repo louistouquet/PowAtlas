@@ -7,13 +7,19 @@ Le déclenchement horaire de la collecte par cron-job.org est décrit à part : 
 ## 1. Logiciels
 
 1. Installer **Python 3.12 ou plus récent** pour Windows (python.org, cocher « Add python.exe to PATH ») et **Git pour Windows**. Le PC du pilote a Python 3.14 : l'installation et les tests sont vérifiés sous Windows avec Python 3.14 à chaque PR (job CI `windows`, depuis le 2026-10-23). Sous Windows, la bibliothèque ecCodes est celle que contient le paquet `eccodes` ; sa version est notée dans chaque manifeste (`eccodes_version`).
-2. Cloner le dépôt si ce n'est pas fait, puis le mettre à jour :
+2. Relier `D:\Codage\PowAtlas` à GitHub. Le 2026-10-23, ce dossier existait sur le PC du pilote sans être relié au dépôt (`git pull` répondait « not a git repository »). On le met de côté sous un autre nom, on clone le dépôt à sa place, puis on y remet ce qui doit rester sur le PC (`data\`, `.env`). Fermer d'abord les fenêtres de l'Explorateur et les éditeurs ouverts sur ce dossier, sinon Windows refuse le renommage.
 
    ```powershell
+   cd D:\Codage
+   Rename-Item PowAtlas PowAtlas-ancien
    git clone https://github.com/louistouquet/PowAtlas.git D:\Codage\PowAtlas
+   if (Test-Path D:\Codage\PowAtlas-ancien\data) { Move-Item D:\Codage\PowAtlas-ancien\data D:\Codage\PowAtlas\data }
+   if (Test-Path D:\Codage\PowAtlas-ancien\.env) { Move-Item D:\Codage\PowAtlas-ancien\.env D:\Codage\PowAtlas\.env }
    cd D:\Codage\PowAtlas
-   git pull
+   git status
    ```
+
+   `git status` doit répondre `On branch main` et `Your branch is up to date with 'origin/main'`. Garder `PowAtlas-ancien` jusqu'à ce que tout marche (§ 3), puis le supprimer. Ensuite, `git pull` dans `D:\Codage\PowAtlas` suffit pour mettre le code à jour.
 
 3. Créer l'environnement Python et installer `powatlas` :
 
