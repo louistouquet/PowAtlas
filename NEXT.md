@@ -10,5 +10,7 @@
 
 ## Échéances à ne pas oublier
 
-- **2027-10-22** : le jeton `PowAtlas cron-job` expire ; le renouveler avant ([guide](docs/collecte/declenchement-externe.md#configuration-en-service)). Faire de même pour le jeton `PowAtlas sync` du PC à sa date d'expiration.
+Rappelées automatiquement au début de chaque session par [`docs/collecte/rappels.toml`](docs/collecte/rappels.toml).
+
+- **2027-10-22** : les deux jetons expirent le même jour, `PowAtlas cron-job` ([guide](docs/collecte/declenchement-externe.md#configuration-en-service)) et `PowAtlas sync` du PC (`.env`, [guide](docs/collecte/installation-pc.md)) ; les renouveler avant.
 - **2028-03-10** : fin de la version d'API GitHub `2022-11-28` utilisée par cron-job.org ; la changer avant.
