@@ -53,42 +53,70 @@ Codes de sortie de `sync` : 0 si tout va bien ; 1 si un artefact a été rejeté
 
 ## 4. Tâche planifiée Windows
 
-Dans une invite PowerShell ordinaire, une ligne à la fois (lignes courtes : le 2026-10-23, une ligne trop longue a été coupée au copier-coller) :
+La tâche lance chaque jour le script [`scripts/pc-daily.ps1`](../../scripts/pc-daily.ps1) :
+1. `sync` ;
+2. une tranche d'au plus une heure du rattrapage historique de chaque source (§ 5) ;
+3. de ce fait, la mise à jour de GFS, qui n'est collecté que sur ce PC.
+
+Tout est écrit dans `data\pc-daily.log`. Le script vient du dépôt : un `git pull` le met à jour sans toucher à la tâche.
+
+Dans une invite PowerShell ordinaire, une ligne à la fois. Les lignes sont courtes exprès : le 2026-10-23, une ligne trop longue a été coupée au copier-coller.
 
 ```powershell
-$exe = 'D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe'
-$arg = 'sync --data D:\Codage\PowAtlas\data --env D:\Codage\PowAtlas\.env'
-$a = New-ScheduledTaskAction -Execute $exe -Argument $arg
+$ps1 = 'D:\Codage\PowAtlas\scripts\pc-daily.ps1'
+$arg = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File $ps1"
+$a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arg
 $t = New-ScheduledTaskTrigger -Daily -At 12:00
 $s = New-ScheduledTaskSettingsSet -StartWhenAvailable
 $s.DisallowStartIfOnBatteries = $false
 $s.StopIfGoingOnBatteries = $false
+$s.RunOnlyIfNetworkAvailable = $true
 Register-ScheduledTask -TaskName "PowAtlas sync" -Action $a -Trigger $t -Settings $s -Force
 ```
 
-La tâche tourne chaque jour à midi ; si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`), y compris sur batterie. Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub. Le 2026-10-23, `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé » sans droits d'administrateur sur le PC du pilote : ce réglage la remplace (constaté le 2026-10-23 : créée sans droits d'administrateur, état `Ready`, prochain passage le lendemain à 12:00 ; `LastTaskResult` 267011, soit 0x41303, veut dire « pas encore lancée »). Vérifier : `Get-ScheduledTaskInfo -TaskName "PowAtlas sync"` affiche `NextRunTime`.
+Fonctionnement :
+- La tâche tourne chaque jour à midi. Si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`), y compris sur batterie.
+- Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub.
+- `-ExecutionPolicy Bypass` ne vaut que pour ce lancement ; il ne change pas le réglage de Windows.
+- Sans réseau, rien n'est lancé : la tâche attend le réseau, et le script attend jusqu'à 10 minutes que `github.com` réponde. Sinon, un rattrapage hors ligne gaspillerait les 3 tentatives de chaque unité.
 
-## 5. Rattrapage historique (une seule fois, reprenable)
+Constats du 2026-10-23 sur le PC du pilote :
+- `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé », faute de droits d'administrateur ;
+- la tâche de ce paragraphe, elle, a été créée sans droits d'administrateur (état `Ready`) ;
+- `LastTaskResult` 267011, soit 0x41303, veut dire « pas encore lancée ».
 
-D'abord l'essai de débit, à coller dans la session Claude :
+Pour vérifier :
+- `Get-ScheduledTaskInfo -TaskName "PowAtlas sync"` affiche `NextRunTime` ;
+- `Get-Content D:\Codage\PowAtlas\data\pc-daily.log -Tail 20` montre le dernier passage.
+
+## 5. Rattrapage historique (reprenable)
+
+Ce qui est pris : seuls les mois de novembre à avril et les échéances jusqu'à +78 h ([cadrage](../specs/2026-10-22-sp1-archive-design.md), § 5). Cela fait environ 185 Go téléchargés au total, et moins de 1 Go gardé.
+
+Périodes :
+- AIFS : 2025-02-26 au 2026-04-30 ;
+- IFS : 2024-02-01 au 2026-04-30 ;
+- GFS : depuis le 2021-11-01, sans fin.
+
+Les essais de débit du 2026-10-23 (4,9 et 5,0 requêtes par seconde) donnent un plancher d'environ 24 h de téléchargement. Le rattrapage reprend là où il s'est arrêté, et les unités complètes sont sautées. Une unité encore partielle après 3 tentatives est abandonnée, et le motif est noté dans son manifeste (`given up`).
+
+**Sans rien faire**, la tâche du § 4 avance chaque jour d'une heure par source : le rattrapage complet prend alors environ deux semaines de passages quotidiens (AIFS en 2 jours, IFS en une dizaine, GFS en une quinzaine, d'après les essais de débit). Elle ne lance pas de rattrapage si un autre `powatlas` tourne déjà.
+
+**Pour aller plus vite**, lancer à la main une source à la fois, en lignes courtes, depuis `D:\Codage\PowAtlas`. Ne pas le faire pendant que la tâche de midi tourne : deux rattrapages écriraient les mêmes fichiers. `Get-Process powatlas` ne doit alors rien afficher.
 
 ```powershell
-.venv\Scripts\powatlas backfill-probe --source ifs-0p25 --day 2025-01-10
+cd D:\Codage\PowAtlas
+Set-Alias pa D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe
+pa backfill --source aifs-single --data data --from 2025-02-26 --to 2026-04-30
+pa backfill --source ifs-0p25 --data data --from 2024-02-01 --to 2026-04-30
+pa backfill --source gfs-0p25 --data data --from 2021-11-01 --to 2099-12-31
 ```
 
-Puis le rattrapage, source par source, par tranches de quelques heures (il reprend là où il s'est arrêté, les unités complètes sont sautées) :
-
-```powershell
-.venv\Scripts\powatlas backfill --source aifs-single --from 2025-02-26 --to 2026-04-30 --data D:\Codage\PowAtlas\data --max-hours 3
-.venv\Scripts\powatlas backfill --source ifs-0p25 --from 2024-02-01 --to 2026-04-30 --data D:\Codage\PowAtlas\data --max-hours 3
-.venv\Scripts\powatlas backfill --source gfs-0p25 --from 2021-11-01 --to 2026-04-30 --data D:\Codage\PowAtlas\data --max-hours 3
-```
-
-Seuls les mois de novembre à avril et les échéances jusqu'à +78 h sont pris ([cadrage](../specs/2026-10-22-sp1-archive-design.md), § 5) : environ 185 Go téléchargés au total, moins de 1 Go gardé. Relancer la même commande jusqu'à ce qu'elle affiche `done 0` : une unité encore partielle après 3 tentatives est abandonnée et le motif est noté dans son manifeste (`given up`). Ensuite, chaque semaine, la commande GFS avec `--from` à la date d'une semaine plus tôt et `--to` à la date du jour tient l'archive GFS à jour (les jours pas encore publiés sont ignorés).
+Chaque commande affiche à la fin `done N (partial P), skipped S, given up G`. Elle a fini quand une relance affiche `done 0`. `--max-hours 3` ajouté en fin de ligne l'arrête proprement au bout de 3 h.
 
 ## 6. Si la collecte s'arrête
 
-- `sync` affiche `WARNING: newest artifact is N h old` : ouvrir l'onglet *Actions* du dépôt, workflow `collect`. Si GitHub l'a désactivé (60 jours sans activité du dépôt), cliquer sur *Enable workflow*. Une issue étiquetée `collecte` signale aussi les pertes définitives et l'inactivité à 45 jours.
+- `data\pc-daily.log` ou `sync` affiche `WARNING: newest artifact is N h old` : ouvrir l'onglet *Actions* du dépôt, workflow `collect`. Si GitHub l'a désactivé (60 jours sans activité du dépôt), cliquer sur *Enable workflow*. Une issue étiquetée `collecte` signale aussi les pertes définitives et l'inactivité à 45 jours.
 - Si GitHub conteste l'usage d'Actions, la collecte bascule sur ce PC avec le même code (décision 0005) : demander la procédure à une session Claude.
 
 ## 7. Sauvegarde
