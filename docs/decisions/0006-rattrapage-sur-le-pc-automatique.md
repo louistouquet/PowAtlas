@@ -18,7 +18,7 @@ Le premier rattrapage AIFS, lancé à la main sur le PC du pilote, fait environ 
 
 ## Décision
 **Pas de cloud pour le rattrapage : il reste sur le PC, entièrement automatique.**
-- **Tâche planifiée quotidienne** ([`scripts/pc-daily.ps1`](../../scripts/pc-daily.ps1), [guide](../collecte/installation-pc.md), § 4). Au premier allumage de la journée, elle attend le réseau, lance `sync`, puis fait une heure de rattrapage par source (AIFS, IFS, GFS). Ensuite, elle tient GFS à jour. Le pilote n'a plus rien à lancer.
+- **Tâche planifiée quotidienne** ([`scripts/pc-daily.ps1`](../../scripts/pc-daily.ps1), [guide](../collecte/installation-pc.md), § 4). Au premier allumage de la journée, elle attend le réseau, lance `sync`, puis fait jusqu'à 3 h de rattrapage par source (AIFS, IFS, GFS). Ensuite, elle tient GFS à jour. Le pilote n'a plus rien à lancer.
 - **Ralentissements du serveur absorbés au lieu de produire des partiels** :
   - après un 503, le rythme ralentit de lui-même jusqu'à 2 s entre requêtes, puis réaccélère de 10 % à chaque succès ;
   - le rattrapage réessaie chaque requête jusqu'à 10 fois, avec des pauses de 60 s au plus, soit environ 6 minutes ;
@@ -29,5 +29,5 @@ Le premier rattrapage AIFS, lancé à la main sur le PC du pilote, fait environ 
 - **Couper le PC à tout moment ne casse rien.** Chaque fichier est écrit à part, puis renommé d'un coup ; un run interrompu est refait au passage suivant. Les runs complets sont sautés, donc rien n'est fait en double. La tâche ne lance pas de rattrapage si un autre `powatlas` tourne déjà.
 
 ## Conséquences
-- Durée : environ 3 h pour l'AIFS et environ 30 h pour l'IFS au débit soutenu mesuré ; GFS reste à mesurer. Cela fait quelques semaines de passages quotidiens d'une heure par source, sans action du pilote. Lancer une source à la main reste possible pour aller plus vite ([guide](../collecte/installation-pc.md), § 5).
+- Durée, avec le rythme adaptatif (20 s par run AIFS mesurés le 2026-10-23) : AIFS fini le jour même. IFS : environ 405 requêtes par run, soit environ 1 min 30 par run et une dizaine d'heures pour 452 runs [estimation]. GFS : à mesurer, estimé d'un ordre semblable. Les tranches quotidiennes passent à 3 h par source : sans action du pilote, tout est fini en quelques jours d'allumage. Lancer une source à la main reste possible pour aller plus vite ([guide](../collecte/installation-pc.md), § 5).
 - À revoir si le PC reste éteint plus de 20 jours (les artefacts de la collecte quotidienne durent 30 jours ; un rappel s'affiche à chaque session) ou si AWS retire l'historique.

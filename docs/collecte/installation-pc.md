@@ -55,7 +55,7 @@ Codes de sortie de `sync` : 0 si tout va bien ; 1 si un artefact a été rejeté
 
 La tâche lance chaque jour le script [`scripts/pc-daily.ps1`](../../scripts/pc-daily.ps1) :
 1. `sync` ;
-2. une tranche d'au plus une heure du rattrapage historique de chaque source (§ 5) ;
+2. une tranche d'au plus 3 heures du rattrapage historique de chaque source (§ 5) ;
 3. de ce fait, la mise à jour de GFS, qui n'est collecté que sur ce PC.
 
 Tout est écrit dans `data\pc-daily.log`. Le script vient du dépôt : un `git pull` le met à jour sans toucher à la tâche.
@@ -101,7 +101,7 @@ Périodes :
 
 Les essais de débit du 2026-10-23 (4,9 et 5,0 requêtes par seconde) donnent un plancher d'environ 24 h de téléchargement. Le rattrapage reprend là où il s'est arrêté, et les unités complètes sont sautées. Quand le serveur ralentit (HTTP 503), `powatlas` espace ses requêtes jusqu'à 2 s et réessaie chacune jusqu'à 10 fois, avec des pauses de 60 s au plus. Dans le journal, chaque run apparaît deux fois : une ligne `collecting` au début, puis une ligne d'état avec sa durée, ses requêtes et ses reprises. Une unité restée partielle seulement à cause de ces refus est reprise au passage suivant, sans compter comme une tentative (10 passages au plus). Une unité encore partielle après 3 vraies tentatives est abandonnée, et le motif est noté dans son manifeste (`given up`). Couper le PC ne casse rien : chaque fichier est écrit puis renommé d'un coup, et une unité interrompue est refaite au passage suivant ([décision 0006](../decisions/0006-rattrapage-sur-le-pc-automatique.md)).
 
-**Sans rien faire**, la tâche du § 4 avance chaque jour d'une heure par source : le rattrapage complet prend alors quelques semaines de passages quotidiens. D'après le débit soutenu mesuré le 2026-10-23 (environ 47 s par run AIFS, ralentissements HTTP 503 du bucket), il faut environ 3 h en tout pour l'AIFS et environ 30 h pour l'IFS ; GFS est encore à mesurer. Elle ne lance pas de rattrapage si un autre `powatlas` tourne déjà.
+**Sans rien faire**, la tâche du § 4 avance chaque jour de 3 h au plus par source. Avec le rythme adaptatif, mesuré le 2026-10-23 à environ 20 s par run AIFS, le rattrapage complet prend quelques jours d'allumage : l'AIFS en moins de 3 h, l'IFS en une dizaine d'heures [estimation], GFS encore à mesurer. Elle ne lance pas de rattrapage si un autre `powatlas` tourne déjà.
 
 **Pour aller plus vite**, lancer à la main une source à la fois, en lignes courtes, depuis `D:\Codage\PowAtlas`. Ne pas le faire pendant que la tâche de midi tourne : deux rattrapages écriraient les mêmes fichiers. `Get-Process powatlas` ne doit alors rien afficher.
 

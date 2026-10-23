@@ -1,6 +1,6 @@
 # Daily job of the pilot's PC, run by the Windows scheduled task "PowAtlas sync"
 # (docs/collecte/installation-pc.md, section 4): bring the GitHub artifacts home,
-# then advance the historical backfill by one slice per source. GFS, collected on
+# then advance the historical backfill by one slice (up to 3 h) per source. GFS, collected on
 # this PC only, is thus kept up to date. Output appended to data\pc-daily.log.
 $root = Split-Path -Parent $PSScriptRoot
 $pa = Join-Path $root '.venv\Scripts\powatlas.exe'
@@ -44,7 +44,7 @@ $slices = @(
 )
 foreach ($s in $slices) {
     Write-Log "=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') backfill $($s[0])"
-    & $pa backfill --source $s[0] --from $s[1] --to $s[2] --data $data --max-hours 1 2>&1 |
+    & $pa backfill --source $s[0] --from $s[1] --to $s[2] --data $data --max-hours 3 2>&1 |
         ForEach-Object { Write-Log "$_" }
     Write-Log "backfill $($s[0]) exit code $LASTEXITCODE"
 }
