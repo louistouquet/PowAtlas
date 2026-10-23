@@ -13,7 +13,8 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy==2.5.4",
     "eccodes==2.50.0",
-    "eccodeslib==2.50.0.33",
+    # No Windows wheel: there the eccodes wheel bundles its own library (version in each manifest).
+    "eccodeslib==2.50.0.33; sys_platform != 'win32'",
     "netCDF4==1.7.5",
     "requests==2.34.2",
 ]

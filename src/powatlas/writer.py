@@ -15,6 +15,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+import eccodes
 import netCDF4
 import numpy as np
 
@@ -66,6 +67,7 @@ class Manifest:
     licence: str = ""
     attribution: str = ""
     powatlas_version: str = __version__
+    eccodes_version: str = ""  # ecCodes library that decoded the GRIB (differs between Actions and Windows)
     git_commit: str = ""
 
 
@@ -134,6 +136,7 @@ def _base_manifest(unit: Unit, source: Source, mode: str, stream, fetched, colle
         # "{year}" (ECMWF: "© [year]") is the year of the data, i.e. of the run.
         attribution=source.attribution.replace("{year}", f"{unit.ref.year}"),
         git_commit=git_commit(),
+        eccodes_version=eccodes.codes_get_api_version(),
     )
     if not complete_times:
         m.notes.append(f"Last-Modified absent for {len(kept) - len(times)} of {len(kept)} files")
@@ -250,6 +253,7 @@ def write_forecast_unit(
         ds.stream = stream or ""
         ds.powatlas_version = __version__
         ds.git_commit = m.git_commit
+        ds.eccodes_version = m.eccodes_version
         ds.fetched = json.dumps(m.fetched)
         ds.history = f"{_iso(_now())} written by powatlas {__version__}: cropped, values as published"
     os.replace(tmp, path)
