@@ -175,6 +175,17 @@ class ForecastWriterGuardsTest(ForecastWriterTest):
                 self.write(fields, [Fetched(f"https://b/x?{q}", None, 1)])
 
 
+    def test_eccodes_library_version_recorded(self):
+        # The ecCodes library differs between Actions (eccodeslib) and Windows (bundled in the eccodes wheel).
+        import eccodes
+
+        fields = {(v, s): field(s, 1) for v in ("tp", "t2m") for s in (0, 1, 2)}
+        m = self.write(fields)
+        self.assertEqual(m.eccodes_version, eccodes.codes_get_api_version())
+        with netCDF4.Dataset(self.tmp / m.files[0]["name"]) as ds:
+            self.assertEqual(ds.eccodes_version, eccodes.codes_get_api_version())
+
+
 class ObservationWriterTest(unittest.TestCase):
     def test_observation_payload_kept_verbatim(self):
         tmp = Path(tempfile.mkdtemp())

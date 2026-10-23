@@ -6,7 +6,7 @@ Le déclenchement horaire de la collecte par cron-job.org est décrit à part : 
 
 ## 1. Logiciels
 
-1. Installer **Python 3.12** pour Windows (python.org, cocher « Add python.exe to PATH ») et **Git pour Windows**.
+1. Installer **Python 3.12 ou plus récent** pour Windows (python.org, cocher « Add python.exe to PATH ») et **Git pour Windows**. Le PC du pilote a Python 3.14 : l'installation et les tests sont vérifiés sous Windows avec Python 3.14 à chaque PR (job CI `windows`, depuis le 2026-10-23). Sous Windows, la bibliothèque ecCodes est celle que contient le paquet `eccodes` ; sa version est notée dans chaque manifeste (`eccodes_version`).
 2. Cloner le dépôt si ce n'est pas fait, puis le mettre à jour :
 
    ```powershell
@@ -18,7 +18,7 @@ Le déclenchement horaire de la collecte par cron-job.org est décrit à part : 
 3. Créer l'environnement Python et installer `powatlas` :
 
    ```powershell
-   py -3.12 -m venv .venv
+   py -3.14 -m venv .venv
    .venv\Scripts\python -m pip install -e .
    .venv\Scripts\powatlas --version
    ```
