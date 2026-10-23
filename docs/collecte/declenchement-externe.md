@@ -57,6 +57,22 @@ Ce jeton permet seulement de lancer, annuler ou effacer des workflows et des art
 - Sur cron-job.org : **History** de la tâche, avec une réponse 200 ou 204 à chaque exécution.
 - Dire à une session Claude « vérifie les déclenchements de cron-job.org » : elle liste les runs du workflow et contrôle qu'il y en a un par heure.
 
+## Configuration en service
+
+Tâche créée par le pilote le 2026-10-23 et notée ici le même jour :
+
+| Élément | Valeur |
+|---|---|
+| Tâche cron-job.org | `PowAtlas collect auto`, POST, toutes les heures à la minute 17 |
+| Fuseau choisi | Europe/Paris. Le décalage avec UTC est d'une ou deux heures entières, donc la minute 17 tombe aussi à la minute 17 UTC ; au changement d'heure (25 octobre 2026, 28 mars 2027), un appel peut être doublé ou sauté, sans conséquence. |
+| Timeout | 30 s |
+| Notifications | e-mail en cas d'échec |
+| Jeton | `PowAtlas cron-job`, Actions : Read and write, dépôt `PowAtlas` seul ; **expire le 2027-10-22 à 22:00 UTC** (en-tête `github-authentication-token-expiration` de la réponse) |
+| Test | 2026-10-23 à 10:13 UTC, réponse 204, run de collecte vert |
+| Premier appel horaire | 2026-10-23 à 10:17 UTC, run vert |
+
+Échéances : renouveler le jeton avant le **2027-10-22** (§ 4) ; changer la version d'API avant le **2028-03-10** (§ 4).
+
 ## 4. Si un jour ça s'arrête
 
 - E-mail d'échec de cron-job.org avec une erreur 401 : le jeton a expiré. Refaire l'étape 1, puis remplacer la valeur de l'en-tête `Authorization` dans la tâche.
