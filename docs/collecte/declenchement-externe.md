@@ -46,6 +46,7 @@ Ce jeton permet seulement de lancer, annuler ou effacer des workflows et des art
      {"ref": "main", "inputs": {"task": "auto"}}
      ```
 
+   - **Timeout** : 30 secondes (GitHub répond en moins d'une seconde) ;
    - **Notifications** (onglet ou section *Notifications*) : cocher l'envoi d'un e-mail en cas d'échec.
 5. Enregistrer (**Create** ou **Save**).
 6. Tester tout de suite : dans la liste des cronjobs, bouton **Test run** (ou *Execute now*). Réponse attendue : **200** ou **204** (la documentation de GitHub, consultée le 2026-10-22, annonce désormais 200 avec l'identifiant du run), ce qui veut dire que GitHub a accepté. Une réponse **401** ou **403** veut dire que le jeton est faux ou n'a pas la permission *Actions : Read and write* ; **404** veut dire que l'URL est mal recopiée.
@@ -59,4 +60,5 @@ Ce jeton permet seulement de lancer, annuler ou effacer des workflows et des art
 ## 4. Si un jour ça s'arrête
 
 - E-mail d'échec de cron-job.org avec une erreur 401 : le jeton a expiré. Refaire l'étape 1, puis remplacer la valeur de l'en-tête `Authorization` dans la tâche.
+- Version de l'API : la réponse du 2026-10-23 annonce, pour `X-GitHub-Api-Version: 2022-11-28`, les en-têtes `Deprecation: Tue, 10 Mar 2026` et `Sunset: Fri, 10 Mar 2028`. Avant le 10 mars 2028, demander à une session Claude la version à mettre à la place (documentation *API versions* de GitHub).
 - Pour arrêter : décocher **Enable job** sur cron-job.org.
