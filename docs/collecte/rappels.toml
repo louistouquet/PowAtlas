@@ -26,5 +26,5 @@ due = 2028-03-10
 warn_days = 60
 
 [[waiting]]
-what = "Faire faire `git pull` puis ré-enregistrer la tâche planifiée pour qu'elle lance scripts/pc-daily.ps1 (installation-pc.md, § 4 ; décision 0006) ; le lendemain, demander `Get-Content D:\\Codage\\PowAtlas\\data\\pc-daily.log -Tail 20`"
+what = "Tâche quotidienne (pc-daily.ps1) en place et lancée le 2026-10-23 à 15:40 (heure de Paris), sync `new 0` puis rattrapage AIFS démarré : demander `Get-Process powatlas` et `Get-Content D:\\Codage\\PowAtlas\\data\\pc-daily.log -Tail 20` pour vérifier que le rattrapage avance et mesurer sa vitesse"
 since = 2026-10-23
