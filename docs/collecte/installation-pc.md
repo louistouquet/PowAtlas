@@ -78,6 +78,7 @@ Fonctionnement :
 - La tâche tourne chaque jour à midi. Si le PC était éteint à midi, elle tourne quelques minutes après son allumage suivant (`-StartWhenAvailable`), y compris sur batterie : allumé à 13 h, elle part vers 13 h ; allumé seulement le lendemain matin, elle part ce matin-là. Elle tourne donc chaque jour où le PC est allumé, à n'importe quelle heure.
 - Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub.
 - `-ExecutionPolicy Bypass` ne vaut que pour ce lancement ; il ne change pas le réglage de Windows.
+- Constat du 2026-10-23 : malgré `-WindowStyle Hidden`, une fenêtre noire vide s'ouvre pendant la tâche (cause non établie ; hypothèse : le terminal par défaut des Windows récents). Elle se réduit, mais **ne doit pas être fermée**, sinon la tâche s'arrête ; tout reprend au lancement suivant.
 - Sans réseau, rien n'est lancé : la tâche attend le réseau, et le script attend jusqu'à 10 minutes que `github.com` réponde. Sinon, un rattrapage hors ligne gaspillerait les 3 tentatives de chaque unité.
 
 Constats du 2026-10-23 sur le PC du pilote :
