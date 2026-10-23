@@ -12,12 +12,14 @@ collect_budget_minutes = 75     # per unit; the collect job is killed at 90 minu
 [settings.backfill]
 months = [11, 12, 1, 2, 3, 4]   # winter months only (spec, section 5)
 max_step = 78                   # scored windows end at +78 h
+retries = 10                    # AWS throttles a sustained backfill (HTTP 503): up to about 20 min per request
 
 [settings.http]
 retries = 5
 backoff = 2.0          # seconds, doubled at each retry
 max_backoff = 300.0
 min_interval = 0.2     # seconds between requests (politeness)
+max_interval = 10.0    # pacing widens up to this on SlowDown/429/5xx, relaxes on success
 timeout = 60.0
 
 # First and second trigger of each task (minute off the hour, spec section 3).

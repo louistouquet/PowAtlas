@@ -44,13 +44,20 @@ from powatlas.writer import Manifest
 SOURCES, _, SETTINGS = load_catalogue()
 
 
+class Throttle:
+    exhausted_count = 0  # requests given up after all retries (HttpClient)
+
+
 class FakeAdapter:
-    def __init__(self, state="complete"):
+    def __init__(self, state="complete", throttled=False):
         self.calls = []
         self.state = state
+        self.throttled = throttled
 
     def collect(self, unit, source, http, out_dir, mode, settings):
         self.calls.append((unit.ref.date(), mode, max(source.steps)))
+        if self.throttled:
+            http.exhausted_count += 1
         out_dir.mkdir(parents=True, exist_ok=True)
         stem = f"{source.id}_{unit.ref:%Y%m%dT%HZ}"
         m = {"unit": f"{source.id}__{unit.ref:%Y%m%dT%HZ}", "source": source.id, "state": self.state, "files": []}
@@ -64,7 +71,7 @@ class BackfillTest(unittest.TestCase):
         old = dict(adapters.ADAPTERS)
         adapters.ADAPTERS["ecmwf"] = fake
         try:
-            r = backfill(SOURCES["ifs-0p25"], start, end, data, http=None, settings=SETTINGS,
+            r = backfill(SOURCES["ifs-0p25"], start, end, data, http=Throttle(), settings=SETTINGS,
                          months=(11, 12, 1, 2, 3, 4), max_step=78, max_hours=max_hours,
                          clock=clock or (lambda: 0.0))
         finally:
@@ -103,6 +110,26 @@ class BackfillTest(unittest.TestCase):
         data = None
         for _ in range(3):
             _, data = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), FakeAdapter("partial"), data=data)
+        again = FakeAdapter()
+        r, _ = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data)
+        self.assertEqual((again.calls, r.given_up), ([], 1))
+
+    def test_throttled_partial_not_counted_as_attempt(self):
+        data = None
+        for _ in range(5):
+            _, data = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), FakeAdapter("partial", throttled=True),
+                                        data=data)
+        m = _json.loads((data / "forecasts/ifs-0p25/2025/01/ifs-0p25_20250101T00Z.json").read_text())
+        self.assertEqual((m["attempts"], m["throttled_passes"]), (0, 5))
+        again = FakeAdapter()
+        self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data)
+        self.assertEqual(len(again.calls), 1)
+
+    def test_throttled_partial_given_up_after_ten_passes(self):
+        data = None
+        for _ in range(10):
+            _, data = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), FakeAdapter("partial", throttled=True),
+                                        data=data)
         again = FakeAdapter()
         r, _ = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data)
         self.assertEqual((again.calls, r.given_up), ([], 1))

@@ -51,6 +51,33 @@ SLOWDOWN = b"<?xml version='1.0'?><Error><Code>SlowDown</Code></Error>"
 
 
 class HttpClientTest(unittest.TestCase):
+    def test_slowdown_widens_pacing_then_relaxes(self):
+        c, s, clock = client([FakeResponse(503, SLOWDOWN), FakeResponse(200, b"ok")], min_interval=0.2,
+                             max_interval=10.0)
+        c.get("https://x/y")
+        self.assertAlmostEqual(c.interval, 0.95)  # widened to 1 s by the SlowDown, then relaxed by one success
+
+    def test_pacing_capped_at_max_interval(self):
+        c, s, clock = client([FakeResponse(503)] * 5 + [FakeResponse(200, b"ok")], min_interval=0.2,
+                             max_interval=4.0)
+        c.get("https://x/y")
+        self.assertAlmostEqual(c.interval, 4.0 * 0.95)
+
+    def test_no_adaptation_without_max_interval(self):
+        c, s, clock = client([FakeResponse(503), FakeResponse(200, b"ok")], min_interval=0.2)
+        c.get("https://x/y")
+        self.assertEqual(c.interval, 0.2)
+
+    def test_exhausted_retries_are_counted(self):
+        c, s, clock = client([FakeResponse(503)] * 6, min_interval=0.0)
+        with self.assertRaises(HttpError):
+            c.get("https://x/y")
+        self.assertEqual(c.exhausted_count, 1)
+        c2, _, _ = client([FakeResponse(404)], min_interval=0.0)
+        with self.assertRaises(NotFound):
+            c2.get("https://x/y")
+        self.assertEqual(c2.exhausted_count, 0)
+
     def test_retries_on_slowdown_then_succeeds(self):
         c, s, clock = client([FakeResponse(503, SLOWDOWN), FakeResponse(200, b"ok")], min_interval=0.0)
         r = c.get("https://x/y")

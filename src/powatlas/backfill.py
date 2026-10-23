@@ -45,6 +45,9 @@ def probe(http: HttpClient, urls: list[str], ranges_per_url: int, clock: Callabl
 
 
 MAX_ATTEMPTS = 3  # a unit still partial after this many backfills is given up (noted in its manifest)
+# Passes left partial only because the server throttled (retries exhausted on SlowDown/5xx):
+# not counted as attempts, but bounded so that a unit cannot be retried forever.
+MAX_THROTTLED_PASSES = 10
 
 
 @dataclass
@@ -75,7 +78,8 @@ def _existing(manifest: Path) -> dict | None:
         if not path.is_file() or sha256_file(path) != f["sha256"]:
             print(f"{manifest.name}: {f['name']} absent or altered, collected again")
             return None
-    return {"state": state, "attempts": int(m.get("attempts", 1))}
+    return {"state": state, "attempts": int(m.get("attempts", 1)),
+            "throttled_passes": int(m.get("throttled_passes", 0))}
 
 
 def restrict_to_max_step(source: Source, max_step: int) -> Source:
@@ -125,16 +129,29 @@ def backfill(
             previous = _existing(manifest) if manifest.exists() else None
             if previous is not None and previous["state"] == "complete":
                 result.skipped += 1
-            elif previous is not None and previous["attempts"] >= MAX_ATTEMPTS:
+            elif previous is not None and (previous.get("attempts", 1) >= MAX_ATTEMPTS
+                                           or previous.get("throttled_passes", 0) >= MAX_THROTTLED_PASSES):
                 result.given_up += 1
             else:
+                exhausted = http.exhausted_count
                 m = adapter.collect(unit, restricted, http, target, "backfill", settings)
-                attempts = (previous["attempts"] if previous else 0) + 1
-                if attempts > 1 and manifest.exists():
+                attempts = previous.get("attempts", 1) if previous else 0
+                throttled_passes = previous.get("throttled_passes", 0) if previous else 0
+                throttled = m.state != "complete" and http.exhausted_count > exhausted
+                if throttled:
+                    throttled_passes += 1
+                else:
+                    attempts += 1
+                if manifest.exists():
                     data = json.loads(manifest.read_text(encoding="utf-8"))
                     data["attempts"] = attempts
-                    if m.state != "complete" and attempts >= MAX_ATTEMPTS:
-                        data.setdefault("notes", []).append(f"given up after {attempts} backfill attempts")
+                    data["throttled_passes"] = throttled_passes
+                    if throttled:
+                        data.setdefault("notes", []).append(
+                            "partial because the server throttled (retries exhausted): retried, not counted as an attempt")
+                    if m.state != "complete" and (attempts >= MAX_ATTEMPTS or throttled_passes >= MAX_THROTTLED_PASSES):
+                        data.setdefault("notes", []).append(
+                            f"given up after {attempts} attempts and {throttled_passes} throttled passes")
                     manifest.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
                 result.done += 1
                 result.partial += m.state != "complete"
