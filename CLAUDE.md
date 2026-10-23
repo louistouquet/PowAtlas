@@ -4,6 +4,7 @@ PowAtlas : système open source pour comprendre et prévoir la neige en montagne
 
 ## Début de session
 1. Lire `NEXT.md`, puis `STATUS.md`, puis le cadrage (`docs/specs/`) et le plan (`docs/plans/`) en cours.
+   Transmettre au pilote les « PowAtlas reminders » affichés au démarrage (`scripts/reminders.py`) ; mettre à jour [`docs/collecte/rappels.toml`](docs/collecte/rappels.toml) dès qu'il annonce une action faite (dernier `sync`, jeton renouvelé, rattrapage fini).
 2. `git status`, branche courante, PR ouvertes. Finir une PR en cours avant d'en ouvrir une autre.
 3. Respecter les « Contraintes globales » du plan en cours (ex. en SP0 : pas de code produit, emprise de travail des Alpes françaises).
 4. Méthode complète : [`docs/methode.md`](docs/methode.md). Modèles et économie : [`docs/modeles-claude.md`](docs/modeles-claude.md).

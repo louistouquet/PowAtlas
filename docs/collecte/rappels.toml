@@ -1,0 +1,30 @@
+# Rappels pour le pilote, affichés au début de chaque session Claude
+# (scripts/reminders.py, appelé par scripts/session-start.sh).
+# Toute session met ce fichier à jour dès que le pilote annonce une action faite :
+# date du dernier sync, échéance repoussée (jeton renouvelé), attente levée.
+
+[pc]
+# Dernier `sync` connu sur le PC du pilote. La tâche planifiée le lance chaque jour,
+# mais seule la sortie de `status` collée par le pilote le confirme.
+# Les artefacts restent 30 jours sur GitHub : alerte à 20 jours.
+last_sync = 2026-10-23
+warn_after_days = 20
+
+[[deadline]]
+what = "Renouveler le jeton GitHub `PowAtlas cron-job` (Actions : Read and write) et le remplacer dans la tâche cron-job.org (docs/collecte/declenchement-externe.md, § 4)"
+due = 2027-10-22
+warn_days = 30
+
+[[deadline]]
+what = "Renouveler le jeton GitHub `PowAtlas sync` (Actions : Read-only) et le remplacer dans D:\\Codage\\PowAtlas\\.env (docs/collecte/installation-pc.md, § 2)"
+due = 2027-10-22
+warn_days = 30
+
+[[deadline]]
+what = "Changer l'en-tête `X-GitHub-Api-Version: 2022-11-28` de la tâche cron-job.org (fin de cette version d'API GitHub)"
+due = 2028-03-10
+warn_days = 60
+
+[[waiting]]
+what = "Rattrapage AIFS lancé le 2026-10-23 : demander la ligne `done ...` affichée à la fin, puis donner les commandes IFS et GFS (installation-pc.md, § 5)"
+since = 2026-10-23
