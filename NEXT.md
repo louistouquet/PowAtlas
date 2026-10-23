@@ -4,7 +4,7 @@
 
 1. **Vérifier** qu'un run `workflow_dispatch` part chaque heure à la minute 17 (déclencheur cron-job.org créé le 2026-10-23, test réussi à 10:13 UTC).
 2. **Pilote** : ajouter la vérification `python` aux vérifications obligatoires de `main`.
-3. **Pilote** : remplacer la tâche planifiée par la version sans administrateur (§ 4 de [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md)), puis lancer le rattrapage historique (§ 5 du guide, environ 22 h de téléchargement au total, par tranches de 3 h) et coller les sorties dans une session Claude. Installation, premier `sync` et essai de débit faits le 2026-10-23.
+3. **Pilote** : remplacer la tâche planifiée par la version sans administrateur (§ 4 de [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md)), puis lancer le rattrapage historique (§ 5 du guide, au moins 24 h de téléchargement au total d'après l'essai IFS, par tranches de 3 h ; essai AIFS à faire avant) et coller les sorties dans une session Claude. Installation, premier `sync` et essai de débit faits le 2026-10-23.
 4. **Mi-novembre**, après une semaine de cœur sans trou : priorité 2 (plan, tâche 20).
 5. **Fin novembre** : horaires remesurés sur sept jours et figés, clôture de SP1 (plan, tâche 21) ; puis démarrage de SP2.
 

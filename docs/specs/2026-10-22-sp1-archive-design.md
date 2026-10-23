@@ -45,7 +45,7 @@ Un seul paquet Python, `powatlas` (dans `src/`, Python 3.12 ; dépendances `nump
 | Où | Sources | Volume |
 |---|---|---|
 | Actions, `collect.yml` (planifié, plus `workflow_dispatch`) | ICON-D2, ICON-EU (24 h) ; AROME 0,025°, ARPEGE 0,1° (14 jours) ; IFS, AIFS depuis le portail (4 jours) ; SLF, Arpa Piemonte temps réel (7 jours) ; copie datée du réseau nivo-météo et de la base quotidienne (`HNEIGEF`, départements 04, 05, 06, 38, 73, 74) ; puis ICON-CH1, AROME 0,01° réduit et niveaux de pression AROME (priorité 2) | environ 2 Go téléchargés par jour (3,3 Go avec la priorité 2) ; environ 26 Mo d'artefacts par jour, **gardés 30 jours** (environ 0,8 Go conservés ; R0.5 relève un plafond de stockage d'artefacts « non documenté » pour un dépôt public : rétention courte par prudence, `sync` passant au moins chaque semaine) |
-| PC du pilote, tâche planifiée Windows (chaque jour où le PC est allumé et à l'ouverture de session ; au moins une fois par semaine) | `sync` ; rattrapage historique IFS, AIFS, GFS ; GFS en continu ; IFS ENS (priorité 2) | environ 185 Go une seule fois (calcul en section 5), puis environ 10 Go par semaine (IFS ENS 8,3 Go, GFS environ 0,7 Go) |
+| PC du pilote, tâche planifiée Windows (chaque jour à midi, ou au rallumage si midi a été manqué ; au moins une fois par semaine) | `sync` ; rattrapage historique IFS, AIFS, GFS ; GFS en continu ; IFS ENS (priorité 2) | environ 185 Go une seule fois (calcul en section 5), puis environ 10 Go par semaine (IFS ENS 8,3 Go, GFS environ 0,7 Go) |
 
 **Horaires de départ (UTC)**, hors des heures pleines, tirés de R0.2 et à **remesurer sur une semaine avant d'être figés** :
 

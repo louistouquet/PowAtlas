@@ -53,16 +53,16 @@ Codes de sortie de `sync` : 0 si tout va bien ; 1 si un artefact a été rejeté
 
 ## 4. Tâche planifiée Windows
 
-Dans une invite PowerShell ordinaire (pas besoin d'administrateur) :
+Dans une invite PowerShell ordinaire :
 
 ```powershell
 $a = New-ScheduledTaskAction -Execute 'D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe' -Argument 'sync --data D:\Codage\PowAtlas\data --env D:\Codage\PowAtlas\.env'
 $t = New-ScheduledTaskTrigger -Daily -At 12:00
-$s = New-ScheduledTaskSettingsSet -StartWhenAvailable
+$s = New-ScheduledTaskSettingsSet -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 Register-ScheduledTask -TaskName "PowAtlas sync" -Action $a -Trigger $t -Settings $s -Force
 ```
 
-La tâche tourne chaque jour à midi ; si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`). Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub. Le 2026-10-23, `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé » sans droits d'administrateur sur le PC du pilote : ce réglage la remplace. Vérifier : `Get-ScheduledTaskInfo -TaskName "PowAtlas sync"` affiche `NextRunTime`.
+La tâche tourne chaque jour à midi ; si le PC était éteint à midi, elle tourne dès qu'il est rallumé (`-StartWhenAvailable`), y compris sur batterie. Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub. Le 2026-10-23, `schtasks /SC ONLOGON` (tâche à l'ouverture de session) a répondu « Accès refusé » sans droits d'administrateur sur le PC du pilote : ce réglage la remplace (sans élévation pour une tâche de l'utilisateur, à confirmer sur ce PC). Vérifier : `Get-ScheduledTaskInfo -TaskName "PowAtlas sync"` affiche `NextRunTime`.
 
 ## 5. Rattrapage historique (une seule fois, reprenable)
 
