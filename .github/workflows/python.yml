@@ -35,3 +35,9 @@ jobs:
         run: python -c "import eccodes; print(eccodes.codes_get_api_version())"
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+      - name: Parse the PC daily script with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $errors = $null
+          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\scripts\pc-daily.ps1", [ref]$null, [ref]$errors)
+          if ($errors) { $errors; exit 1 }
