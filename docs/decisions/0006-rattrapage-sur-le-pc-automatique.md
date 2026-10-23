@@ -20,8 +20,10 @@ Le premier rattrapage AIFS, lancé à la main sur le PC du pilote, fait environ 
 **Pas de cloud pour le rattrapage : il reste sur le PC, entièrement automatique.**
 - **Tâche planifiée quotidienne** ([`scripts/pc-daily.ps1`](../../scripts/pc-daily.ps1), [guide](../collecte/installation-pc.md), § 4). Au premier allumage de la journée, elle attend le réseau, lance `sync`, puis fait une heure de rattrapage par source (AIFS, IFS, GFS). Ensuite, elle tient GFS à jour. Le pilote n'a plus rien à lancer.
 - **Ralentissements du serveur absorbés au lieu de produire des partiels** :
-  - après un 503, le rythme ralentit de lui-même jusqu'à 10 s entre requêtes, puis réaccélère à chaque succès ;
-  - le rattrapage réessaie chaque requête jusqu'à 10 fois, soit environ 20 minutes ;
+  - après un 503, le rythme ralentit de lui-même jusqu'à 2 s entre requêtes, puis réaccélère de 10 % à chaque succès ;
+  - le rattrapage réessaie chaque requête jusqu'à 10 fois, avec des pauses de 60 s au plus, soit environ 6 minutes ;
+  - réglage revu le même jour : la première version (10 s entre requêtes, pauses de 300 s) n'avait fait qu'un run en une demi-heure ;
+  - le journal donne, pour chaque run, sa durée, son nombre de requêtes et de reprises.
   - un run resté partiel seulement parce que le serveur a refusé est repris au passage suivant, sans compter comme une tentative (10 passages au plus).
   - Les seuls partiels qui restent sont donc des données réellement absentes chez le producteur. Ils sont notés dans le manifeste.
 - **Couper le PC à tout moment ne casse rien.** Chaque fichier est écrit à part, puis renommé d'un coup ; un run interrompu est refait au passage suivant. Les runs complets sont sautés, donc rien n'est fait en double. La tâche ne lance pas de rattrapage si un autre `powatlas` tourne déjà.

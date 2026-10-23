@@ -56,10 +56,11 @@ def pc_token(env_file: Path) -> str:
     raise SystemExit(f"POWATLAS_GITHUB_TOKEN not set and not found in {env_file}")
 
 
-def make_http(settings: dict, retries: int | None = None) -> HttpClient:
+def make_http(settings: dict, retries: int | None = None, max_backoff: float | None = None) -> HttpClient:
     h = settings["http"]
     return HttpClient(
-        retries=h["retries"] if retries is None else retries, backoff=h["backoff"], max_backoff=h["max_backoff"],
+        retries=h["retries"] if retries is None else retries, backoff=h["backoff"],
+        max_backoff=h["max_backoff"] if max_backoff is None else max_backoff,
         min_interval=h["min_interval"], max_interval=h["max_interval"], timeout=h["timeout"],
     )
 
@@ -192,7 +193,7 @@ def cmd_backfill(args) -> int:
 
     source = sources[args.source]
     end = min(date.fromisoformat(args.end), last_available_day(source, _now(None)))
-    http = make_http(settings, retries=b["retries"])
+    http = make_http(settings, retries=b["retries"], max_backoff=b["max_backoff"])
     r = backfill(source, date.fromisoformat(args.start), end, Path(args.data),
                  http, settings, tuple(b["months"]), b["max_step"], args.max_hours)
     print(f"done {r.done} (partial {r.partial}), skipped {r.skipped}, given up {r.given_up}"
