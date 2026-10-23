@@ -137,7 +137,7 @@ class HttpClient:
                 raise NotFound(f"HTTP 404 for {url}", status=404)
             if r.status_code not in (200, 206):
                 raise HttpError(f"HTTP {r.status_code} for {url}", status=r.status_code)
-            self.interval = max(self.min_interval, self.interval * 0.95)
+            self.interval = max(self.min_interval, self.interval * 0.9)
             content = r.content
             if byte_range is not None:
                 content = self._range_content(url, r.status_code, content, byte_range)

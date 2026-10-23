@@ -55,13 +55,13 @@ class HttpClientTest(unittest.TestCase):
         c, s, clock = client([FakeResponse(503, SLOWDOWN), FakeResponse(200, b"ok")], min_interval=0.2,
                              max_interval=10.0)
         c.get("https://x/y")
-        self.assertAlmostEqual(c.interval, 0.95)  # widened to 1 s by the SlowDown, then relaxed by one success
+        self.assertAlmostEqual(c.interval, 0.9)  # widened to 1 s by the SlowDown, then relaxed by one success
 
     def test_pacing_capped_at_max_interval(self):
         c, s, clock = client([FakeResponse(503)] * 5 + [FakeResponse(200, b"ok")], min_interval=0.2,
                              max_interval=4.0)
         c.get("https://x/y")
-        self.assertAlmostEqual(c.interval, 4.0 * 0.95)
+        self.assertAlmostEqual(c.interval, 4.0 * 0.9)
 
     def test_no_adaptation_without_max_interval(self):
         c, s, clock = client([FakeResponse(503), FakeResponse(200, b"ok")], min_interval=0.2)

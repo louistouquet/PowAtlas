@@ -46,6 +46,8 @@ SOURCES, _, SETTINGS = load_catalogue()
 
 class Throttle:
     exhausted_count = 0  # requests given up after all retries (HttpClient)
+    request_count = 0
+    retry_count = 0
 
 
 class FakeAdapter:
@@ -133,6 +135,17 @@ class BackfillTest(unittest.TestCase):
         again = FakeAdapter()
         r, _ = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data)
         self.assertEqual((again.calls, r.given_up), ([], 1))
+
+    def test_progress_printed_before_and_after_each_unit(self):
+        import contextlib
+        import io
+
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), FakeAdapter())
+        lines = out.getvalue().splitlines()
+        self.assertEqual(lines[0], "ifs-0p25__20250101T00Z: collecting")
+        self.assertEqual(lines[1], "ifs-0p25__20250101T00Z: complete in 0 s, 0 requests, 0 retries")
 
     def test_unreadable_manifest_recollected(self):
         data = Path(tempfile.mkdtemp())

@@ -133,7 +133,11 @@ def backfill(
                                            or previous.get("throttled_passes", 0) >= MAX_THROTTLED_PASSES):
                 result.given_up += 1
             else:
-                exhausted = http.exhausted_count
+                uid = unit_id(unit, "forecast")
+                # Progress for the log of the pilot's PC: a unit can take minutes when AWS throttles.
+                print(f"{uid}: collecting", flush=True)
+                exhausted, requests_before, retries_before, t_unit = (
+                    http.exhausted_count, http.request_count, http.retry_count, clock())
                 m = adapter.collect(unit, restricted, http, target, "backfill", settings)
                 attempts = previous.get("attempts", 1) if previous else 0
                 throttled_passes = previous.get("throttled_passes", 0) if previous else 0
@@ -155,6 +159,7 @@ def backfill(
                     manifest.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
                 result.done += 1
                 result.partial += m.state != "complete"
-                print(f"{unit_id(unit, 'forecast')}: {m.state}" + (f" ({m.notes[0]})" if m.notes else ""))
+                print(f"{uid}: {m.state} in {clock() - t_unit:.0f} s, {http.request_count - requests_before} requests, "
+                      f"{http.retry_count - retries_before} retries" + (f" ({m.notes[0]})" if m.notes else ""), flush=True)
         day += timedelta(days=1)
     return result
