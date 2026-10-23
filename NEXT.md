@@ -7,3 +7,9 @@
 3. **Pilote, début novembre** : suivre [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md) sur `D:\Codage\PowAtlas` (jeton GitHub à grain fin en lecture seule dans `.env`, `sync`, `status`, essai de débit, tâche planifiée Windows), puis coller les sorties dans une session Claude ; ensuite lancer le rattrapage historique (§ 5 du guide).
 4. **Mi-novembre**, après une semaine de cœur sans trou : priorité 2 (plan, tâche 20).
 5. **Fin novembre** : horaires remesurés sur sept jours et figés, clôture de SP1 (plan, tâche 21) ; puis démarrage de SP2.
+
+## Échéances à ne pas oublier
+
+- **Avant le 2026-11-21** : faire tourner `sync` sur le PC au moins une fois ; les artefacts du 2026-10-22 disparaissent de GitHub 30 jours après leur création.
+- **2027-10-22** : le jeton `PowAtlas cron-job` expire ; le renouveler avant ([guide](docs/collecte/declenchement-externe.md#configuration-en-service)). Faire de même pour le jeton `PowAtlas sync` du PC à sa date d'expiration.
+- **2028-03-10** : fin de la version d'API GitHub `2022-11-28` utilisée par cron-job.org ; la changer avant.
