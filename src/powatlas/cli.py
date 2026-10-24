@@ -189,15 +189,30 @@ def cmd_backfill(args) -> int:
     _register_adapters()
     sources, _, settings = load_catalogue()
     b = settings["backfill"]
-    from powatlas.backfill import last_available_day
+    from powatlas.backfill import default_range, last_available_day
 
     source = sources[args.source]
-    end = min(date.fromisoformat(args.end), last_available_day(source, _now(None)))
+    start, end = default_range(source, settings, _now(None))
+    if args.start:
+        start = date.fromisoformat(args.start)
+    if args.end:
+        end = min(date.fromisoformat(args.end), last_available_day(source, _now(None)))
     http = make_http(settings, retries=b["retries"], max_backoff=b["max_backoff"])
-    r = backfill(source, date.fromisoformat(args.start), end, Path(args.data),
+    r = backfill(source, start, end, Path(args.data),
                  http, settings, tuple(b["months"]), b["max_step"], args.max_hours)
     print(f"done {r.done} (partial {r.partial}), skipped {r.skipped}, given up {r.given_up}"
           + (", stopped at --max-hours" if r.stopped else ""))
+    return 0
+
+
+def cmd_progress(args) -> int:
+    from powatlas.backfill import default_range, progress, render_progress
+
+    sources, _, settings = load_catalogue()
+    months = tuple(settings["backfill"]["months"])
+    for sid in settings["backfill"]["start"]:
+        start, end = default_range(sources[sid], settings, _now(None))
+        print(render_progress(sid, progress(sources[sid], start, end, Path(args.data), months)))
     return 0
 
 
@@ -242,11 +257,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("backfill", help="historical 00 UTC runs from AWS into the archive (pilot's PC)")
     p.add_argument("--source", required=True, choices=["ifs-0p25", "aifs-single", "gfs-0p25"])
-    p.add_argument("--from", dest="start", required=True)
-    p.add_argument("--to", dest="end", required=True)
+    p.add_argument("--from", dest="start", help="default: settings.backfill.start of the catalogue")
+    p.add_argument("--to", dest="end", help="default: settings.backfill.end, else the last published day")
     p.add_argument("--data", required=True)
     p.add_argument("--max-hours", type=float, default=None, help="stop cleanly after this many hours")
     p.set_defaults(func=cmd_backfill)
+
+    p = sub.add_parser("progress", help="progress bar of the historical backfill of each source (pilot's PC)")
+    p.add_argument("--data", required=True)
+    p.set_defaults(func=cmd_progress)
 
     p = sub.add_parser("status", help="complete / partial / missing units per source and day")
     p.add_argument("--data", required=True)

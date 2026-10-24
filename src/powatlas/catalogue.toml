@@ -15,6 +15,17 @@ max_step = 78                   # scored windows end at +78 h
 retries = 10                    # AWS throttles a sustained backfill (HTTP 503)
 max_backoff = 60.0              # with retries = 10: about 6 min at most per request, then retried next pass
 
+# Period of the historical backfill of each source (spec section 5, decision 0006). IFS and AIFS stop
+# at the last winter before the daily collection began; GFS (collected on the PC only) has no end.
+[settings.backfill.start]
+aifs-single = 2025-02-26        # first run of the operational aifs-single/0p25/oper/ stream on AWS
+ifs-0p25 = 2024-02-01           # first IFS 0.25 degree date on AWS
+gfs-0p25 = 2021-11-01           # first winter of GFS v16 (atmos/ path)
+
+[settings.backfill.end]
+aifs-single = 2026-04-30
+ifs-0p25 = 2026-04-30
+
 [settings.http]
 retries = 5
 backoff = 2.0          # seconds, doubled at each retry

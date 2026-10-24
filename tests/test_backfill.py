@@ -37,7 +37,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from powatlas import adapters
-from powatlas.backfill import backfill, restrict_to_max_step
+from powatlas.backfill import backfill, default_range, progress, render_progress, restrict_to_max_step
 from powatlas.catalogue import load_catalogue
 from powatlas.writer import Manifest
 
@@ -178,3 +178,46 @@ class BackfillTest(unittest.TestCase):
         fake = FakeAdapter()
         r, _ = self.run_backfill(date(2025, 1, 1), date(2025, 1, 10), fake, max_hours=1.5, clock=lambda: next(ticks))
         self.assertEqual((len(fake.calls), r.stopped), (1, True))
+
+
+class ProgressTest(unittest.TestCase):
+    def manifest(self, data, day, state, attempts=1, throttled=0):
+        target = data / f"forecasts/ifs-0p25/{day:%Y}/{day:%m}"
+        target.mkdir(parents=True, exist_ok=True)
+        (target / f"ifs-0p25_{day:%Y%m%d}T00Z.json").write_text(_json.dumps(
+            {"state": state, "files": [], "attempts": attempts, "throttled_passes": throttled}))
+
+    def test_progress_counts_units_of_the_range(self):
+        data = Path(tempfile.mkdtemp())
+        self.manifest(data, date(2025, 1, 1), "complete")
+        self.manifest(data, date(2025, 1, 2), "partial")
+        self.manifest(data, date(2025, 1, 3), "partial", attempts=3)
+        self.manifest(data, date(2025, 1, 4), "missing", attempts=0, throttled=10)
+        self.manifest(data, date(2025, 5, 1), "complete")  # outside the winter months
+        p = progress(SOURCES["ifs-0p25"], date(2025, 1, 1), date(2025, 1, 5), data, (11, 12, 1, 2, 3, 4))
+        self.assertEqual((p.expected, p.complete, p.incomplete, p.given_up), (5, 1, 1, 2))
+
+    def test_render_progress_bar(self):
+        data = Path(tempfile.mkdtemp())
+        self.manifest(data, date(2025, 1, 1), "complete")
+        p = progress(SOURCES["ifs-0p25"], date(2025, 1, 1), date(2025, 1, 4), data, (1,))
+        self.assertEqual(render_progress("ifs-0p25", p, width=8),
+                         "ifs-0p25     [##------]    1/4     25 %")
+        for d in (2, 3, 4):
+            self.manifest(data, date(2025, 1, d), "complete")
+        p = progress(SOURCES["ifs-0p25"], date(2025, 1, 1), date(2025, 1, 4), data, (1,))
+        self.assertEqual(render_progress("ifs-0p25", p, width=8),
+                         "ifs-0p25     [########]    4/4    100 %  finished")
+
+    def test_given_up_shown(self):
+        data = Path(tempfile.mkdtemp())
+        self.manifest(data, date(2025, 1, 1), "partial", attempts=3)
+        p = progress(SOURCES["ifs-0p25"], date(2025, 1, 1), date(2025, 1, 1), data, (1,))
+        self.assertTrue(render_progress("ifs-0p25", p, width=8).endswith("0 %, 1 given up"))
+
+    def test_default_range_from_catalogue(self):
+        now = datetime(2026, 10, 24, 12, tzinfo=timezone.utc)
+        self.assertEqual(default_range(SOURCES["ifs-0p25"], SETTINGS, now), (date(2024, 2, 1), date(2026, 4, 30)))
+        self.assertEqual(default_range(SOURCES["aifs-single"], SETTINGS, now), (date(2025, 2, 26), date(2026, 4, 30)))
+        # GFS has no end: up to the last published day.
+        self.assertEqual(default_range(SOURCES["gfs-0p25"], SETTINGS, now), (date(2021, 11, 1), date(2026, 10, 24)))
