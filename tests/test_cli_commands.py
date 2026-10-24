@@ -92,6 +92,21 @@ class CliCommandsTest(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 cli.pc_token(self.tmp / "absent.env")
 
+    def test_progress_prints_one_bar_per_backfill_source(self):
+        import contextlib
+        import io
+
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(cli.main(["progress", "--data", tempfile.mkdtemp()]), 0)
+        lines = out.getvalue().splitlines()
+        self.assertEqual([line.split()[0] for line in lines], ["aifs-single", "ifs-0p25", "gfs-0p25"])
+        self.assertTrue(all(" 0 %" in line for line in lines))
+
+    def test_backfill_dates_default_to_catalogue(self):
+        args = cli.build_parser().parse_args(["backfill", "--source", "ifs-0p25", "--data", "d"])
+        self.assertEqual((args.start, args.end), (None, None))
+
     def test_backfill_probe_urls(self):
         from powatlas.cli import probe_urls
         urls = probe_urls("ifs-0p25", "2025-01-10", steps=[0, 24])

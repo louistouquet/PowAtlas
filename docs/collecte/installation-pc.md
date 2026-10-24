@@ -94,7 +94,7 @@ Pour vérifier :
 
 Ce qui est pris : seuls les mois de novembre à avril et les échéances jusqu'à +78 h ([cadrage](../specs/2026-10-22-sp1-archive-design.md), § 5). Cela fait environ 185 Go téléchargés au total, et moins de 1 Go gardé.
 
-Périodes :
+Périodes (catalogue, `settings.backfill`) :
 - AIFS : 2025-02-26 au 2026-04-30 ;
 - IFS : 2024-02-01 au 2026-04-30 ;
 - GFS : depuis le 2021-11-01, sans fin.
@@ -103,17 +103,25 @@ Les essais de débit du 2026-10-23 (4,9 et 5,0 requêtes par seconde) donnent un
 
 **Sans rien faire**, la tâche du § 4 avance chaque jour de 3 h au plus par source. Avec le rythme adaptatif, mesuré le 2026-10-23 à environ 20 s par run AIFS, le rattrapage complet prend quelques jours d'allumage : l'AIFS en moins de 3 h, l'IFS en une dizaine d'heures [estimation], GFS encore à mesurer. Elle ne lance pas de rattrapage si un autre `powatlas` tourne déjà.
 
-**Pour aller plus vite**, lancer à la main une source à la fois, en lignes courtes, depuis `D:\Codage\PowAtlas`. Ne pas le faire pendant que la tâche de midi tourne : deux rattrapages écriraient les mêmes fichiers. `Get-Process powatlas` ne doit alors rien afficher.
+**Pour savoir où on en est**, depuis `D:\Codage\PowAtlas` (la tâche l'écrit aussi à la fin de chaque passage dans `data\pc-daily.log`) :
+
+```powershell
+cd D:\Codage\PowAtlas
+.venv\Scripts\powatlas progress --data data
+```
+
+Une barre par source, par exemple `ifs-0p25     [#########---------------------]  140/452   31 %`, et `finished` au bout de la ligne quand la source est finie ; `given up` signale des runs abandonnés. GFS n'a pas de fin : sa barre retombe un peu sous 100 % à chaque nouveau jour d'hiver, jusqu'au passage suivant.
+
+**Pour aller plus vite**, lancer à la main une source à la fois, en lignes courtes, depuis `D:\Codage\PowAtlas`. Ne pas le faire pendant que la tâche de midi tourne, sinon deux rattrapages écriraient les mêmes fichiers (`Get-Process powatlas` ne doit rien afficher). Les périodes viennent du catalogue :
 
 ```powershell
 cd D:\Codage\PowAtlas
 Set-Alias pa D:\Codage\PowAtlas\.venv\Scripts\powatlas.exe
-pa backfill --source aifs-single --data data --from 2025-02-26 --to 2026-04-30
-pa backfill --source ifs-0p25 --data data --from 2024-02-01 --to 2026-04-30
-pa backfill --source gfs-0p25 --data data --from 2021-11-01 --to 2099-12-31
+pa backfill --source ifs-0p25 --data data
+pa backfill --source gfs-0p25 --data data
 ```
 
-Chaque commande affiche à la fin `done N (partial P), skipped S, given up G`. Elle a fini quand une relance affiche `done 0`. `--max-hours 3` ajouté en fin de ligne l'arrête proprement au bout de 3 h.
+Chaque commande se termine par une ligne `done N (partial P), skipped S, given up G`. `--max-hours 3` ajouté en fin de ligne l'arrête proprement au bout de 3 h.
 
 ## 6. Si la collecte s'arrête
 

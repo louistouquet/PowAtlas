@@ -163,3 +163,55 @@ def backfill(
                       f"{http.retry_count - retries_before} retries" + (f" ({m.notes[0]})" if m.notes else ""), flush=True)
         day += timedelta(days=1)
     return result
+
+
+def default_range(source: Source, settings: dict, now: datetime) -> tuple[date, date]:
+    """Backfill period of ``source`` from the catalogue; no end means the last published day."""
+    b = settings["backfill"]
+    last = last_available_day(source, now)
+    end = b.get("end", {}).get(source.id)
+    return b["start"][source.id], last if end is None else min(end, last)
+
+
+@dataclass(frozen=True)
+class Progress:
+    expected: int  # 00 UTC runs of the selected months in the period
+    complete: int
+    incomplete: int  # partial or missing, still retried
+    given_up: int  # partial or missing, no longer retried
+
+
+def progress(source: Source, start: date, end: date, data_dir: Path, months: tuple[int, ...]) -> Progress:
+    """Count the backfill units of ``source`` already in the archive (manifest states, no checksum)."""
+    expected = complete = incomplete = given_up = 0
+    day = start
+    while day <= end:
+        if day.month in months:
+            expected += 1
+            path = (Path(data_dir) / "forecasts" / source.id / f"{day:%Y}" / f"{day:%m}"
+                    / f"{source.id}_{day:%Y%m%d}T00Z.json")
+            try:
+                m = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                m = None
+            if m is not None and m.get("state") == "complete":
+                complete += 1
+            elif m is not None and (int(m.get("attempts", 1)) >= MAX_ATTEMPTS
+                                    or int(m.get("throttled_passes", 0)) >= MAX_THROTTLED_PASSES):
+                given_up += 1
+            elif m is not None:
+                incomplete += 1
+        day += timedelta(days=1)
+    return Progress(expected, complete, incomplete, given_up)
+
+
+def render_progress(source_id: str, p: Progress, width: int = 30) -> str:
+    """One text line: ``source [#####-----] done/expected percent``."""
+    share = p.complete / p.expected if p.expected else 1.0
+    filled = round(width * share)
+    line = f"{source_id:<12} [{'#' * filled}{'-' * (width - filled)}] {p.complete:>4}/{p.expected:<4} {100 * share:>3.0f} %"
+    if p.given_up:
+        line += f", {p.given_up} given up"
+    if p.complete == p.expected:
+        line += "  finished"
+    return line

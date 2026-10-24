@@ -35,16 +35,12 @@ if (Get-Process -Name powatlas -ErrorAction SilentlyContinue) {
     exit 0
 }
 
-# IFS and AIFS stop at the last winter before the daily collection began
-# (2026-04-30); GFS runs up to the last published day (later dates are ignored).
-$slices = @(
-    @('aifs-single', '2025-02-26', '2026-04-30'),
-    @('ifs-0p25', '2024-02-01', '2026-04-30'),
-    @('gfs-0p25', '2021-11-01', '2099-12-31')
-)
-foreach ($s in $slices) {
-    Write-Log "=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') backfill $($s[0])"
-    & $pa backfill --source $s[0] --from $s[1] --to $s[2] --data $data --max-hours 3 2>&1 |
-        ForEach-Object { Write-Log "$_" }
-    Write-Log "backfill $($s[0]) exit code $LASTEXITCODE"
+# Periods come from the catalogue (settings.backfill): IFS and AIFS stop at the
+# last winter before the daily collection began, GFS runs up to the last published day.
+foreach ($source in @('aifs-single', 'ifs-0p25', 'gfs-0p25')) {
+    Write-Log "=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') backfill $source"
+    & $pa backfill --source $source --data $data --max-hours 3 2>&1 | ForEach-Object { Write-Log "$_" }
+    Write-Log "backfill $source exit code $LASTEXITCODE"
 }
+Write-Log "=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') progress"
+& $pa progress --data $data 2>&1 | ForEach-Object { Write-Log "$_" }
