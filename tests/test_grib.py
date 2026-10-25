@@ -83,6 +83,31 @@ class ChecksTest(unittest.TestCase):
         with self.assertRaises(GridMismatch):
             check_grid(f, GridSpec(ni=11, nj=6, lat_first=47.0, lon_first=4.0, di=0.25, dj=1.0))
 
+    def test_shorter_grid_accepted_when_it_covers_the_domain(self):
+        # IFS 0.25 deg on AWS, 2024-02-01 and 02: 1439 columns instead of 1440, same origin and step.
+        (f,) = iter_fields(make_message(ni=10))  # lon 4.0 to 8.5 instead of 9.0
+        spec = GridSpec(ni=11, nj=6, lat_first=47.0, lon_first=4.0, di=0.5, dj=1.0)
+        with self.assertRaises(GridMismatch):
+            check_grid(f, spec)
+        check_grid(f, spec, bbox=BBox(5.0, 43.5, 7.9, 46.5), margin_cells=1)
+        # Conservative: bbox east plus 2 cells (8.9) is beyond the last column (8.5), so rejected,
+        # even though the crop itself would stop at a grid point; a false rejection, never a false acceptance.
+        with self.assertRaises(GridMismatch):
+            check_grid(f, spec, bbox=BBox(5.0, 43.5, 7.9, 46.5), margin_cells=2)
+        (g,) = iter_fields(make_message(ni=10, di=0.25))  # another step is never accepted
+        with self.assertRaises(GridMismatch):
+            check_grid(g, spec, bbox=BBox(5.0, 43.5, 7.9, 46.5), margin_cells=0)
+
+    def test_shorter_grid_crops_like_the_full_grid(self):
+        full = np.arange(66, dtype=float).reshape(6, 11)
+        (f_full,) = iter_fields(make_message(ni=11, values=full))
+        (f_short,) = iter_fields(make_message(ni=10, values=full[:, :10]))  # last column dropped
+        bbox = BBox(5.0, 43.5, 7.9, 46.5)
+        a, b = crop_field(f_full, bbox, 1), crop_field(f_short, bbox, 1)
+        np.testing.assert_array_equal(a.lats, b.lats)
+        np.testing.assert_array_equal(a.lons, b.lons)
+        np.testing.assert_array_equal(a.values, b.values)
+
     def test_check_ref_time_rejects_previous_day(self):
         (f,) = iter_fields(make_message(date=20261031))
         with self.assertRaises(RefTimeMismatch):
