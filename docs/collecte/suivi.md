@@ -53,7 +53,7 @@ D'après `window_days` du [catalogue](../../src/powatlas/catalogue.toml) et les 
 | IFS 0,25°, AIFS | 2 jours (portail) | copie AWS sur des années : rattrapage manuel par le PC (`backfill --source <source> --data data --from <date> --to <date>`), car le rattrapage automatique s'arrête au 2026-04-30 |
 | GFS 0,25° (PC seulement) | sans objet : rattrapage automatique par la tâche du PC | copie AWS sur des années |
 | SLF | chaque copie couvre 7 jours | perdu au-delà de 7 jours |
-| Arpa Piemonte | chaque copie couvre 7 jours | API historique `meteoidro` (journalière, depuis 1983) |
+| Arpa Piemonte | chaque copie couvre 7 jours | API historique `meteoidro` (journalière, depuis 1983), une fois la table à jour (`fetch_latest`) ; délai de mise à jour en saison inconnu |
 | Météo-France nivo-météo et base quotidienne | fichiers cumulés de l'année ou de la saison | perdu seulement pour les corrections ultérieures |
 
 ## 5. Constats en cours
@@ -62,6 +62,11 @@ D'après `window_days` du [catalogue](../../src/powatlas/catalogue.toml) et les 
   - Les unités d'observations ne sont pas retentées les jours suivants (`window_days = 0`) : celles du 24 et du 25 restent `missing`, et l'alerte ne s'efface pas seule.
   - Si le serveur revient avant le 2026-10-31, la première copie réussie contiendra quand même les valeurs de ces jours (fenêtre de 7 jours de la réponse). Le noter dans la fiche, dans `STATUS.md` et dans l'issue 50, puis fermer l'issue.
   - Sinon, il faudra rattraper ces valeurs par l'API historique `meteoidro`, une tâche à écrire. Deux réserves :
-    - `meteoidro` est sur le même hôte (`utility.arpa.piemonte.it`) : il est en panne lui aussi ;
-    - sa table journalière avait plusieurs mois de retard (dernier jour 2026-06-30, lu le 2026-10-21 ; [fiche](../sources/arpa-piemonte.md)). Le rattrapage attendra donc qu'elle couvre fin octobre ; vérifier avec `dati_giornalieri_nivo_latest_date/fetch_latest/`.
-  - **Contrôle du 2026-10-25 à 14:50 UTC** : connexion coupée par le serveur (`Connection reset by peer`) sur `utility` et `www` depuis la session Claude ; HTTP 503 sur `www.arpa.piemonte.it` depuis l'outil de lecture web, un autre réseau. Le serveur répond donc, en erreur : panne chez le producteur, rien à corriger chez nous. Aucune annonce de panne trouvée par recherche web.
+    - `meteoidro` est sur le même hôte (`utility.arpa.piemonte.it`) : il est sans doute touché aussi [hypothèse] ;
+    - le rattrapage n'est possible qu'une fois la table journalière à jour au-delà des jours manquants. Au 2026-10-21, son dernier jour était le 2026-06-30, hors saison ; son délai de mise à jour en saison est inconnu ([fiche](../sources/arpa-piemonte.md)). À vérifier avec `https://utility.arpa.piemonte.it/meteoidro/dati_giornalieri_nivo_latest_date/fetch_latest/` (chemin à confirmer sur `/schema/`). L'issue 50 reste ouverte jusqu'au rattrapage.
+  - **Contrôle du 2026-10-25** [vérifié] :
+    - GitHub Actions, observations du 2026-10-24 à 19:52 UTC : `ConnectTimeout` sur `api_realtime/pie_neve` et `pie_anag` (aucune réponse TCP en 60 s, 6 essais) ;
+    - session Claude, 14:50 UTC : aucune réponse TLS en 8 s de `utility` ni de `www`. Le `Connection reset by peer` vient du proxy de la session (`recentRelayFailures` de `$HTTPS_PROXY/__agentproxy/status`), pas d'Arpa ;
+    - outil de lecture web, 14:50 UTC : HTTP 503 sans corps sur `www.arpa.piemonte.it`, d'origine non attribuable ;
+    - aucune annonce de panne trouvée par recherche web.
+  - Cause : panne chez le producteur probable [hypothèse]. Les trois points de mesure sont des réseaux de centres de données : un filtrage de ces adresses par Arpa n'est pas exclu. Si le serveur ne revient pas, demander au pilote d'ouvrir `https://utility.arpa.piemonte.it/api_realtime/pie_anag` depuis son PC pour trancher. Rien à corriger dans l'adaptateur tant que la cause n'est pas chez nous.
