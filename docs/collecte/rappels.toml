@@ -25,6 +25,11 @@ what = "Changer l'en-tête `X-GitHub-Api-Version: 2022-11-28` de la tâche cron-
 due = 2028-03-10
 warn_days = 60
 
+[[deadline]]
+what = "Arpa Piemonte injoignable depuis le 2026-10-24 (unités missing, issue 50) : les unités du 24 et du 25 restent missing (pas de nouvel essai) ; si aucune copie complète d'Arpa n'arrive avant le 2026-10-31 (fenêtre de 7 jours), rattraper ces valeurs par l'API historique meteoidro (docs/collecte/suivi.md, § 5), puis fermer l'issue 50"
+due = 2026-10-30
+warn_days = 6
+
 [[waiting]]
-what = "Rattrapage automatique en cours (au 2026-10-24 : AIFS 189/245, IFS 64/452, GFS 69/906 ; fin prévue en environ 4 jours d'allumage) : demander la sortie de `.venv\\Scripts\\powatlas progress --data data` (depuis D:\\Codage\\PowAtlas) ; retirer cette entrée quand les trois sources affichent `finished`, puis demander une fois `status` pour contrôle"
-since = 2026-10-24
+what = "Rattrapage automatique en cours (au 2026-10-25 : AIFS fini 245/245, IFS 184/452 plus les 2 runs du 2024-02-01 et 02 retentés après la PR 52, GFS 179/906) : demander la sortie de `.venv\\Scripts\\powatlas progress --data data` (depuis D:\\Codage\\PowAtlas) ; retirer cette entrée quand les trois sources affichent `finished`, puis demander une fois `status` pour contrôle"
+since = 2026-10-25
