@@ -68,14 +68,14 @@ class FakeAdapter:
 
 
 class BackfillTest(unittest.TestCase):
-    def run_backfill(self, start, end, fake, data=None, max_hours=None, clock=None):
+    def run_backfill(self, start, end, fake, data=None, max_hours=None, clock=None, retry_given_up=False):
         data = data or Path(tempfile.mkdtemp())
         old = dict(adapters.ADAPTERS)
         adapters.ADAPTERS["ecmwf"] = fake
         try:
             r = backfill(SOURCES["ifs-0p25"], start, end, data, http=Throttle(), settings=SETTINGS,
                          months=(11, 12, 1, 2, 3, 4), max_step=78, max_hours=max_hours,
-                         clock=clock or (lambda: 0.0))
+                         clock=clock or (lambda: 0.0), retry_given_up=retry_given_up)
         finally:
             adapters.ADAPTERS.clear()
             adapters.ADAPTERS.update(old)
@@ -115,6 +115,16 @@ class BackfillTest(unittest.TestCase):
         again = FakeAdapter()
         r, _ = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data)
         self.assertEqual((again.calls, r.given_up), ([], 1))
+
+    def test_given_up_unit_retried_on_request(self):
+        data = None
+        for _ in range(3):
+            _, data = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), FakeAdapter("partial"), data=data)
+        again = FakeAdapter()
+        r, _ = self.run_backfill(date(2025, 1, 1), date(2025, 1, 1), again, data=data, retry_given_up=True)
+        self.assertEqual((len(again.calls), r.given_up, r.done), (1, 0, 1))
+        m = _json.loads((data / "forecasts/ifs-0p25/2025/01/ifs-0p25_20250101T00Z.json").read_text())
+        self.assertEqual(m["attempts"], 1)  # a fresh count: complete now
 
     def test_throttled_partial_not_counted_as_attempt(self):
         data = None
@@ -209,11 +219,17 @@ class ProgressTest(unittest.TestCase):
         self.assertEqual(render_progress("ifs-0p25", p, width=8),
                          "ifs-0p25     [########]    4/4    100 %  finished")
 
-    def test_given_up_shown(self):
+    def test_given_up_shown_with_reason(self):
         data = Path(tempfile.mkdtemp())
         self.manifest(data, date(2025, 1, 1), "partial", attempts=3)
+        path = data / "forecasts/ifs-0p25/2025/01/ifs-0p25_20250101T00Z.json"
+        m = _json.loads(path.read_text())
+        m.update(unit="ifs-0p25__20250101T00Z", missing=["tp@48"], notes=["step 48: no index", "given up after 3"])
+        path.write_text(_json.dumps(m))
         p = progress(SOURCES["ifs-0p25"], date(2025, 1, 1), date(2025, 1, 1), data, (1,))
-        self.assertTrue(render_progress("ifs-0p25", p, width=8).endswith("0 %, 1 given up"))
+        lines = render_progress("ifs-0p25", p, width=8).splitlines()
+        self.assertTrue(lines[0].endswith("0 %, 1 given up"))
+        self.assertEqual(lines[1], "  given up: ifs-0p25__20250101T00Z, 1 missing (step 48: no index)")
 
     def test_default_range_from_catalogue(self):
         now = datetime(2026, 10, 24, 12, tzinfo=timezone.utc)

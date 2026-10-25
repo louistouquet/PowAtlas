@@ -199,7 +199,8 @@ def cmd_backfill(args) -> int:
         end = min(date.fromisoformat(args.end), last_available_day(source, _now(None)))
     http = make_http(settings, retries=b["retries"], max_backoff=b["max_backoff"])
     r = backfill(source, start, end, Path(args.data),
-                 http, settings, tuple(b["months"]), b["max_step"], args.max_hours)
+                 http, settings, tuple(b["months"]), b["max_step"], args.max_hours,
+                 retry_given_up=args.retry_given_up)
     print(f"done {r.done} (partial {r.partial}), skipped {r.skipped}, given up {r.given_up}"
           + (", stopped at --max-hours" if r.stopped else ""))
     return 0
@@ -261,6 +262,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--to", dest="end", help="default: settings.backfill.end, else the last published day")
     p.add_argument("--data", required=True)
     p.add_argument("--max-hours", type=float, default=None, help="stop cleanly after this many hours")
+    p.add_argument("--retry-given-up", action="store_true", help="collect given-up units again, counts reset")
     p.set_defaults(func=cmd_backfill)
 
     p = sub.add_parser("progress", help="progress bar of the historical backfill of each source (pilot's PC)")

@@ -106,6 +106,7 @@ def backfill(
     max_step: int,
     max_hours: float | None,
     clock: Callable[[], float] = time.monotonic,
+    retry_given_up: bool = False,
 ) -> BackfillResult:
     """Collect the 00 UTC runs of ``source`` from ``start`` to ``end`` (selected months) into the archive.
 
@@ -127,6 +128,8 @@ def backfill(
             target = Path(data_dir) / "forecasts" / source.id / f"{ref:%Y}" / f"{ref:%m}"
             manifest = target / f"{source.id}_{ref:%Y%m%dT%HZ}.json"
             previous = _existing(manifest) if manifest.exists() else None
+            if retry_given_up and previous is not None and previous["state"] != "complete":
+                previous = {**previous, "attempts": 0, "throttled_passes": 0}  # counts start afresh
             if previous is not None and previous["state"] == "complete":
                 result.skipped += 1
             elif previous is not None and (previous.get("attempts", 1) >= MAX_ATTEMPTS
@@ -179,11 +182,13 @@ class Progress:
     complete: int
     incomplete: int  # partial or missing, still retried
     given_up: int  # partial or missing, no longer retried
+    given_up_units: tuple = ()  # (unit id, missing pairs, first note) of each given-up unit
 
 
 def progress(source: Source, start: date, end: date, data_dir: Path, months: tuple[int, ...]) -> Progress:
     """Count the backfill units of ``source`` already in the archive (manifest states, no checksum)."""
     expected = complete = incomplete = given_up = 0
+    details = []
     day = start
     while day <= end:
         if day.month in months:
@@ -199,10 +204,12 @@ def progress(source: Source, start: date, end: date, data_dir: Path, months: tup
             elif m is not None and (int(m.get("attempts", 1)) >= MAX_ATTEMPTS
                                     or int(m.get("throttled_passes", 0)) >= MAX_THROTTLED_PASSES):
                 given_up += 1
+                notes = [n for n in m.get("notes", []) if not n.startswith("given up")]
+                details.append((m.get("unit", path.stem), len(m.get("missing", [])), notes[0] if notes else ""))
             elif m is not None:
                 incomplete += 1
         day += timedelta(days=1)
-    return Progress(expected, complete, incomplete, given_up)
+    return Progress(expected, complete, incomplete, given_up, tuple(details))
 
 
 def render_progress(source_id: str, p: Progress, width: int = 30) -> str:
@@ -214,4 +221,6 @@ def render_progress(source_id: str, p: Progress, width: int = 30) -> str:
         line += f", {p.given_up} given up"
     if p.complete == p.expected:
         line += "  finished"
+    for unit, missing, note in p.given_up_units:
+        line += f"\n  given up: {unit}, {missing} missing" + (f" ({note})" if note else "")
     return line

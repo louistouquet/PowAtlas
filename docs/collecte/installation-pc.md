@@ -110,7 +110,7 @@ cd D:\Codage\PowAtlas
 .venv\Scripts\powatlas progress --data data
 ```
 
-Une barre par source, par exemple `ifs-0p25     [#########---------------------]  140/452   31 %`, et `finished` au bout de la ligne quand la source est finie ; `given up` signale des runs abandonnés. GFS n'a pas de fin : sa barre retombe un peu sous 100 % à chaque nouveau jour d'hiver, jusqu'au passage suivant.
+Une barre par source, par exemple `ifs-0p25     [#########---------------------]  140/452   31 %`, et `finished` au bout de la ligne quand la source est finie. `given up` signale des runs abandonnés : chacun est listé sous la barre, avec le nombre de champs manquants et la première raison notée. Pour les retenter, lancer `.venv\Scripts\powatlas backfill --source ifs-0p25 --data data --retry-given-up`, en adaptant la source ; leurs compteurs repartent alors de zéro. GFS n'a pas de fin : sa barre retombe un peu sous 100 % à chaque nouveau jour d'hiver, jusqu'au passage suivant.
 
 **Pour aller plus vite**, lancer à la main une source à la fois, en lignes courtes, depuis `D:\Codage\PowAtlas`. Ne pas le faire pendant que la tâche de midi tourne, sinon deux rattrapages écriraient les mêmes fichiers (`Get-Process powatlas` ne doit rien afficher). Les périodes viennent du catalogue :
 
