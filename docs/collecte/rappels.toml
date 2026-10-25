@@ -31,5 +31,5 @@ due = 2026-10-30
 warn_days = 6
 
 [[waiting]]
-what = "Rattrapage automatique en cours (au 2026-10-25 à 15 h UTC : AIFS fini 245/245, IFS 186/452 dont les 2 runs du 2024-02-01 et 02 repris après la PR 52, aucun abandon affiché, GFS 179/906) : demander la sortie de `.venv\\Scripts\\powatlas progress --data data` (depuis D:\\Codage\\PowAtlas) ; retirer cette entrée quand les trois sources affichent `finished`, puis demander une fois `status` pour contrôle"
+what = "Rattrapage automatique en cours (au 2026-10-25 à 15 h UTC : AIFS fini 245/245, IFS 186/452, aucun abandon affiché (les 2 runs du 2024-02-01 et 02 abandonnés avant la PR 52 ne le sont plus), GFS 179/906) : demander la sortie de `.venv\\Scripts\\powatlas progress --data data` (depuis D:\\Codage\\PowAtlas) ; retirer cette entrée quand les trois sources affichent `finished`, puis demander une fois `status` pour contrôle"
 since = 2026-10-25
