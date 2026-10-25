@@ -168,7 +168,14 @@ def crop_field(field: Field, bbox: BBox, margin_cells: int) -> Field:
     )
 
 
-def check_grid(field: Field, spec: GridSpec) -> None:
+def check_grid(field: Field, spec: GridSpec, bbox: BBox | None = None, margin_cells: int = 0) -> None:
+    """Raise GridMismatch unless the field grid is the catalogue grid.
+
+    With ``bbox``, a grid with the same origin and increments but fewer points is
+    accepted when it still holds every point of the crop window (bbox plus margin,
+    clipped to the catalogue grid): the cropped field is then identical. Seen on
+    the IFS 0.25 degree runs of 2024-02-01 and 02 on AWS (1439 columns, not 1440).
+    """
     k = field.keys
     actual = (
         k["Ni"],
@@ -179,11 +186,30 @@ def check_grid(field: Field, spec: GridSpec) -> None:
         k["jDirectionIncrementInDegrees"],
     )
     expected = (spec.ni, spec.nj, spec.lat_first, float(normalize_lon(spec.lon_first)), spec.di, spec.dj)
-    same = actual[:2] == expected[:2] and all(
-        abs(a - e) <= GRID_TOLERANCE_DEG for a, e in zip(actual[2:], expected[2:])
-    )
-    if not same:
-        raise GridMismatch(f"{field.short_name}: grid {actual} differs from catalogue {expected}")
+    same_frame = all(abs(a - e) <= GRID_TOLERANCE_DEG for a, e in zip(actual[2:], expected[2:]))
+    if same_frame and actual[:2] == expected[:2]:
+        return
+    if same_frame and bbox is not None and _covers(actual, expected, bbox, margin_cells, k.get("jScansPositively", 0)):
+        return
+    raise GridMismatch(f"{field.short_name}: grid {actual} differs from catalogue {expected}")
+
+
+def _covers(actual, expected, bbox, margin_cells: int, j_positive: int) -> bool:
+    ni, nj, lat0, lon0, di, dj = actual
+    exp_ni, exp_nj = expected[:2]
+    tol = GRID_TOLERANCE_DEG
+    # Longitudes run eastwards from lon0 in both grids.
+    need_w = max(bbox.west - margin_cells * di, lon0)
+    need_e = min(bbox.east + margin_cells * di, lon0 + (exp_ni - 1) * di)
+    lon_ok = lon0 <= need_w + tol and lon0 + (ni - 1) * di >= need_e - tol
+    sign = 1 if j_positive else -1  # latitudes run northwards (1) or southwards (0) from lat0
+    lat_end, exp_lat_end = lat0 + sign * (nj - 1) * dj, lat0 + sign * (exp_nj - 1) * dj
+    lo_exp, hi_exp = sorted((lat0, exp_lat_end))
+    need_s = max(bbox.south - margin_cells * dj, lo_exp)
+    need_n = min(bbox.north + margin_cells * dj, hi_exp)
+    lo, hi = sorted((lat0, lat_end))
+    lat_ok = lo <= need_s + tol and hi >= need_n - tol
+    return lon_ok and lat_ok
 
 
 def check_ref_time(field: Field, expected: datetime) -> None:

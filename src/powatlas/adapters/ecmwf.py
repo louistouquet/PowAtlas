@@ -147,7 +147,7 @@ class EcmwfAdapter:
                     notes.append(f"stale message skipped: {exc}")
                     stale_count += 1
                     continue
-                check_grid(f, source.grid)
+                check_grid(f, source.grid, bbox, settings["margin_cells"])
                 fields[(var, step)] = crop_field(f, bbox, settings["margin_cells"])
             rejected = in_range > 0 and stale_count == in_range
             fetched.append(Fetched(f"{url}.grib2#bytes={first}-{last}", r.last_modified, len(r.content), rejected=rejected))

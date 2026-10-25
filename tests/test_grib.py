@@ -83,6 +83,19 @@ class ChecksTest(unittest.TestCase):
         with self.assertRaises(GridMismatch):
             check_grid(f, GridSpec(ni=11, nj=6, lat_first=47.0, lon_first=4.0, di=0.25, dj=1.0))
 
+    def test_shorter_grid_accepted_when_it_covers_the_domain(self):
+        # IFS 0.25 deg on AWS, 2024-02-01 and 02: 1439 columns instead of 1440, same origin and step.
+        (f,) = iter_fields(make_message(ni=10))  # lon 4.0 to 8.5 instead of 9.0
+        spec = GridSpec(ni=11, nj=6, lat_first=47.0, lon_first=4.0, di=0.5, dj=1.0)
+        with self.assertRaises(GridMismatch):
+            check_grid(f, spec)
+        check_grid(f, spec, bbox=BBox(5.0, 43.5, 7.9, 46.5), margin_cells=1)
+        with self.assertRaises(GridMismatch):  # the crop window would need lon 8.9
+            check_grid(f, spec, bbox=BBox(5.0, 43.5, 7.9, 46.5), margin_cells=2)
+        (g,) = iter_fields(make_message(ni=10, di=0.25))  # another step is never accepted
+        with self.assertRaises(GridMismatch):
+            check_grid(g, spec, bbox=BBox(5.0, 43.5, 7.9, 46.5), margin_cells=0)
+
     def test_check_ref_time_rejects_previous_day(self):
         (f,) = iter_fields(make_message(date=20261031))
         with self.assertRaises(RefTimeMismatch):
