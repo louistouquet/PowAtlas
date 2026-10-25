@@ -1,10 +1,12 @@
 #!/bin/bash
 # SessionStart hook for Claude Code cloud sessions: installs the Python
 # environment (.venv, Python 3.12) so that tests run, and prints the pilot's
-# reminders (docs/collecte/rappels.toml) in every session. Idempotent.
+# reminders (docs/collecte/rappels.toml) and the health of the daily collection
+# (scripts/health.py) in every session. Idempotent.
 set -euo pipefail
 
 python3 "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/..}/scripts/reminders.py" || echo "PowAtlas reminders: could not be read"
+python3 "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/..}/scripts/health.py" || echo "PowAtlas collection health: could not be checked"
 
 if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0

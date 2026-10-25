@@ -1,6 +1,6 @@
 # État du projet
 
-*Mis à jour le 2026-10-22.*
+*Mis à jour le 2026-10-25.*
 
 **La collecte quotidienne de SP1 tourne sur GitHub Actions depuis le 2026-10-22** : prévisions du cœur de score (run 00 UTC de ICON-D2, ICON-EU, AROME 0,025°, ARPEGE 0,1°, IFS 0,25°, AIFS Single) et observations qui ne restent que quelques jours en ligne. Aucune prévision ni aucun score n'est encore produit (SP2, SP3). L'archive de référence sur le PC du pilote n'existe pas encore : son installation est décrite dans [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md).
 
@@ -17,6 +17,7 @@
 | ARPEGE 0,1° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 1,2 à 1,3 Mo par run |
 | IFS 0,25°, AIFS Single | collectés | runs 00 UTC du 2026-10-20 au 2026-10-22 : 0,9 à 1,1 Mo (IFS), 0,3 à 0,4 Mo (AIFS) |
 | Observations : SLF (routes par station sur 7 jours), Arpa Piemonte, nivo-météo, base quotidienne Météo-France | collectées | copie du 2026-10-22 : 0,84 Mo, 22 Ko, 0,32 Mo, 1,9 Mo |
+| Suivi (bilan de santé et rappels au début de chaque session, `powatlas progress` sur le PC) | en service depuis le 2026-10-25 | procédure : [`docs/collecte/suivi.md`](docs/collecte/suivi.md) |
 | `powatlas sync`, `status`, `backfill`, `backfill-probe` (PC du pilote) | écrits et testés | essais réels : rattrapage AIFS du 2025-12-01 et GFS de 2021 et 2026 `complete` ; sur le PC du pilote (Windows, Python 3.14) depuis le 2026-10-23 : premier `sync` de 38 artefacts, `status` complet les 22 et 23 octobre, tâche planifiée quotidienne créée sans droits d'administrateur, essais de débit IFS et AIFS à 4,9 et 5,0 requêtes par seconde sans `SlowDown` ; rattrapage AIFS lancé à la main le 2026-10-23 (environ 47 s par run, HTTP 503 du bucket) ; depuis la [décision 0006](docs/decisions/0006-rattrapage-sur-le-pc-automatique.md), rattrapage automatique par la tâche quotidienne, rythme qui ralentit sur 503 et partiels dus au serveur repris |
 
 ## Pas encore fait
