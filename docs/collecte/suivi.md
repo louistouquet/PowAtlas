@@ -51,6 +51,7 @@ D'après `window_days` du [catalogue](../../src/powatlas/catalogue.toml) et les 
 | ICON-D2, ICON-EU | le jour même (run conservé 24 h chez DWD) | perdu |
 | AROME 0,025°, ARPEGE 0,1° | 7 jours | perdu |
 | IFS 0,25°, AIFS | 2 jours (portail) | copie AWS sur des années : rattrapage manuel par le PC (`backfill --source <source> --data data --from <date> --to <date>`), car le rattrapage automatique s'arrête au 2026-04-30 |
+| GFS 0,25° (PC seulement) | sans objet : rattrapage automatique par la tâche du PC | copie AWS sur des années |
 | SLF | chaque copie couvre 7 jours | perdu au-delà de 7 jours |
 | Arpa Piemonte | chaque copie couvre 7 jours | API historique `meteoidro` (journalière, depuis 1983) |
 | Météo-France nivo-météo et base quotidienne | fichiers cumulés de l'année ou de la saison | perdu seulement pour les corrections ultérieures |
@@ -58,5 +59,6 @@ D'après `window_days` du [catalogue](../../src/powatlas/catalogue.toml) et les 
 ## 5. Constats en cours
 
 - **Arpa Piemonte, depuis le 2026-10-24 vers 10 h UTC** : `utility.arpa.piemonte.it` et `www.arpa.piemonte.it` ne répondent plus, que ce soit depuis GitHub Actions ou depuis la session Claude (connexion expirée, constaté le 2026-10-25 à 11:22 UTC). Les unités du 24 et du 25 sont `missing` ([issue 50](https://github.com/louistouquet/PowAtlas/issues/50)).
-  - Si le serveur revient avant le 2026-10-31, la première copie réussie couvre ces jours.
-  - Sinon, il faudra les rattraper par l'API historique `meteoidro`, une tâche à écrire.
+  - Les unités d'observations ne sont pas retentées les jours suivants (`window_days = 0`) : celles du 24 et du 25 restent `missing`, et l'alerte ne s'efface pas seule.
+  - Si le serveur revient avant le 2026-10-31, la première copie réussie contiendra quand même les valeurs de ces jours (fenêtre de 7 jours de la réponse). Le noter dans la fiche, dans `STATUS.md` et dans l'issue 50, puis fermer l'issue.
+  - Sinon, il faudra rattraper ces valeurs par l'API historique `meteoidro`, une tâche à écrire.

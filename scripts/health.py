@@ -52,7 +52,7 @@ def health(runs: list[dict], artifacts: list[dict], issues: list[dict], now: dat
         if unit not in best or _RANK[parts[2]] > _RANK[best[unit]]:
             best[unit] = parts[2]
     for unit in sorted(u for u, s in best.items() if s != "complete"):
-        lines.append(f"unit not complete (retried while within its window): {unit} ({best[unit]})")
+        lines.append(f"unit not complete (retried only within its window_days; check the issue): {unit} ({best[unit]})")
     for i in issues:
         lines.append(f"open issue {i['number']}: {i['title']} ({i['html_url']})")
     return lines
@@ -76,7 +76,7 @@ def main() -> int:
     try:
         runs = _get("/actions/workflows/collect.yml/runs?per_page=100")["workflow_runs"]
         artifacts = []
-        for page in (1, 2, 3):
+        for page in (1, 2):  # about 30 artifacts a day: 3 days fit in 2 pages
             artifacts += _get(f"/actions/artifacts?per_page=100&page={page}")["artifacts"]
         issues = [i for i in _get("/issues?labels=collecte&state=open") if "pull_request" not in i]
     except Exception as exc:  # the hook must never fail

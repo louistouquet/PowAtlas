@@ -39,7 +39,7 @@ class HealthTest(unittest.TestCase):
         arts = [art("arpa-piemonte__20261024__missing"), art("arpa-piemonte__20261024__missing"),
                 art("icon-d2__20261025T00Z__partial"), art("icon-d2__20261025T00Z__complete")]
         lines = health.health([run("2026-10-25T11:17:10Z")], arts, [], NOW)
-        self.assertEqual(lines, ["unit not complete (retried while within its window): "
+        self.assertEqual(lines, ["unit not complete (retried only within its window_days; check the issue): "
                                  "arpa-piemonte__20261024 (missing)"])
 
     def test_open_collecte_issues_listed(self):
