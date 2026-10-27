@@ -33,4 +33,4 @@ Une décision n'est jamais effacée : si elle change, une nouvelle décision la 
 | [0004](0004-calcul-et-hebergements-gratuits.md) | Calcul d'entraînement et hébergements : le meilleur du gratuit | 2026-10-22 | acceptée |
 | [0005](0005-collecte-hybride-actions-et-pc.md) | Collecte hybride : GitHub Actions collecte, le PC du pilote archive | 2026-10-22 | acceptée |
 | [0006](0006-rattrapage-sur-le-pc-automatique.md) | Rattrapage historique sur le PC, automatique et sans partiels dus au serveur | 2026-10-23 | acceptée |
-
+| [0007](0007-hugging-face-au-centre-github-d-abord.md) | SP2 : GitHub d'abord, Hugging Face au centre (organisation `PowAtlas`, jeux `archive` et `scores`) | 2026-10-27 | acceptée |

@@ -1,13 +1,13 @@
 # Hugging Face : mise en place par le pilote
 
-Guide du 2026-10-27. Architecture retenue par le pilote le 2026-10-27 pour SP2 et la suite du projet : Hugging Face au centre ([`NEXT.md`](../../NEXT.md), cadrage SP2 à venir).
+Guide du 2026-10-27. Architecture retenue par le pilote le 2026-10-27 pour SP2 et la suite du projet : [décision 0007](../decisions/0007-hugging-face-au-centre-github-d-abord.md) ; détails fixés par le cadrage SP2 (à venir).
 
-- `PowAtlas/archive` : l'archive publique, même arborescence que `D:\Codage\PowAtlas\data`. GitHub Actions y dépose chaque unité complète à la collecte ; le PC du pilote y envoie ce que lui seul collecte (rattrapage historique, GFS, Arpa Piemonte).
+- `PowAtlas/archive` : la copie publique de l'archive, fichiers regroupés par source et par période (limites de fichiers ci-dessous). GitHub Actions y dépose chaque unité complète à la collecte ; le PC du pilote y envoie ce que lui seul collecte (rattrapage historique, GFS, Arpa Piemonte).
 - `PowAtlas/scores` : les paires prévision/observation et les tableaux de scores, calculés par GitHub Actions.
-- L'archive de référence reste sur le PC ([décision 0001](../decisions/0001-archive-sur-la-machine-du-pilote.md)) ; celle de Hugging Face en est la copie publique et la sauvegarde.
+- L'archive de référence reste sur le PC ([décision 0001](../decisions/0001-archive-sur-la-machine-du-pilote.md)). Celle de Hugging Face en est la copie publique, sans garantie de durée : elle ne remplace pas une sauvegarde du disque du PC.
 
 Faits vérifiés le 2026-10-27 dans la documentation de Hugging Face :
-- stockage public gratuit « best-effort », à utiliser avec retenue au-delà de « quelques gigaoctets » ; au plus 100 fichiers par envoi conseillés ([Storage limits](https://huggingface.co/docs/hub/storage-limits)) ;
+- stockage public gratuit « best-effort », sans plafond garanti, à utiliser avec retenue au-delà de « quelques gigaoctets » ; par dépôt, moins de 100 000 fichiers et moins de 10 000 entrées par dossier, au plus 100 fichiers par envoi conseillés ([Storage limits](https://huggingface.co/docs/hub/storage-limits)) ;
 - GitHub Actions peut écrire sans jeton stocké grâce aux « Trusted Publishers » : jeton d'une heure limité à un seul dépôt ([Trusted Publishers](https://huggingface.co/docs/hub/trusted-publishers)) ;
 - le nom `PowAtlas` était libre (ni utilisateur ni organisation, réponse 404 de l'API).
 
@@ -48,7 +48,7 @@ Sur chacun des deux jeux : page du jeu → *Settings* → *Trusted Publishers* �
 | `branch` | `main` | `main` |
 | `workflow` | `collect.yml` | `scores.yml` |
 
-`scores.yml` n'existe pas encore : il sera écrit en SP2, sous ce nom. Si la rubrique *Trusted Publishers* n'apparaît pas, le dire dans une session : le repli est un jeton à droits limités rangé dans les secrets GitHub.
+`scores.yml` n'existe pas encore : il sera écrit en SP2, sous ce nom. Côté dépôt, le plan SP2 ajoutera `id-token: write` aux permissions des deux workflows et `huggingface_hub` 1.19 ou plus récent. Le champ `branch = main` réserve l'écriture aux runs de `main` (un `workflow_dispatch` lancé depuis une autre branche sera refusé, c'est voulu). Si la rubrique *Trusted Publishers* n'apparaît pas, le dire dans une session : le repli est un jeton à droits limités rangé dans les secrets GitHub.
 
 ## 4. Jeton du PC (écriture sur `PowAtlas/archive` seulement)
 
@@ -63,4 +63,4 @@ Sur chacun des deux jeux : page du jeu → *Settings* → *Trusted Publishers* �
 
 ## 5. Contrôle
 
-Dire dans une session que les étapes 1 à 4 sont faites. Claude vérifie depuis la session, sans jeton, que l'organisation et les deux jeux publics existent. Le jeton du PC est testé par la première commande d'envoi du plan SP2.
+Dire dans une session que les étapes 1 à 4 sont faites. Claude vérifie depuis la session, sans jeton, que l'organisation existe (`https://huggingface.co/api/organizations/PowAtlas/overview` répond 200, et non 404) et que les pages des deux jeux s'affichent. Le jeton du PC est testé par la première commande d'envoi du plan SP2. Rien n'est envoyé avant que les licences de chaque source envoyée soient vérifiées et datées dans sa fiche ([décision 0007](../decisions/0007-hugging-face-au-centre-github-d-abord.md)).
