@@ -2,16 +2,21 @@
 
 **SP1 continue en tâche de fond** ([plan](docs/plans/2026-10-22-sp1-archive.md), [`STATUS.md`](STATUS.md)) ; **SP2 démarre**, accord du pilote du 2026-10-27.
 
-1. **D'abord, Arpa Piemonte par le PC** (SP1, petite tâche, TDD, une PR) : Arpa refuse les réseaux de centres de données mais répond au PC du pilote ([`suivi.md`](docs/collecte/suivi.md#5-constats-en-cours), § 5). À faire :
+1. **D'abord, Arpa Piemonte par le PC** (SP1, petite tâche, TDD, une PR) : Arpa ne répond plus aux réseaux de centres de données, mais répond au PC du pilote [cause supposée : filtrage] ([`suivi.md`](docs/collecte/suivi.md#5-constats-en-cours), § 5). À faire :
    - collecte d'Arpa dans `scripts/pc-daily.ps1` (unité du jour rangée dans l'archive comme `sync` le fait) ;
    - retrait d'Arpa de la tâche `observations` d'Actions, sinon une issue de perte s'ouvre chaque jour ;
    - rangement de la copie du 2026-10-27 faite à la main dans `data\pc-collect` ;
    - fermeture de l'issue 50.
    Tant que ce n'est pas fait, le pilote refait la copie au moins tous les 7 jours (rappel).
 2. **SP2, cadrage** (skill *brainstorming*, puis `docs/specs/AAAA-MM-JJ-sp2-scores-design.md`, validé par le pilote, puis plan) : tableau public des scores de la neige fraîche des modèles bruts ([`roadmap.md`](docs/roadmap.md), « Vérité terrain et tableau des scores »).
-   - **Déjà décidé par le pilote le 2026-10-27** :
-     - périmètre « C » : un seul code ; d'abord l'historique (IFS, AIFS, GFS sur 2024-25 et 2025-26, dès la fin du rattrapage), puis la saison 2026-27 avec les six modèles ;
-     - calcul sur le PC du pilote (`powatlas score` dans la tâche quotidienne) ; seuls les tableaux de scores sont publiés. L'archive entière pèse 0,28 Go le 2026-10-27.
+   - **Décidé par le pilote le 2026-10-27** (à reporter dans une décision 0007 avec le cadrage) :
+     - un seul code, l'historique d'abord, puis la saison 2026-27 ;
+     - calcul des scores sur le PC du pilote.
+   - **Proposé, à confirmer au cadrage** :
+     - historique = IFS, AIFS, GFS sur les saisons rattrapées (2024-25 et 2025-26), dès la fin du rattrapage ;
+     - saison 2026-27 = tous les modèles collectés (ICON-D2, ICON-EU, AROME, ARPEGE, IFS, AIFS, GFS) ;
+     - une sous-commande (par exemple `powatlas score`, à écrire) dans la tâche quotidienne du PC ;
+     - seuls les tableaux de scores publiés. L'archive pesait 0,28 Go le 2026-10-27, rattrapage inachevé.
    - **Questions encore ouvertes, une à la fois** :
      - où publier les scores (dépôt, GitHub Pages, Hugging Face), compte tenu de la règle « aucune donnée dans Git » ;
      - observations historiques à rapatrier pour 2024-26 et pour la climatologie (base quotidienne `HNEIGEF` depuis 1996, Arpa `meteoidro`, SLF) ;
