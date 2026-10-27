@@ -1,6 +1,6 @@
 # État du projet
 
-*Mis à jour le 2026-10-25.*
+*Mis à jour le 2026-10-27.*
 
 **La collecte quotidienne de SP1 tourne sur GitHub Actions depuis le 2026-10-22** : prévisions du cœur de score (run 00 UTC de ICON-D2, ICON-EU, AROME 0,025°, ARPEGE 0,1°, IFS 0,25°, AIFS Single) et observations qui ne restent que quelques jours en ligne. Aucune prévision ni aucun score n'est encore produit (SP2, SP3). L'archive de référence sur le PC du pilote n'existe pas encore : son installation est décrite dans [`docs/collecte/installation-pc.md`](docs/collecte/installation-pc.md).
 
@@ -16,13 +16,14 @@
 | AROME 0,025° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 6,6 à 7,3 Mo par run |
 | ARPEGE 0,1° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 1,2 à 1,3 Mo par run |
 | IFS 0,25°, AIFS Single | collectés | runs 00 UTC du 2026-10-20 au 2026-10-22 : 0,9 à 1,1 Mo (IFS), 0,3 à 0,4 Mo (AIFS) |
-| Observations : SLF (routes par station sur 7 jours), Arpa Piemonte, nivo-météo, base quotidienne Météo-France | collectées, sauf Arpa Piemonte depuis le 2026-10-24 (serveur injoignable depuis nos réseaux, cause probable chez le producteur, [issue 50](https://github.com/louistouquet/PowAtlas/issues/50)) | copie du 2026-10-22 : 0,84 Mo, 22 Ko, 0,32 Mo, 1,9 Mo |
+| Observations : SLF (routes par station sur 7 jours), Arpa Piemonte, nivo-météo, base quotidienne Météo-France | collectées, sauf Arpa Piemonte depuis le 2026-10-24 : Arpa refuse les réseaux de centres de données, mais répond au PC du pilote, où une copie complète du 2026-10-27 couvre les 24 à 26 ([issue 50](https://github.com/louistouquet/PowAtlas/issues/50)) | copie du 2026-10-22 : 0,84 Mo, 22 Ko, 0,32 Mo, 1,9 Mo |
 | Suivi (bilan de santé et rappels au début de chaque session, `powatlas progress` sur le PC) | en service depuis le 2026-10-25 | procédure : [`docs/collecte/suivi.md`](docs/collecte/suivi.md) |
 | `powatlas sync`, `status`, `backfill`, `backfill-probe` (PC du pilote) | écrits et testés | essais réels : rattrapage AIFS du 2025-12-01 et GFS de 2021 et 2026 `complete` ; sur le PC du pilote (Windows, Python 3.14) depuis le 2026-10-23 : premier `sync` de 38 artefacts, `status` complet les 22 et 23 octobre, tâche planifiée quotidienne créée sans droits d'administrateur, essais de débit IFS et AIFS à 4,9 et 5,0 requêtes par seconde sans `SlowDown` ; rattrapage AIFS lancé à la main le 2026-10-23 (environ 47 s par run, HTTP 503 du bucket) ; depuis la [décision 0006](docs/decisions/0006-rattrapage-sur-le-pc-automatique.md), rattrapage automatique par la tâche quotidienne, rythme qui ralentit sur 503 et partiels dus au serveur repris |
 
 ## Pas encore fait
 
 - **Déclenchements planifiés** : tous partis le 2026-10-22 depuis le cron de 09:50, avec un retard qui baisse : 09:50 → 14:41 UTC (observations), 10:35 → 15:32 (icon-eu), 12:50 → 17:39 (meteofrance-pnt), 14:50 → 18:52 (ecmwf), 17:50 → 20:51 (observations), soit de 4 h 50 à 3 h ; le 2026-10-23, 02:35 → 07:53 (icon-d2) et 05:05 → 09:52 (icon-eu), ceux de 06:50 et 08:50 pas encore partis à 10:13. Chaque run a reconnu sa tâche et trouvé toutes les unités déjà complètes. GitHub ne garantit ni l'heure ni l'exécution de ces déclenchements : la tâche `auto` ([PR 30](https://github.com/louistouquet/PowAtlas/pull/30)), appelée chaque heure à la minute 17 par cron-job.org ([guide](docs/collecte/declenchement-externe.md), tâche créée par le pilote le 2026-10-23), sert de filet. Test du pilote le 2026-10-23 à 10:13 UTC (réponse 204) : le run a collecté les 8 unités encore à faire (AROME, ARPEGE, IFS, AIFS du jour et les 4 observations), toutes complètes en 10 min. Essai réel de `auto` le 2026-10-22 à 15:04 UTC : les cinq tâches parcourues, toutes les unités complètes, rien à collecter.
-- Archive de référence sur le PC du pilote, rattrapage historique (IFS, AIFS, GFS) : attendent l'installation du pilote.
+- Rattrapage historique en cours sur le PC du pilote (au 2026-10-25 : AIFS fini, IFS 41 %, GFS 20 %) ; archive entière (`data`) de 0,28 Go le 2026-10-27, mesurée par le pilote : le volume téléchargé (environ 185 Go) n'est jamais écrit sur le disque, seul le découpage des Alpes l'est.
+- Collecte d'Arpa Piemonte par le PC (à la place de GitHub Actions).
 - Priorité 2 (ICON-CH1, AROME 0,01° et niveaux de pression, IFS ENS) : après une semaine de cœur sans trou (plan, tâche 20).
 - Horaires remesurés sur une semaine et figés (plan, tâche 21).

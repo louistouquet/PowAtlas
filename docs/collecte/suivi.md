@@ -70,3 +70,8 @@ D'après `window_days` du [catalogue](../../src/powatlas/catalogue.toml) et les 
     - outil de lecture web, 14:50 UTC : HTTP 503 sans corps sur `www.arpa.piemonte.it`, d'origine non attribuable ;
     - aucune annonce de panne trouvée par recherche web.
   - Cause : panne chez le producteur probable [hypothèse]. Les trois points de mesure sont des réseaux de centres de données : un filtrage de ces adresses par Arpa n'est pas exclu. Si le serveur ne revient pas, demander au pilote d'ouvrir `https://utility.arpa.piemonte.it/api_realtime/pie_anag` depuis son PC pour trancher. Rien à corriger dans l'adaptateur tant que la cause n'est pas chez nous.
+  - **Tranché le 2026-10-27** :
+    - depuis le PC du pilote, `api_realtime/pie_anag` s'affiche (JSON) [vérifié par le pilote] ;
+    - la copie `powatlas collect --unit arpa-piemonte__20261027 --out data\pc-collect`, lancée sur le PC, est `complete`, avec la note `Last-Modified absent for 2 of 2 files` [vérifié par le pilote]. Elle couvre les 7 jours précédents, donc les 24, 25 et 26 octobre ;
+    - cause : Arpa filtre les réseaux de centres de données, puisque le PC passe et que GitHub Actions, la session Claude et l'outil de lecture web ne passent pas [hypothèse forte].
+  - **Suite** : faire collecter Arpa par la tâche quotidienne du PC, retirer Arpa de GitHub Actions, et ranger dans l'archive la copie de `data\pc-collect` (tâche à écrire, TDD, PR). D'ici là, le pilote refait la copie au moins tous les 7 jours (rappel). L'issue 50 sera fermée quand la copie du 27 sera dans l'archive.
