@@ -145,6 +145,56 @@ class EcmwfTest(unittest.TestCase):
 
 
 class CatalogueEcmwfTest(unittest.TestCase):
+    def extremes(self, served_short, step_range, tables_version=34, param="mx2t3", step=3, more=()):
+        """Unit with one temperature extreme ``param`` at ``step``, encoded as ``served_short``;
+        ``more``: further (served_short, step_range, step) messages of the same variable."""
+        real = load_catalogue()[0]["ifs-0p25"]
+        messages = [(served_short, step_range, step), *more]
+        src = Source(**{**real.__dict__, "steps": tuple(st for _, _, st in messages),
+                        "variables": {param: {"param": param, "levtype": "sfc"}},
+                        "grid": GridSpec(ni=11, nj=6, lat_first=47.0, lon_first=4.0, di=0.5, dj=1.0)})
+        served = {}
+        for short, rng, st in messages:
+            # Legacy names (mx2t3...) exist only in older GRIB2 tables.
+            tables = tables_version if short in ("max_2t", "min_2t") else None
+            m = make_message(short, step_range=rng, type_of_level="heightAboveGround", level=2, tables_version=tables)
+            index, data = build([(param, "sfc", None, m, st)])
+            base = PORTAL + ecmwf_path("ifs", RUN, st)
+            served[base + ".index"], served[base + ".grib2"] = index, data
+        return EcmwfAdapter().collect(Unit("ifs-0p25", RUN), src, FakeHttp(served), Path(tempfile.mkdtemp()),
+                                      "daily", SETTINGS)
+
+    def test_generic_time_minimum_accepted_for_3_hourly_minimum(self):
+        self.assertEqual(self.extremes("min_2t", "0-3", param="mn2t3").state, "complete")
+
+    def test_generic_time_maximum_accepted_for_6_hourly_maximum(self):
+        self.assertEqual(self.extremes("max_2t", "144-150", param="mx2t6", step=150).state, "complete")
+
+    def test_generic_3_hour_maximum_refused_for_6_hourly_maximum(self):
+        self.assertEqual(self.extremes("max_2t", "147-150", param="mx2t6", step=150).state, "missing")
+
+    def test_run_mixing_both_encodings_is_a_format_change_not_a_crash(self):
+        m = self.extremes("max_2t", "0-3", more=[("mx2t3", "3-6", 6)])
+        self.assertEqual(m.state, "missing")
+        self.assertIn("FormatChange", m.notes[0])
+
+    def test_generic_time_maximum_accepted_for_3_hourly_maximum(self):
+        # Tables 34 (AWS runs of 2025-04-15 to 2026-02-01 at least): ecCodes 2.50 reads mx2t3 as max_2t.
+        self.assertEqual(self.extremes("max_2t", "0-3").state, "complete")
+
+    def test_legacy_3_hourly_maximum_still_accepted(self):
+        self.assertEqual(self.extremes("mx2t3", "0-3", tables_version=None).state, "complete")
+
+    def test_generic_maximum_over_another_period_refused(self):
+        m = self.extremes("max_2t", "1-3")
+        self.assertEqual(m.state, "missing")
+        self.assertIn("mx2t3 decoded as max_2t", m.notes[0])
+
+    def test_generic_minimum_refused_for_maximum(self):
+        m = self.extremes("min_2t", "0-3")
+        self.assertEqual(m.state, "missing")
+        self.assertIn("mx2t3 decoded as min_2t", m.notes[0])
+
     def test_ifs_and_aifs_declared(self):
         sources, tasks, _ = load_catalogue()
         ifs, aifs = sources["ifs-0p25"], sources["aifs-single"]

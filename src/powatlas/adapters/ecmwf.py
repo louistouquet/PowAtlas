@@ -86,6 +86,7 @@ class EcmwfAdapter:
                 if wanted:
                     self._collect_step(base, step, wanted, unit, source, http, bbox, settings, fields, fetched, notes,
                                        start, unpublished, mode)
+            _check_one_encoding(fields)
         except (GridMismatch, FormatChange) as exc:
             notes.append(f"{type(exc).__name__}: {exc}")
             fields = {}
@@ -137,7 +138,7 @@ class EcmwfAdapter:
                     continue
                 except ValueError as exc:
                     raise FormatChange(f"step {step}: {var}: {exc}") from exc
-                if f.short_name != source.variables[var]["param"] or f.step_end != step:
+                if not _same_parameter(f, source.variables[var]["param"]) or f.step_end != step:
                     raise FormatChange(f"step {step}: {var} decoded as {f.short_name} at {f.step_end_minutes} min")
                 if not accumulation_from_run_start(f.keys):
                     raise FormatChange(f"step {step}: {var} accumulated over {f.keys['stepRange']}, not from the run start")
@@ -151,6 +152,36 @@ class EcmwfAdapter:
                 fields[(var, step)] = crop_field(f, bbox, settings["margin_cells"])
             rejected = in_range > 0 and stale_count == in_range
             fetched.append(Fetched(f"{url}.grib2#bytes={first}-{last}", r.last_modified, len(r.content), rejected=rejected))
+
+
+# On AWS, the 3- and 6-hourly 2 m temperature extremes of runs from 2025-04-15 (at the latest) to
+# 2026-02-01 (at least) carry GRIB2 tables version 34, which ecCodes 2.50 reads as generic time
+# extremes of 2t (max_2t 237167, min_2t 238167); runs of 2024-11-15, 2026-04-15 and 2026-10-26
+# carry tables 32 or 33, read as mx2t3 (228026). Section 4 is otherwise identical (checked
+# 2026-10-27). The index still names them mx2t3: accepted when kind and period match.
+GENERIC_EXTREMES = {"mx2t3": ("max_2t", "max", 3), "mn2t3": ("min_2t", "min", 3),
+                    "mx2t6": ("max_2t", "max", 6), "mn2t6": ("min_2t", "min", 6)}
+
+
+def _same_parameter(f, param: str) -> bool:
+    if f.short_name == param:
+        return True
+    if param not in GENERIC_EXTREMES:
+        return False
+    short_name, step_type, hours = GENERIC_EXTREMES[param]
+    return (f.short_name == short_name and f.keys.get("stepType") == step_type
+            and str(f.keys.get("stepRange")) == f"{f.step_end - hours}-{f.step_end}")
+
+
+def _check_one_encoding(fields: dict) -> None:
+    """Both encodings of an extreme accepted, but never mixed within a run (the writer requires one
+    GRIB identity per variable)."""
+    names: dict[str, set] = {}
+    for (var, _), f in fields.items():
+        names.setdefault(var, set()).add(f.short_name)
+    for var, found in names.items():
+        if len(found) > 1:
+            raise FormatChange(f"{var}: encodings mixed within the run ({', '.join(sorted(found))})")
 
 
 ADAPTERS["ecmwf"] = EcmwfAdapter()

@@ -21,12 +21,16 @@ def make_message(
     type_of_level="surface",
     level=0,
     step_units="h",
+    tables_version=None,
 ):
     """Return the bytes of one GRIB2 message on a regular lat-lon grid."""
     h = eccodes.codes_grib_new_from_samples("regular_ll_sfc_grib2")
     try:
         lat_last = lat_first + (nj - 1) * dj * (1 if j_scans_positively else -1)
         lon_last = lon_first + (ni - 1) * di
+        if tables_version is not None:
+            # Set first: parameters such as max_2t exist only in recent GRIB2 tables.
+            eccodes.codes_set(h, "tablesVersion", tables_version)
         for key, value in [
             ("Ni", ni),
             ("Nj", nj),
