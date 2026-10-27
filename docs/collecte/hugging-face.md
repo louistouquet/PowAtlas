@@ -32,10 +32,12 @@ Pour chacun, ouvrir https://huggingface.co/new-dataset :
 |---|---|---|
 | *Owner* | `PowAtlas` | `PowAtlas` |
 | *Dataset name* | `archive` | `scores` |
-| *License* | `other` (licences des producteurs, détaillées par Claude dans la fiche du jeu) | `cc-by-4.0` |
+| *License* | `cc-by-4.0` | `cc-by-4.0` |
 | *Visibility* | *Public* | *Public* |
 
 Claude écrira ensuite la description (fiche du jeu, `README.md`) par le code.
+
+Pourquoi `cc-by-4.0` pour `archive` (choix du 2026-10-27, à confirmer avant le premier envoi) : les sources collectées sont sous CC BY 4.0 (DWD, ECMWF, SLF, Arpa Piemonte), Licence Ouverte 2.0 (Météo-France) ou données ouvertes de la NOAA sans restriction (GFS), d'après le catalogue et les fiches. La Licence Ouverte 2.0 se déclare compatible avec CC BY [producteur, à relire sur la page d'Etalab avant le premier envoi]. La fiche du jeu listera les deux licences (`cc-by-4.0`, `etalab-2.0`, identifiants reconnus par Hugging Face) et, source par source, la licence d'origine et l'attribution exigée. `other` n'est utile que si une source impose une licence incompatible.
 
 ## 3. Autoriser GitHub Actions (sans jeton)
 
