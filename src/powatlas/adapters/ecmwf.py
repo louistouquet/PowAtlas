@@ -137,7 +137,7 @@ class EcmwfAdapter:
                     continue
                 except ValueError as exc:
                     raise FormatChange(f"step {step}: {var}: {exc}") from exc
-                if f.short_name != source.variables[var]["param"] or f.step_end != step:
+                if not _same_parameter(f, source.variables[var]["param"]) or f.step_end != step:
                     raise FormatChange(f"step {step}: {var} decoded as {f.short_name} at {f.step_end_minutes} min")
                 if not accumulation_from_run_start(f.keys):
                     raise FormatChange(f"step {step}: {var} accumulated over {f.keys['stepRange']}, not from the run start")
@@ -151,6 +151,24 @@ class EcmwfAdapter:
                 fields[(var, step)] = crop_field(f, bbox, settings["margin_cells"])
             rejected = in_range > 0 and stale_count == in_range
             fetched.append(Fetched(f"{url}.grib2#bytes={first}-{last}", r.last_modified, len(r.content), rejected=rejected))
+
+
+# ECMWF encoded its 3- and 6-hourly 2 m temperature extremes as generic time extremes of 2t
+# (max_2t 237167, min_2t 238167, GRIB2 tables 34) on part of the period: runs of 2025-04-15 to
+# 2026-01-25 at least, legacy mx2t3 (228026) on 2024-11-15 and from 2026-04-15 (checked on AWS,
+# 2026-10-27). The index still names them mx2t3: same quantity when kind and period match.
+GENERIC_EXTREMES = {"mx2t3": ("max_2t", "max", 3), "mn2t3": ("min_2t", "min", 3),
+                    "mx2t6": ("max_2t", "max", 6), "mn2t6": ("min_2t", "min", 6)}
+
+
+def _same_parameter(f, param: str) -> bool:
+    if f.short_name == param:
+        return True
+    if param not in GENERIC_EXTREMES:
+        return False
+    short_name, step_type, hours = GENERIC_EXTREMES[param]
+    return (f.short_name == short_name and f.keys.get("stepType") == step_type
+            and str(f.keys.get("stepRange")) == f"{f.step_end - hours}-{f.step_end}")
 
 
 ADAPTERS["ecmwf"] = EcmwfAdapter()

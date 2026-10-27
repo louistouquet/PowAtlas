@@ -81,6 +81,7 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21, sauf 
 
 ## Limites
 
+- Codage des extrêmes de température à 2 m (`mx2t3`, `mn2t3`, `mx2t6`, `mn2t6`) changeant dans le temps sur la copie AWS de l'IFS [vérifié, 2026-10-27, ecCodes 2.50] : runs du 2025-04-15, 2025-11-05, 2025-12-01 et 2026-01-05, extrêmes génériques `max_2t` (paramId 237167) et `min_2t` (238167), tables GRIB2 34 ; runs du 2024-11-15, du 2026-04-15 et du 2026-10-26, `mx2t3` (228026), tables 32 ou 33. L'index nomme toujours `mx2t3`. Même grandeur (maximum ou minimum sur 3 ou 6 h) : `powatlas` accepte les deux codages si la nature et la durée correspondent. Dates exactes des bascules non cherchées.
 - Fichiers globaux : aucun découpage côté serveur. Le gain vient de la lecture par plages d'octets de quelques champs, puis d'un découpage local sur l'emprise (outil non qualifié ici).
 - IFS ENS en un fichier `-ef` de 4,4 Go par échéance : seule la lecture par plages d'octets est raisonnable (50 membres x champ x 85 échéances) ; le coût en nombre de requêtes est élevé (50 plages par champ et par échéance) [hypothèse].
 - Absence de `deg0l`, `sde`, hauteur de neige : isotherme 0 °C et limite pluie-neige à dériver (champs de pression `gh`, `t`, ou `ptype`), ce qui est un traitement du projet, pas une donnée du producteur.
