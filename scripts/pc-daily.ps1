@@ -1,5 +1,6 @@
 # Daily job of the pilot's PC, run by the Windows scheduled task "PowAtlas sync"
-# (docs/collecte/installation-pc.md, section 4): bring the GitHub artifacts home,
+# (docs/collecte/installation-pc.md, section 4): bring the GitHub artifacts home, collect the
+# observations that only answer this PC (Arpa Piemonte, file manual copies of data\pc-collect),
 # then advance the historical backfill by one slice (up to 3 h) per source. GFS, collected on
 # this PC only, is thus kept up to date. Output appended to data\pc-daily.log.
 $root = Split-Path -Parent $PSScriptRoot
@@ -28,6 +29,15 @@ if (-not $online) {
 Write-Log "=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') sync"
 & $pa sync --data $data --env (Join-Path $root '.env') 2>&1 | ForEach-Object { Write-Log "$_" }
 Write-Log "sync exit code $LASTEXITCODE"
+
+# Manual copies (powatlas collect --out data\pc-collect), if any, filed first: an older copy
+# of today must not replace the one collect-pc makes next.
+Write-Log "=== $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') store and collect-pc"
+& $pa store --from (Join-Path $data 'pc-collect') --data $data 2>&1 | ForEach-Object { Write-Log "$_" }
+Write-Log "store exit code $LASTEXITCODE"
+# Observation sources of task "pc" (catalogue): today's unit straight into the archive.
+& $pa collect-pc --data $data 2>&1 | ForEach-Object { Write-Log "$_" }
+Write-Log "collect-pc exit code $LASTEXITCODE"
 
 # A backfill started by hand writes the same files: never run two at once.
 if (Get-Process -Name powatlas -ErrorAction SilentlyContinue) {

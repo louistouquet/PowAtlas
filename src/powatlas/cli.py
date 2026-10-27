@@ -148,6 +148,46 @@ def cmd_sync(args) -> int:
     return 1 if r.rejected else 0
 
 
+def cmd_collect_pc(args) -> int:
+    from powatlas.pc import collect_pc
+
+    _register_adapters()
+    sources, _, settings = load_catalogue()
+    results = collect_pc(Path(args.data), make_http(settings), sources, settings, _now(args.now))
+    for uid, state, outcome in results:
+        print(f"{uid}: {state} ({outcome})")
+    return 0 if all(state == "complete" for _, state, _ in results) else 1
+
+
+def cmd_store(args) -> int:
+    from powatlas.pc import store_copies
+
+    r = store_copies(Path(args.data), Path(args.copies))
+    print(f"new {r.new}, replaced {r.replaced}, kept {r.kept}, rejected {len(r.rejected)}")
+    return 1 if r.rejected else 0
+
+
+def cmd_dates(args) -> int:
+    from powatlas.pc import dates_in_payload
+    from powatlas.sync import target_dir
+
+    try:
+        unit = parse_unit_id(args.unit)
+    except ValueError as exc:
+        print(exc)
+        return 1
+    kind = "forecast" if "T" in args.unit.split("__")[1] else "observation"
+    folder = target_dir(Path(args.data), unit.source, unit.ref, kind)
+    manifest = folder / f"{args.unit.replace('__', '_')}.json"
+    if not manifest.is_file():
+        print(f"{args.unit}: not in the archive ({manifest})")
+        return 1
+    for f in json.loads(manifest.read_text(encoding="utf-8"))["files"]:
+        days = dates_in_payload((folder / f["name"]).read_bytes())
+        print(f"{f['name']}: " + (", ".join(f"{d} ({n})" for d, n in days.items()) or "no date"))
+    return 0
+
+
 def cmd_status(args) -> int:
     from datetime import date
 
@@ -248,6 +288,22 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--data", required=True)
     p.add_argument("--env", default=".env", help="file holding POWATLAS_GITHUB_TOKEN (never committed)")
     p.set_defaults(func=cmd_sync)
+
+    p = sub.add_parser("collect-pc", help="today's unit of each observation source of task pc, into the archive "
+                                          "(pilot's PC)")
+    p.add_argument("--data", required=True)
+    p.add_argument("--now")
+    p.set_defaults(func=cmd_collect_pc)
+
+    p = sub.add_parser("store", help="file unit folders written by collect --out into the archive (pilot's PC)")
+    p.add_argument("--from", dest="copies", required=True, help="folder holding one folder per unit")
+    p.add_argument("--data", required=True)
+    p.set_defaults(func=cmd_store)
+
+    p = sub.add_parser("dates", help="days found in each JSON file of an archived observation unit")
+    p.add_argument("--data", required=True)
+    p.add_argument("--unit", required=True)
+    p.set_defaults(func=cmd_dates)
 
     p = sub.add_parser("backfill-probe", help="measure the request rate on the AWS copy (pilot's PC)")
     p.add_argument("--source", required=True, choices=["ifs-0p25", "aifs-single"])

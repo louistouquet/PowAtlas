@@ -25,11 +25,10 @@ what = "Changer l'en-tête `X-GitHub-Api-Version: 2022-11-28` de la tâche cron-
 due = 2028-03-10
 warn_days = 60
 
-[[deadline]]
-what = "Arpa Piemonte ne répond qu'au PC du pilote (dernière copie à la main : 2026-10-27, complete, dans data\\pc-collect) : tant que la tâche quotidienne du PC ne collecte pas Arpa, demander au pilote de refaire la copie depuis D:\\Codage\\PowAtlas, avec `.venv\\Scripts\\powatlas collect --unit arpa-piemonte__AAAAMMJJ --out data\\pc-collect` (date du jour), puis mettre à jour la date de dernière copie et reporter cette échéance à cette date plus 7 jours (docs/collecte/suivi.md, § 5)"
-due = 2026-11-03
-warn_days = 2
+[[waiting]]
+what = "Arpa Piemonte collectée par la tâche du PC depuis la PR de `collect-pc` (2026-10-27) : demander au pilote, depuis D:\\Codage\\PowAtlas, `git pull`, puis `.venv\\Scripts\\powatlas store --from data\\pc-collect --data data`, `.venv\\Scripts\\powatlas dates --data data --unit arpa-piemonte__20261027` et `.venv\\Scripts\\powatlas collect-pc --data data` ; noter dans l'issue 50 les jours couverts par pie-neve (24 à 26 attendus), la fermer, mettre à jour docs/collecte/suivi.md § 5, puis retirer cette entrée"
+since = 2026-10-27
 
 [[waiting]]
-what = "Rattrapage automatique en cours (au 2026-10-25 à 15 h UTC : AIFS fini 245/245, IFS 186/452, aucun abandon affiché (les 2 runs du 2024-02-01 et 02 abandonnés avant la PR 52 ne le sont plus), GFS 179/906) : demander la sortie de `.venv\\Scripts\\powatlas progress --data data` (depuis D:\\Codage\\PowAtlas) ; retirer cette entrée quand les trois sources affichent `finished`, puis demander une fois `status` pour contrôle"
+what = "Rattrapage automatique en cours (au 2026-10-27 : AIFS fini 245/245, IFS 207/452, GFS 179/906, aucun abandon affiché) : demander la sortie de `.venv\\Scripts\\powatlas progress --data data` (depuis D:\\Codage\\PowAtlas) ; retirer cette entrée quand les trois sources affichent `finished`, puis demander une fois `status` pour contrôle"
 since = 2026-10-25

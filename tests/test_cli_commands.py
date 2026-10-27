@@ -113,6 +113,76 @@ class CliCommandsTest(unittest.TestCase):
         self.assertEqual(urls, ["https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/20250110/00z/ifs/0p25/oper/20250110000000-0h-oper-fc",
                                 "https://ecmwf-forecasts.s3.eu-central-1.amazonaws.com/20250110/00z/ifs/0p25/oper/20250110000000-24h-oper-fc"])
 
+    def run_quiet(self, argv):
+        import contextlib
+        import io
+
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = cli.main(argv)
+        return code, out.getvalue()
+
+    def test_collect_pc_fails_when_a_unit_is_not_complete(self):
+        from fakes import FakeHttp
+
+        data = self.tmp / "data"
+        with mock.patch.object(cli, "make_http", return_value=FakeHttp({})):
+            code, out = self.run_quiet(["collect-pc", "--data", str(data), "--now", "2026-10-27T11:00:00Z"])
+        self.assertEqual(code, 1)
+        self.assertIn("arpa-piemonte__20261027: missing (new)", out)
+
+    def test_collect_pc_green_when_complete(self):
+        from fakes import FakeHttp
+
+        arpa = "https://utility.arpa.piemonte.it/api_realtime/"
+        http = FakeHttp({arpa + "pie_neve": b"[1]", arpa + "pie_anag": b"[2]"})
+        with mock.patch.object(cli, "make_http", return_value=http):
+            code, out = self.run_quiet(["collect-pc", "--data", str(self.tmp / "data"),
+                                        "--now", "2026-10-27T11:00:00Z"])
+        self.assertEqual((code, out), (0, "arpa-piemonte__20261027: complete (new)\n"))
+
+    def test_store_files_copies_and_reports(self):
+        from test_pc import copy_dir
+
+        data = self.tmp / "data"
+        copy_dir(data / "pc-collect")
+        code, out = self.run_quiet(["store", "--from", str(data / "pc-collect"), "--data", str(data)])
+        self.assertEqual((code, out), (0, "new 1, replaced 0, kept 0, rejected 0\n"))
+        self.assertTrue((data / "observations" / "arpa-piemonte" / "2026" / "10" / "arpa-piemonte_20261027.json").exists())
+
+    def test_store_fails_on_rejected_copy(self):
+        from test_pc import copy_dir
+
+        copy_dir(self.tmp / "copies", corrupt=True)
+        code, out = self.run_quiet(["store", "--from", str(self.tmp / "copies"), "--data", str(self.tmp / "data")])
+        self.assertEqual(code, 1)
+        self.assertIn("rejected 1", out)
+
+    def test_dates_of_each_file_of_an_archived_unit(self):
+        import gzip
+
+        from test_pc import copy_dir
+
+        data = self.tmp / "data"
+        copy_dir(data / "pc-collect", files={
+            "arpa-piemonte_20261027T0745Z_pie-neve.json.gz": gzip.compress(b'[{"d": "2026-10-21"}, {"d": "2026-10-27"}]'),
+            "arpa-piemonte_20261027T0745Z_pie-anag.json.gz": gzip.compress(b'[{"id": 1}]')})
+        self.run_quiet(["store", "--from", str(data / "pc-collect"), "--data", str(data)])
+        code, out = self.run_quiet(["dates", "--data", str(data), "--unit", "arpa-piemonte__20261027"])
+        self.assertEqual(code, 0)
+        self.assertEqual(out, "arpa-piemonte_20261027T0745Z_pie-neve.json.gz: 2026-10-21 (1), 2026-10-27 (1)\n"
+                              "arpa-piemonte_20261027T0745Z_pie-anag.json.gz: no date\n")
+
+    def test_dates_of_absent_unit_is_an_error(self):
+        code, out = self.run_quiet(["dates", "--data", str(self.tmp), "--unit", "arpa-piemonte__20261027"])
+        self.assertEqual(code, 1)
+        self.assertIn("not in the archive", out)
+
+    def test_dates_of_malformed_unit_is_an_error(self):
+        code, out = self.run_quiet(["dates", "--data", str(self.tmp), "--unit", "arpa-piemonte"])
+        self.assertEqual(code, 1)
+        self.assertIn("not a unit id", out)
+
     def test_report_opens_issue_and_fails_on_loss(self):
         now = datetime(2026, 11, 1, 8, 35, tzinfo=timezone.utc)
         gh = FakeGitHub([], now - timedelta(days=1))

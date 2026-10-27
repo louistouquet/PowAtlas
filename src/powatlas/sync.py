@@ -17,7 +17,7 @@ from pathlib import Path
 
 import requests
 
-from powatlas.units import parse_artifact_name
+from powatlas.units import parse_artifact_name, parse_unit_id
 from powatlas.writer import sha256_file
 
 _RANK = {"complete": 2, "partial": 1, "missing": 0}
@@ -57,7 +57,7 @@ def _from_collect_on_main(artifact: dict) -> bool:
     return run.get("head_branch") == "main" and run.get("head_repository_id") == run.get("repository_id") is not None
 
 
-def _target_dir(data_dir: Path, source: str, ref: datetime, kind: str) -> Path:
+def target_dir(data_dir: Path, source: str, ref: datetime, kind: str) -> Path:
     top = "forecasts" if kind == "forecast" else "observations"
     return data_dir / top / source / f"{ref:%Y}" / f"{ref:%m}"
 
@@ -69,6 +69,11 @@ def _extract_and_verify(content: bytes, workdir: Path) -> dict:
             if "/" in name or "\\" in name or name.startswith("."):
                 raise ValueError(f"unexpected path in artifact: {name}")
         z.extractall(workdir)
+    return verify_unit_dir(workdir)
+
+
+def verify_unit_dir(workdir: Path) -> dict:
+    """Check every file of a unit folder against its single manifest; return the manifest."""
     manifests = [p for p in workdir.glob("*.json")]
     if len(manifests) != 1:
         raise ValueError(f"{len(manifests)} manifests in artifact")
@@ -82,6 +87,42 @@ def _extract_and_verify(content: bytes, workdir: Path) -> dict:
             raise ValueError(f"sha256 mismatch for {f['name']}")
     manifest["_manifest_name"] = manifests[0].name
     return manifest
+
+
+def store_unit(data_dir: Path, workdir: Path, manifest: dict, replace_equal: bool = True) -> str:
+    """Move a verified unit folder into the archive: "new", "replaced", or "kept" when the
+    archive already holds a better unit (or an equally good one, unless ``replace_equal``).
+    Raises OSError if a move fails."""
+    unit = parse_unit_id(manifest["unit"])
+    kind = "forecast" if "T" in manifest["unit"].split("__")[1] else "observation"
+    target = target_dir(data_dir, unit.source, unit.ref, kind)
+    existing_path = target / manifest["_manifest_name"]
+    state = manifest["state"]
+    outcome = "new"
+    existing = None
+    if existing_path.exists():
+        existing = json.loads(existing_path.read_text(encoding="utf-8"))
+        rank = (_RANK[state], -len(manifest.get("missing", [])))
+        rank_existing = (_RANK[existing["state"]], -len(existing.get("missing", [])))
+        worse = rank < rank_existing or (rank == rank_existing and not replace_equal)
+        outcome = "kept" if worse else "replaced"
+    if outcome == "kept":
+        return outcome
+    # New files first, then the manifest, then the leftovers of the old unit:
+    # an interruption leaves at worst extra files, never a manifest without files.
+    target.mkdir(parents=True, exist_ok=True)
+    for f in manifest["files"]:
+        os.replace(workdir / f["name"], target / f["name"])
+    os.replace(workdir / manifest["_manifest_name"], existing_path)
+    if existing is not None:
+        keep = {f["name"] for f in manifest["files"]}
+        for f in existing["files"]:
+            if f["name"] not in keep:
+                try:
+                    (target / f["name"]).unlink(missing_ok=True)
+                except OSError as exc:
+                    print(f"could not remove old file {f['name']}: {exc}")
+    return outcome
 
 
 def sync(data_dir: Path, gh, now: datetime) -> SyncResult:
@@ -100,7 +141,6 @@ def sync(data_dir: Path, gh, now: datetime) -> SyncResult:
     for created, aid, name, (unit, state) in sorted(artifacts):
         if aid in done:
             continue
-        kind = "forecast" if "T" in name.split("__")[1] else "observation"
         tmp_root = data_dir / ".tmp"
         tmp_root.mkdir(parents=True, exist_ok=True)
         workdir = Path(tempfile.mkdtemp(dir=tmp_root))
@@ -113,35 +153,12 @@ def sync(data_dir: Path, gh, now: datetime) -> SyncResult:
                 result.rejected.append(name)
                 print(f"rejected {name}: {exc}")
                 continue
-            target = _target_dir(data_dir, unit.source, unit.ref, kind)
-            existing_path = target / manifest["_manifest_name"]
-            outcome = "new"
-            existing = None
-            if existing_path.exists():
-                existing = json.loads(existing_path.read_text(encoding="utf-8"))
-                worse = (_RANK[state], -len(manifest.get("missing", []))) < (
-                    _RANK[existing["state"]], -len(existing.get("missing", [])))
-                outcome = "kept" if worse else "replaced"
-            if outcome != "kept":
-                try:
-                    # New files first, then the manifest, then the leftovers of the old unit:
-                    # an interruption leaves at worst extra files, never a manifest without files.
-                    target.mkdir(parents=True, exist_ok=True)
-                    for f in manifest["files"]:
-                        os.replace(workdir / f["name"], target / f["name"])
-                    os.replace(workdir / manifest["_manifest_name"], existing_path)
-                except OSError as exc:
-                    result.rejected.append(name)
-                    print(f"rejected {name} (retried next time): {exc}")
-                    continue
-                if existing is not None:
-                    keep = {f["name"] for f in manifest["files"]}
-                    for f in existing["files"]:
-                        if f["name"] not in keep:
-                            try:
-                                (target / f["name"]).unlink(missing_ok=True)
-                            except OSError as exc:
-                                print(f"could not remove old file {f['name']}: {exc}")
+            try:
+                outcome = store_unit(data_dir, workdir, manifest)
+            except OSError as exc:
+                result.rejected.append(name)
+                print(f"rejected {name} (retried next time): {exc}")
+                continue
             setattr(result, outcome, getattr(result, outcome) + 1)
             _inventory(data_dir).parent.mkdir(parents=True, exist_ok=True)
             with open(_inventory(data_dir), "a", encoding="utf-8") as inv:
