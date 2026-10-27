@@ -178,6 +178,11 @@ class CliCommandsTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("not in the archive", out)
 
+    def test_dates_of_malformed_unit_is_an_error(self):
+        code, out = self.run_quiet(["dates", "--data", str(self.tmp), "--unit", "arpa-piemonte"])
+        self.assertEqual(code, 1)
+        self.assertIn("not a unit id", out)
+
     def test_report_opens_issue_and_fails_on_loss(self):
         now = datetime(2026, 11, 1, 8, 35, tzinfo=timezone.utc)
         gh = FakeGitHub([], now - timedelta(days=1))

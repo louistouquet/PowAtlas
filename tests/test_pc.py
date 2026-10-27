@@ -79,6 +79,17 @@ class StoreCopiesTest(unittest.TestCase):
         self.assertEqual(manifest["state"], "complete")
         self.assertTrue((self.data / ARCHIVE / "arpa-piemonte_20261027T0745Z_pie-neve.json.gz").exists())
 
+    def test_equally_good_copy_does_not_replace_archived_unit(self):
+        # A manual copy filed after collect-pc may be older than the archived unit of the same day.
+        copy_dir(self.data / "first")
+        store_copies(self.data, self.data / "first")
+        copy_dir(self.copies, files={"arpa-piemonte_20261027T0600Z_pie-neve.json.gz": b"older",
+                                     "arpa-piemonte_20261027T0600Z_pie-anag.json.gz": b"older"})
+        r = store_copies(self.data, self.copies)
+        self.assertEqual((r.new, r.replaced, r.kept), (0, 0, 1))
+        self.assertTrue((self.data / ARCHIVE / "arpa-piemonte_20261027T0745Z_pie-neve.json.gz").exists())
+        self.assertFalse((self.data / ARCHIVE / "arpa-piemonte_20261027T0600Z_pie-neve.json.gz").exists())
+
     def test_absent_copies_folder_is_nothing_to_do(self):
         r = store_copies(self.data, self.copies)
         self.assertEqual((r.new, r.replaced, r.kept, r.rejected), (0, 0, 0, []))
@@ -116,6 +127,23 @@ class CollectPcTest(unittest.TestCase):
         self.assertEqual(days, ["arpa-piemonte_20261026.json", "arpa-piemonte_20261027.json"])
 
 
+
+    def test_failing_source_reported_and_others_still_collected(self):
+        from powatlas import adapters
+
+        class Broken:
+            def collect(self, *a):
+                raise OSError("file locked")
+
+        import dataclasses
+        sources = dict(SOURCES, broken=dataclasses.replace(SOURCES["arpa-piemonte"], id="broken", family="broken"))
+        adapters.ADAPTERS["broken"] = Broken()
+        try:
+            results = collect_pc(self.data, arpa_http(), sources, SETTINGS, NOW)
+        finally:
+            del adapters.ADAPTERS["broken"]
+        self.assertEqual(results, [("arpa-piemonte__20261027", "complete", "new"),
+                                   ("broken__20261027", "missing", "error: file locked")])
 
 class DatesTest(unittest.TestCase):
     def test_days_counted_in_any_string_value(self):

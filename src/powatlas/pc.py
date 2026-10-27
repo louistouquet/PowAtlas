@@ -42,7 +42,8 @@ def store_copies(data_dir: Path, copies_dir: Path) -> StoreResult:
             manifest = verify_unit_dir(folder)
             if manifest["unit"] != folder.name:
                 raise ValueError(f"manifest unit {manifest['unit']} differs from the folder name")
-            outcome = store_unit(Path(data_dir), folder, manifest)
+            # Equal state: the archived unit is kept (it may come from a later collect-pc).
+            outcome = store_unit(Path(data_dir), folder, manifest, replace_equal=False)
         except (ValueError, KeyError, OSError) as exc:
             result.rejected.append(folder.name)
             print(f"rejected {folder.name} (left in place): {exc}")
@@ -86,6 +87,9 @@ def collect_pc(data_dir: Path, http: HttpClient, sources: dict[str, Source], set
             m = adapters.ADAPTERS[source.family].collect(unit, source, http, workdir, "daily", settings)
             outcome = store_unit(data_dir, workdir, verify_unit_dir(workdir))
             results.append((uid, m.state, outcome))
+        except (ValueError, KeyError, OSError) as exc:
+            # One failing source (file locked by an antivirus, odd answer) must not stop the others.
+            results.append((uid, "missing", f"error: {exc}"))
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
     return results

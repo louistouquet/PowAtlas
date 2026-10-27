@@ -89,9 +89,10 @@ def verify_unit_dir(workdir: Path) -> dict:
     return manifest
 
 
-def store_unit(data_dir: Path, workdir: Path, manifest: dict) -> str:
+def store_unit(data_dir: Path, workdir: Path, manifest: dict, replace_equal: bool = True) -> str:
     """Move a verified unit folder into the archive: "new", "replaced", or "kept" when the
-    archive already holds a better (or equally good) unit. Raises OSError if a move fails."""
+    archive already holds a better unit (or an equally good one, unless ``replace_equal``).
+    Raises OSError if a move fails."""
     unit = parse_unit_id(manifest["unit"])
     kind = "forecast" if "T" in manifest["unit"].split("__")[1] else "observation"
     target = target_dir(data_dir, unit.source, unit.ref, kind)
@@ -101,8 +102,9 @@ def store_unit(data_dir: Path, workdir: Path, manifest: dict) -> str:
     existing = None
     if existing_path.exists():
         existing = json.loads(existing_path.read_text(encoding="utf-8"))
-        worse = (_RANK[state], -len(manifest.get("missing", []))) < (
-            _RANK[existing["state"]], -len(existing.get("missing", [])))
+        rank = (_RANK[state], -len(manifest.get("missing", [])))
+        rank_existing = (_RANK[existing["state"]], -len(existing.get("missing", [])))
+        worse = rank < rank_existing or (rank == rank_existing and not replace_equal)
         outcome = "kept" if worse else "replaced"
     if outcome == "kept":
         return outcome

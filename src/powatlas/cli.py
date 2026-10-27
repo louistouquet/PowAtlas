@@ -171,7 +171,11 @@ def cmd_dates(args) -> int:
     from powatlas.pc import dates_in_payload
     from powatlas.sync import target_dir
 
-    unit = parse_unit_id(args.unit)
+    try:
+        unit = parse_unit_id(args.unit)
+    except ValueError as exc:
+        print(exc)
+        return 1
     kind = "forecast" if "T" in args.unit.split("__")[1] else "observation"
     folder = target_dir(Path(args.data), unit.source, unit.ref, kind)
     manifest = folder / f"{args.unit.replace('__', '_')}.json"

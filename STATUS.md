@@ -10,7 +10,7 @@
 |---|---|---|
 | Dépôt public, règles de travail, vérificateur de documentation | en place depuis SP0 | CI `docs` verte sur chaque PR |
 | Cadrage, décision 0005 et plan de SP1 | validés par le pilote le 2026-10-22 | [`docs/specs/2026-10-22-sp1-archive-design.md`](docs/specs/2026-10-22-sp1-archive-design.md), [`docs/plans/2026-10-22-sp1-archive.md`](docs/plans/2026-10-22-sp1-archive.md) |
-| Paquet Python `powatlas` (Python 3.12) et CI `python` | en place | 229 tests `unittest` ; CI `python` verte ; hook de démarrage des sessions cloud `scripts/session-start.sh` |
+| Paquet Python `powatlas` (Python 3.12) et CI `python` | en place | 232 tests `unittest` ; CI `python` verte ; hook de démarrage des sessions cloud `scripts/session-start.sh` |
 | Workflow `collect.yml` (deux déclenchements par tâche, une unité par artefact, artefacts de 30 jours, issue `collecte` en cas de perte) | en service | lancements manuels du 2026-10-22, toutes les unités `complete` |
 | ICON-D2, ICON-EU | collectés | run 2026-10-22 00 UTC : 6,9 Mo et 2,0 Mo |
 | AROME 0,025° | collecté | runs 00 UTC du 2026-10-15 au 2026-10-22 (rattrapage de 7 jours), 6,6 à 7,3 Mo par run |
