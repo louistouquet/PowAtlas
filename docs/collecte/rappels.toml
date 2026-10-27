@@ -26,9 +26,9 @@ due = 2028-03-10
 warn_days = 60
 
 [[deadline]]
-what = "Arpa Piemonte injoignable depuis le 2026-10-24 (unités missing, issue 50) : les unités du 24 et du 25 restent missing (pas de nouvel essai) ; si aucune copie complète d'Arpa n'arrive avant le 2026-10-31 (fenêtre de 7 jours), les rattraper par l'API historique meteoidro dès que sa table les couvre (fetch_latest, docs/collecte/suivi.md, § 5) ; garder l'issue 50 ouverte jusque-là et, si le serveur ne revient pas, demander au pilote d'ouvrir l'API depuis son PC"
-due = 2026-10-30
-warn_days = 6
+what = "Arpa Piemonte ne répond qu'au PC du pilote (dernière copie à la main : 2026-10-27, complete, dans data\\pc-collect) : tant que la tâche quotidienne du PC ne collecte pas Arpa, demander au pilote de refaire la copie depuis D:\\Codage\\PowAtlas, avec `.venv\\Scripts\\powatlas collect --unit arpa-piemonte__AAAAMMJJ --out data\\pc-collect` (date du jour), puis mettre à jour la date de dernière copie et reporter cette échéance à cette date plus 7 jours (docs/collecte/suivi.md, § 5)"
+due = 2026-11-03
+warn_days = 2
 
 [[waiting]]
 what = "Rattrapage automatique en cours (au 2026-10-25 à 15 h UTC : AIFS fini 245/245, IFS 186/452, aucun abandon affiché (les 2 runs du 2024-02-01 et 02 abandonnés avant la PR 52 ne le sont plus), GFS 179/906) : demander la sortie de `.venv\\Scripts\\powatlas progress --data data` (depuis D:\\Codage\\PowAtlas) ; retirer cette entrée quand les trois sources affichent `finished`, puis demander une fois `status` pour contrôle"

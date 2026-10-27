@@ -4,13 +4,13 @@ id: arpa-piemonte
 nom: Arpa Piemonte, réseau nivométrique (hauteur de neige et neige fraîche journalières)
 producteur: Arpa Piemonte (Agence régionale pour la protection de l'environnement du Piémont, Italie)
 licence: Creative Commons Attribution 4.0 International (CC BY 4.0), mention « Fonte: Arpa Piemonte - www.arpa.piemonte.it »
-acces: API REST publique sans compte ni clé : utility.arpa.piemonte.it/meteoidro/ (historique journalier, JSON paginé) et utility.arpa.piemonte.it/api_realtime/ (derniers jours) ; service cartographique ArcGIS avec jeton exigé ; injoignable depuis le 2026-10-24 (voir Limites)
+acces: API REST publique sans compte ni clé : utility.arpa.piemonte.it/meteoidro/ (historique journalier, JSON paginé) et utility.arpa.piemonte.it/api_realtime/ (derniers jours) ; service cartographique ArcGIS avec jeton exigé ; depuis le 2026-10-24, joignable seulement depuis le PC du pilote, pas depuis les réseaux de centres de données (voir Limites)
 quotas: non documentés au 2026-10-21 ; aucune limite rencontrée sur 26 pages de 1 000 enregistrements
 delai: temps réel : hauteur de neige validée automatiquement toutes les 20 minutes avec un retard d'environ une heure (producteur, service cartographique) ; journalier : dernier jour de la table nivo = 2026-06-30 le 2026-10-21 (hors saison, délai non mesurable)
 resolution: ponctuelle ; 75 stations nivométriques actives dans l'emprise (130 au total depuis 1983) ; hauteur de neige au sol (hs) et neige fraîche des 24 h (hn) journalières en cm
 conservation: stations depuis 1983-12-12 (première date de début) ; table journalière interrogeable sur toute la période (501 valeurs pour 1990-01-01 à 1990-01-10, 1 139 pour 2010-01-01 à 2010-01-10)
 statut: retenue
-verifie_le: 2026-10-25
+verifie_le: 2026-10-27
 ---
 
 # Arpa Piemonte, réseau nivométrique (hauteur de neige et neige fraîche journalières)
@@ -64,7 +64,7 @@ Chaque affirmation porte sa source et sa date de consultation (2026-10-21, ou 20
 ## Limites
 
 - Dernier jour de la table journalière : 2026-06-30 au 2026-10-21 ; le rythme de mise à jour de la table hors temps réel n'est pas documenté. Pour la vérité terrain, comparer `hn` avec la date d'émission de la prévision une fois la saison commencée.
-- Serveur injoignable depuis le 2026-10-24 vers 10 h UTC [vérifié] : `api_realtime` sans réponse TCP depuis GitHub Actions (le 24 à 19:52 UTC) ; `utility` et `www` sans réponse TLS depuis la session Claude, et HTTP 503 sans corps sur `www` depuis l'outil de lecture web (le 2026-10-25 à 14:50 UTC). Le 2026-10-25, seul cet accès a été revérifié, pas le reste de la fiche. `meteoidro`, sur le même hôte, est sans doute touché ; la cause probable est chez le producteur, sans exclure un filtrage des adresses de centres de données [hypothèse]. Unités du 24 et du 25 octobre `missing`, rattrapables par la fenêtre de 7 jours d'une copie faite jusqu'au 2026-10-30, sinon par `meteoidro`. Suivi : [`suivi.md`](../collecte/suivi.md#5-constats-en-cours) et [issue 50](https://github.com/louistouquet/PowAtlas/issues/50).
+- Accès refusé aux réseaux de centres de données depuis le 2026-10-24 vers 10 h UTC [hypothèse] : du 24 au 27, aucune réponse TCP depuis GitHub Actions et aucune réponse TLS depuis la session Claude ; le 25, HTTP 503 sans corps sur `www` depuis l'outil de lecture web [vérifié]. Le 2026-10-27, l'API répond depuis le PC du pilote (copie `complete`, sans `Last-Modified`) [vérifié par le pilote]. Une panne du producteur finie avant le 27 n'est pas exclue. La collecte doit passer par le PC. Le 2026-10-27, seul l'accès a été revérifié, pas le reste de la fiche. Suivi : [`suivi.md`](../collecte/suivi.md#5-constats-en-cours) et [issue 50](https://github.com/louistouquet/PowAtlas/issues/50).
 - Hors de l'emprise pour l'essentiel du Piémont (Alpes Pennines, Lépontines) : l'intérêt est pour les Alpes françaises du sud et du sud-est (Cuneese, vallée de Suse), et le Briançonnais en frontière.
 - Le nom du champ `campo_neve` n'est défini par aucune documentation du producteur au 2026-10-22 ; son sens (`S` = campo neve manuel SNT, `N` = station automatique SNA) est établi par recoupement documentaire et par les données (voir Contenu), sans contact avec Arpa Piemonte. Garder en vérité terrain les stations `S` (18 dans l'emprise) ; le décompte producteur (34 à 35 SNT) dépasse les 25 `S` actives de l'API : écart non expliqué. Le `hn` des stations `N` n'est pas reproductible par la simple différence de `hs` : origine non documentée.
 - `hn` peut ne pas coïncider avec la fenêtre 24 h des prévisions (8 h locale = 06 ou 07 UTC) : mêmes enjeux de fenêtre que Météo-France.
