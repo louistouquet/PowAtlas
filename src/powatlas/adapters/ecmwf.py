@@ -154,7 +154,7 @@ class EcmwfAdapter:
             fetched.append(Fetched(f"{url}.grib2#bytes={first}-{last}", r.last_modified, len(r.content), rejected=rejected))
 
 
-# On AWS, the 3- and 6-hourly 2 m temperature extremes of runs from 2025-04-15 (at the latest) to
+# On AWS, the 3- and 6-hourly 2 m temperature extremes of runs from 2025-02-26 (at the latest) to
 # 2026-02-01 (at least) carry GRIB2 tables version 34, which ecCodes 2.50 reads as generic time
 # extremes of 2t (max_2t 237167, min_2t 238167); runs of 2024-11-15, 2026-04-15 and 2026-10-26
 # carry tables 32 or 33, read as mx2t3 (228026). Section 4 is otherwise identical (checked

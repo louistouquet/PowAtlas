@@ -26,7 +26,11 @@ due = 2028-03-10
 warn_days = 60
 
 [[waiting]]
-what = "Arpa Piemonte collectée par la tâche du PC depuis la PR de `collect-pc` (2026-10-27) : demander au pilote, depuis D:\\Codage\\PowAtlas, `git pull`, puis `.venv\\Scripts\\powatlas store --from data\\pc-collect --data data`, `.venv\\Scripts\\powatlas dates --data data --unit arpa-piemonte__20261027` et `.venv\\Scripts\\powatlas collect-pc --data data` ; noter dans l'issue 50 les jours couverts par pie-neve (24 à 26 attendus), la fermer, mettre à jour docs/collecte/suivi.md § 5, puis retirer cette entrée"
+what = "Hugging Face : demander au pilote s'il a fait les étapes 1 à 4 de docs/collecte/hugging-face.md (organisation PowAtlas, jeux archive et scores, Trusted Publishers, jeton du PC dans .env) ; vérifier depuis la session que l'organisation et les deux jeux publics existent (https://huggingface.co/api/datasets/PowAtlas/archive), puis retirer cette entrée"
+since = 2026-10-27
+
+[[waiting]]
+what = "Rattrapage IFS après la PR 60 (extrêmes en tables GRIB2 34) : demander au pilote, depuis D:\\Codage\\PowAtlas et quand la tâche planifiée ne tourne pas, `git pull` puis `.venv\\Scripts\\powatlas backfill --source ifs-0p25 --data data --retry-given-up --max-hours 3`, puis la fin de `data\\pc-daily.log` ; vérifier que les runs de 2025-02 à 2026-02 passent `complete`, et que GFS avance (immobile à 179/906 depuis le 2026-10-25), puis retirer cette entrée"
 since = 2026-10-27
 
 [[waiting]]

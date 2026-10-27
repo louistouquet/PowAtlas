@@ -1,0 +1,66 @@
+# Hugging Face : mise en place par le pilote
+
+Guide du 2026-10-27. Architecture retenue par le pilote le 2026-10-27 pour SP2 et la suite du projet : Hugging Face au centre ([`NEXT.md`](../../NEXT.md), cadrage SP2 à venir).
+
+- `PowAtlas/archive` : l'archive publique, même arborescence que `D:\Codage\PowAtlas\data`. GitHub Actions y dépose chaque unité complète à la collecte ; le PC du pilote y envoie ce que lui seul collecte (rattrapage historique, GFS, Arpa Piemonte).
+- `PowAtlas/scores` : les paires prévision/observation et les tableaux de scores, calculés par GitHub Actions.
+- L'archive de référence reste sur le PC ([décision 0001](../decisions/0001-archive-sur-la-machine-du-pilote.md)) ; celle de Hugging Face en est la copie publique et la sauvegarde.
+
+Faits vérifiés le 2026-10-27 dans la documentation de Hugging Face :
+- stockage public gratuit « best-effort », à utiliser avec retenue au-delà de « quelques gigaoctets » ; au plus 100 fichiers par envoi conseillés ([Storage limits](https://huggingface.co/docs/hub/storage-limits)) ;
+- GitHub Actions peut écrire sans jeton stocké grâce aux « Trusted Publishers » : jeton d'une heure limité à un seul dépôt ([Trusted Publishers](https://huggingface.co/docs/hub/trusted-publishers)) ;
+- le nom `PowAtlas` était libre (ni utilisateur ni organisation, réponse 404 de l'API).
+
+Tout est gratuit : ne souscrire à aucune offre payante (PRO, Team, Enterprise). Ne jamais coller un jeton dans une session Claude, une issue ou un fichier du dépôt.
+
+## 1. Créer l'organisation `PowAtlas`
+
+1. Se connecter à huggingface.co avec le compte `LeTouq`.
+2. Ouvrir https://huggingface.co/organizations/new.
+3. Remplir :
+   - *Organization Username* : `PowAtlas` ;
+   - *Organization Full name* : `PowAtlas` ;
+   - type : le choix le plus proche de « communauté » ou « open source » ;
+   - site ou GitHub : `https://github.com/louistouquet/PowAtlas` si le formulaire le demande.
+4. Valider, en restant sur l'offre gratuite.
+
+## 2. Créer les deux jeux de données
+
+Pour chacun, ouvrir https://huggingface.co/new-dataset :
+
+| Champ | Premier | Second |
+|---|---|---|
+| *Owner* | `PowAtlas` | `PowAtlas` |
+| *Dataset name* | `archive` | `scores` |
+| *License* | `other` (licences des producteurs, détaillées par Claude dans la fiche du jeu) | `cc-by-4.0` |
+| *Visibility* | *Public* | *Public* |
+
+Claude écrira ensuite la description (fiche du jeu, `README.md`) par le code.
+
+## 3. Autoriser GitHub Actions (sans jeton)
+
+Sur chacun des deux jeux : page du jeu → *Settings* → *Trusted Publishers* → ajouter :
+
+| Champ | `PowAtlas/archive` | `PowAtlas/scores` |
+|---|---|---|
+| *Provider* | GitHub Actions | GitHub Actions |
+| `repository` | `louistouquet/PowAtlas` | `louistouquet/PowAtlas` |
+| `branch` | `main` | `main` |
+| `workflow` | `collect.yml` | `scores.yml` |
+
+`scores.yml` n'existe pas encore : il sera écrit en SP2, sous ce nom. Si la rubrique *Trusted Publishers* n'apparaît pas, le dire dans une session : le repli est un jeton à droits limités rangé dans les secrets GitHub.
+
+## 4. Jeton du PC (écriture sur `PowAtlas/archive` seulement)
+
+1. Ouvrir https://huggingface.co/settings/tokens → *Create new token* → onglet *Fine-grained*.
+2. *Token name* : `PowAtlas PC`.
+3. *Repositories permissions* : chercher et choisir `datasets/PowAtlas/archive`, cocher l'écriture sur le contenu de ce dépôt (*Write access to contents/settings of selected repos*), et rien d'autre (aucune case dans *User permissions* ni *Org permissions*).
+4. Créer, puis copier le jeton (`hf_...`) dans `D:\Codage\PowAtlas\.env` (ignoré par Git, jamais commité), sur une nouvelle ligne :
+
+   ```text
+   HF_TOKEN=hf_...
+   ```
+
+## 5. Contrôle
+
+Dire dans une session que les étapes 1 à 4 sont faites. Claude vérifie depuis la session, sans jeton, que l'organisation et les deux jeux publics existent. Le jeton du PC est testé par la première commande d'envoi du plan SP2.
