@@ -55,8 +55,9 @@ Codes de sortie de `sync` : 0 si tout va bien ; 1 si un artefact a été rejeté
 
 La tâche lance chaque jour le script [`scripts/pc-daily.ps1`](../../scripts/pc-daily.ps1) :
 1. `sync` ;
-2. une tranche d'au plus 3 heures du rattrapage historique de chaque source (§ 5) ;
-3. de ce fait, la mise à jour de GFS, qui n'est collecté que sur ce PC.
+2. `store`, qui range dans l'archive les copies faites à la main dans `data\pc-collect` (`powatlas collect --unit <unité> --out data\pc-collect`), puis `collect-pc`, qui collecte l'unité du jour des observations de la tâche `pc` du catalogue (Arpa Piemonte depuis le 2026-10-27 : elle ne répond plus aux réseaux de centres de données, [`suivi.md`](suivi.md#5-constats-en-cours), § 5) et la range comme `sync` ;
+3. une tranche d'au plus 3 heures du rattrapage historique de chaque source (§ 5) ;
+4. de ce fait, la mise à jour de GFS, qui n'est collecté que sur ce PC.
 
 Tout est écrit dans `data\pc-daily.log`. Le script vient du dépôt : un `git pull` le met à jour sans toucher à la tâche.
 
@@ -76,7 +77,7 @@ Register-ScheduledTask -TaskName "PowAtlas sync" -Action $a -Trigger $t -Setting
 
 Fonctionnement :
 - La tâche tourne chaque jour à midi. Si le PC était éteint à midi, elle tourne quelques minutes après son allumage suivant (`-StartWhenAvailable`), y compris sur batterie : allumé à 13 h, elle part vers 13 h ; allumé seulement le lendemain matin, elle part ce matin-là. Elle tourne donc chaque jour où le PC est allumé, à n'importe quelle heure.
-- Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub.
+- Un passage par semaine suffit : les artefacts restent 30 jours sur GitHub, et chaque copie d'Arpa Piemonte couvre les 7 derniers jours ; au-delà de 7 jours sans passage, des jours d'Arpa sont perdus.
 - `-ExecutionPolicy Bypass` ne vaut que pour ce lancement ; il ne change pas le réglage de Windows.
 - Constat du 2026-10-23 : malgré `-WindowStyle Hidden`, une fenêtre noire vide s'ouvre pendant la tâche (cause non établie ; hypothèse : le terminal par défaut des Windows récents). Elle se réduit, mais **ne doit pas être fermée**, sinon la tâche s'arrête ; tout reprend au lancement suivant.
 - Sans réseau, rien n'est lancé : la tâche attend le réseau, et le script attend jusqu'à 10 minutes que `github.com` réponde. Sinon, un rattrapage hors ligne gaspillerait les 3 tentatives de chaque unité.

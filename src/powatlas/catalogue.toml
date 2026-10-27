@@ -47,7 +47,8 @@ crons = ["50 6 * * *", "50 12 * * *"]
 [tasks.ecmwf]
 crons = ["50 8 * * *", "50 14 * * *"]
 
-# Sources collected only on the pilot's PC (powatlas backfill), never scheduled on Actions.
+# Sources collected only on the pilot's PC (powatlas backfill for forecasts, powatlas
+# collect-pc for observations), never scheduled on Actions.
 [tasks.pc]
 crons = []                      # not scheduled on Actions
 
@@ -268,10 +269,12 @@ urls = {}
 "imis-measurements-precipitation" = { rule = "per-station", stations = "imis-stations.json", no_data_status = [400, 404], url = "https://measurement-api.slf.ch/public/api/imis/station/{code}/measurements-precipitation?period_in_days=7", name = "imis-measurements-precipitation_{code}.json", nature = "observed (precipitation, 10 min sums, 7 days; only some stations: HTTP 400 or 404 otherwise)" }
 "study-plot-measurements" = { rule = "per-station", stations = "study-plot-stations.json", no_data_status = [404], url = "https://measurement-api.slf.ch/public/api/study-plot/station/{code}/measurements?period_in_days=7", name = "study-plot-measurements_{code}.json", nature = "observed (manual study plots: HN_1D, HNW_1D, 7 days)" }
 
+# Collected by the daily job of the pilot's PC (powatlas collect-pc): the producer stopped
+# answering data-centre networks on 2026-10-24 but answers the PC (docs/collecte/suivi.md, section 5).
 [sources.arpa-piemonte]
 family = "snapshot"
 kind = "observation"
-task = "observations"
+task = "pc"
 fiche = "docs/sources/arpa-piemonte.md"
 licence = "CC BY 4.0"
 attribution = "Fonte: Arpa Piemonte - www.arpa.piemonte.it (CC BY 4.0)"
