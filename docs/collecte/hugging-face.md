@@ -54,10 +54,13 @@ Sur chacun des deux jeux : page du jeu → *Settings* → *Trusted Publishers* �
 
 ## 4. Jeton du PC (écriture sur `PowAtlas/archive` seulement)
 
-1. Ouvrir https://huggingface.co/settings/tokens → *Create new token* → onglet *Fine-grained*.
+1. Ouvrir https://huggingface.co/settings/tokens → *Create new token*.
 2. *Token name* : `PowAtlas PC`.
-3. *Repositories permissions* : chercher et choisir `datasets/PowAtlas/archive`, cocher l'écriture sur le contenu de ce dépôt (*Write access to contents/settings of selected repos*), et rien d'autre (aucune case dans *User permissions* ni *Org permissions*).
-4. Créer, puis copier le jeton (`hf_...`) dans `D:\Codage\PowAtlas\.env` (ignoré par Git, jamais commité), sur une nouvelle ligne :
+3. Préréglage (constaté par le pilote le 2026-10-27 : *Read only*, *Write*, *Inference*, *CI/CD*, *Full Access*, *Custom*) : **Custom**. *Write* et *Full Access* donneraient l'écriture sur tous les dépôts du compte ; *Custom* est le jeton à droits limités (*fine-grained*) de la documentation.
+4. Dans les options de *Custom* :
+   - partie des dépôts (*Repositories*) : chercher et ajouter `PowAtlas/archive` (jeu de données), puis cocher pour ce dépôt la lecture et l'écriture du contenu (*Read access to contents…* et *Write access to contents/settings…*) ;
+   - **aucune autre case** : rien dans les parties utilisateur, organisation, inférence, collections, discussions, jobs, webhooks, etc.
+5. Créer, puis copier le jeton (`hf_...`) dans `D:\Codage\PowAtlas\.env` (ignoré par Git, jamais commité), sur une nouvelle ligne :
 
    ```text
    HF_TOKEN=hf_...
